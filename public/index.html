@@ -610,6 +610,19 @@
             return { x: point.x, y: point.y };
         }
 
+        // 計算兩點間距離（公里），用於過濾異常跳躍
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // 地球半徑（公里）
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        const MAX_DISTANCE_KM = 20; // 10分鐘內最大合理移動距離
+
         function drawShips() {
             if (!ctx || !canvas || frameHistory.length === 0) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -641,15 +654,29 @@
 
                 const color = getSpeedColor(sog);
 
-                // 繪製軌跡線（連接歷史位置）
+                // 繪製軌跡線（連接歷史位置，過濾異常跳躍）
                 if (track.length > 1) {
                     ctx.beginPath();
-                    const firstPixel = latLngToPixel(track[0][1], track[0][0]);
-                    ctx.moveTo(firstPixel.x, firstPixel.y);
+                    let isDrawing = false;
 
-                    for (let i = 1; i < track.length; i++) {
-                        const pixel = latLngToPixel(track[i][1], track[i][0]);
-                        ctx.lineTo(pixel.x, pixel.y);
+                    for (let i = 0; i < track.length; i++) {
+                        const [pLon, pLat] = track[i];
+                        const pixel = latLngToPixel(pLat, pLon);
+
+                        if (i === 0) {
+                            ctx.moveTo(pixel.x, pixel.y);
+                            isDrawing = true;
+                        } else {
+                            const [prevLon, prevLat] = track[i - 1];
+                            const dist = haversineDistance(prevLat, prevLon, pLat, pLon);
+
+                            if (dist <= MAX_DISTANCE_KM) {
+                                ctx.lineTo(pixel.x, pixel.y);
+                            } else {
+                                // 距離太遠，開始新的路徑段
+                                ctx.moveTo(pixel.x, pixel.y);
+                            }
+                        }
                     }
 
                     ctx.strokeStyle = color;
