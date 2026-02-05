@@ -1,0 +1,7 @@
+{
+  "$schema": "https://zeabur.com/schema.json",
+  "build": {
+    "type": "static",
+    "output_dir": "public"
+  }
+}
