@@ -106,23 +106,23 @@ class S3ShipReader:
             return None
 
 
-def aggregate_by_hour(
+def aggregate_by_interval(
     reader: S3ShipReader,
     files: List[str],
-    vessel_category: str = "all"
+    interval_minutes: int = 10
 ) -> Dict[str, List[Dict]]:
     """
-    按小時聚合船舶資料
+    按時間間隔聚合船舶資料（保留船舶類型供前端篩選）
 
     Args:
         reader: S3 讀取器
         files: S3 key 列表
-        vessel_category: 船舶類別過濾
+        interval_minutes: 聚合間隔（分鐘），10=原始解析度, 60=每小時
 
     Returns:
-        {hour_key: [ships]} 字典
+        {time_key: [ships]} 字典，每艘船只保留必要欄位
     """
-    hourly_data = defaultdict(list)
+    aggregated_data = defaultdict(list)
 
     for i, key in enumerate(files):
         if (i + 1) % 50 == 0:
@@ -132,23 +132,34 @@ def aggregate_by_hour(
         if not timestamp:
             continue
 
-        # 小時 key
-        hour_key = timestamp.strftime("%Y-%m-%d %H:00")
+        # 根據間隔計算 time_key
+        if interval_minutes >= 60:
+            # 每小時
+            time_key = timestamp.strftime("%Y-%m-%d %H:00")
+        else:
+            # 對齊到指定間隔
+            aligned_minute = (timestamp.minute // interval_minutes) * interval_minutes
+            time_key = timestamp.strftime(f"%Y-%m-%d %H:{aligned_minute:02d}")
 
         data = reader.get_file(key)
         if not data:
             continue
 
-        ships = data.get("ships", [])
+        ships = data.get("data", [])
 
-        # 過濾船舶類別
-        if vessel_category != "all":
-            ships = filter_by_category(ships, vessel_category)
+        # 只保留必要欄位以減少檔案大小
+        minimal_ships = []
+        for ship in ships:
+            lon = ship.get("lon")
+            lat = ship.get("lat")
+            vtype = ship.get("vessel_type", 0)
+            if lon is not None and lat is not None:
+                minimal_ships.append([lon, lat, vtype])
 
-        # 收集該小時的船舶資料（取最後一筆作為該小時的代表）
-        hourly_data[hour_key] = ships
+        # 保留該時間點的資料（同一間隔內取最後一筆）
+        aggregated_data[time_key] = minimal_ships
 
-    return hourly_data
+    return aggregated_data
 
 
 def main():
@@ -156,14 +167,10 @@ def main():
     parser.add_argument("--days", type=int, default=7, help="處理天數（預設 7 天）")
     parser.add_argument("--start-date", help="起始日期 (YYYY-MM-DD)")
     parser.add_argument("--end-date", help="結束日期 (YYYY-MM-DD)")
-    parser.add_argument(
-        "--vessel-type",
-        default="all",
-        choices=["all"] + list(VESSEL_CATEGORIES.keys()),
-        help="船舶類別過濾"
-    )
     parser.add_argument("--output", default="../public/ship_density_data.json", help="輸出檔案路徑")
-    parser.add_argument("--max-frames", type=int, default=168, help="最大幀數（預設 168）")
+    parser.add_argument("--max-frames", type=int, default=1008, help="最大幀數（預設 1008，7天x144幀/天）")
+    parser.add_argument("--max-files", type=int, default=0, help="最大檔案數（0=不限制，用於測試）")
+    parser.add_argument("--interval", type=int, default=10, choices=[10, 30, 60], help="時間間隔（分鐘）：10/30/60，預設 10")
 
     args = parser.parse_args()
 
@@ -177,7 +184,7 @@ def main():
 
     print(f"=== 船舶密度資料更新 ===")
     print(f"日期範圍：{start_date.strftime('%Y-%m-%d')} ~ {end_date.strftime('%Y-%m-%d')}")
-    print(f"船舶類別：{get_category_name(args.vessel_type)}")
+    print(f"時間間隔：{args.interval} 分鐘")
     print(f"最大幀數：{args.max_frames}")
 
     # 初始化
@@ -195,40 +202,41 @@ def main():
     files = reader.list_files_in_range(start_date, end_date)
     print(f"  找到 {len(files)} 個檔案")
 
+    # 限制檔案數（用於測試）
+    if args.max_files > 0 and len(files) > args.max_files:
+        files = files[:args.max_files]
+        print(f"  限制為前 {args.max_files} 個檔案（測試模式）")
+
     if not files:
         print("錯誤：沒有找到任何資料檔案")
         sys.exit(1)
 
-    # 按小時聚合
+    # 按時間間隔聚合
     print(f"\n正在聚合資料...")
-    hourly_data = aggregate_by_hour(reader, files, args.vessel_type)
-    print(f"  產生 {len(hourly_data)} 個小時的資料")
+    time_data = aggregate_by_interval(reader, files, args.interval)
+    print(f"  產生 {len(time_data)} 個時間點的資料")
 
     # 限制幀數
-    hour_keys = sorted(hourly_data.keys())
-    if len(hour_keys) > args.max_frames:
-        hour_keys = hour_keys[-args.max_frames:]
+    time_keys = sorted(time_data.keys())
+    if len(time_keys) > args.max_frames:
+        time_keys = time_keys[-args.max_frames:]
         print(f"  限制為最近 {args.max_frames} 幀")
 
-    # 計算密度格網
-    print(f"\n正在計算密度格網...")
+    # 組合幀資料（保存原始船舶位置供前端即時篩選）
+    print(f"\n正在組合資料...")
     frames = []
+    total_ships = 0
 
-    for i, hour_key in enumerate(hour_keys):
-        if (i + 1) % 24 == 0:
-            print(f"  進度：{i + 1}/{len(hour_keys)}")
+    for i, time_key in enumerate(time_keys):
+        if (i + 1) % 50 == 0:
+            print(f"  進度：{i + 1}/{len(time_keys)}")
 
-        ships = hourly_data[hour_key]
-        density_grid = grid.calculate_density(ships)
-        stats = grid.get_stats(density_grid, len(ships))
-
-        # 壓縮格網資料
-        compressed_data = grid.compress_grid(density_grid)
+        ships = time_data[time_key]
+        total_ships += len(ships)
 
         frames.append({
-            "time": hour_key,
-            "stats": stats,
-            "data": compressed_data
+            "time": time_key,
+            "ships": ships  # [lon, lat, vessel_type] 陣列
         })
 
     # 組合輸出
@@ -236,12 +244,11 @@ def main():
         "metadata": {
             "geo_info": geo_info,
             "total_frames": len(frames),
-            "vessel_filter": args.vessel_type,
-            "vessel_filter_name": get_category_name(args.vessel_type),
             "generated_at": datetime.now().isoformat(),
+            "interval_minutes": args.interval,
             "date_range": {
-                "start": hour_keys[0] if hour_keys else None,
-                "end": hour_keys[-1] if hour_keys else None
+                "start": time_keys[0] if time_keys else None,
+                "end": time_keys[-1] if time_keys else None
             }
         },
         "frames": frames
@@ -265,7 +272,6 @@ def main():
 
     if frames:
         print(f"時間範圍：{frames[0]['time']} ~ {frames[-1]['time']}")
-        total_ships = sum(f["stats"]["ships_in_range"] for f in frames)
         print(f"總船次：{total_ships:,}")
 
 

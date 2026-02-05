@@ -106,7 +106,7 @@ def filter_by_category(ships: list, category: str) -> list:
         raise ValueError(f"未知類別: {category}，可用類別: {list(VESSEL_CATEGORIES.keys())}")
 
     valid_types = set(VESSEL_CATEGORIES[category])
-    return [ship for ship in ships if ship.get("vesselType", 0) in valid_types]
+    return [ship for ship in ships if ship.get("vessel_type", 0) in valid_types]
 
 
 def get_category_name(category: str) -> str:
