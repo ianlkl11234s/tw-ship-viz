@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台灣海域船舶軌跡動畫</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            overflow: hidden;
+        }
+
+        #map {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #canvas-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 500;
+            pointer-events: none;
+        }
+
+        /* 左上方狀態面板 */
+        .status-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .status-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .time-display {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0077b6;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 8px;
+        }
+
+        .stats-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .stats-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        /* 底部控制面板 */
+        .timeline-panel {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 16px 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-width: 500px;
+        }
+
+        .play-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #0077b6, #00a8e8);
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .timeline-container {
+            flex: 1;
+        }
+
+        .timeline {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .timeline::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #0077b6;
+            cursor: pointer;
+        }
+
+        .speed-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .speed-btn {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background: transparent;
+            color: #666;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .speed-btn:hover, .speed-btn.active {
+            background: rgba(0, 119, 182, 0.1);
+            border-color: #0077b6;
+            color: #0077b6;
+        }
+
+        /* 圖例 */
+        .legend {
+            position: fixed;
+            bottom: 110px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .legend-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .legend-color {
+            width: 22px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        /* 載入中 */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 119, 182, 0.2);
+            border-top-color: #0077b6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #666;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 導航 */
+        .nav-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #0077b6;
+            font-size: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-link:hover {
+            background: #0077b6;
+            color: #fff;
+        }
+
+        @media (max-width: 700px) {
+            .timeline-panel {
+                min-width: auto;
+                width: calc(100% - 20px);
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">載入船舶軌跡資料中...</div>
+    </div>
+
+    <div id="map"></div>
+    <canvas id="canvas-overlay"></canvas>
+
+    <a href="index.html" class="nav-link">← 密度熱區圖</a>
+
+    <div class="status-panel">
+        <div class="status-title">🚢 船舶軌跡動畫</div>
+        <div class="time-display" id="timeDisplay">--</div>
+        <div class="stats-row">
+            <div class="stat-item">
+                <span>移動中船舶</span>
+                <span class="stats-value" id="shipCount">--</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="timeline-panel">
+        <button class="play-btn" id="playBtn">▶</button>
+        <div class="timeline-container">
+            <input type="range" class="timeline" id="timeline" min="0" max="100" value="0">
+        </div>
+        <div class="speed-controls">
+            <button class="speed-btn active" data-speed="1">1x</button>
+            <button class="speed-btn" data-speed="2">2x</button>
+            <button class="speed-btn" data-speed="4">4x</button>
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-title">船舶速度（節）</div>
+        <div class="legend-items">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #d00000;"></div>
+                <span>> 15（高速）</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #f48c06;"></div>
+                <span>10 - 15</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #0096c7;"></div>
+                <span>5 - 10</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #48cae4;"></div>
+                <span>< 5（低速）</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 全域變數
+        let map;
+        let canvas, ctx;
+        let trajectoryData = null;
+        let currentFrame = 0;
+        let isPlaying = false;
+        let playSpeed = 1;
+        let playInterval = null;
+        let animationId = null;
+
+        // 粒子系統
+        let particles = [];
+        const PARTICLE_COUNT = 3000;
+        const TRAIL_LENGTH = 8;
+
+        // DOM
+        const loadingEl = document.getElementById('loading');
+        const timeDisplayEl = document.getElementById('timeDisplay');
+        const shipCountEl = document.getElementById('shipCount');
+        const playBtnEl = document.getElementById('playBtn');
+        const timelineEl = document.getElementById('timeline');
+        const speedBtns = document.querySelectorAll('.speed-btn');
+
+        // 速度對應顏色
+        function getSpeedColor(sog) {
+            if (sog > 15) return '#d00000';
+            if (sog > 10) return '#f48c06';
+            if (sog > 5) return '#0096c7';
+            return '#48cae4';
+        }
+
+        // 初始化地圖
+        function initMap() {
+            map = L.map('map', {
+                center: [24.5, 121.5],
+                zoom: 7,
+                minZoom: 5,
+                maxZoom: 12,
+                zoomControl: false
+            });
+
+            L.control.zoom({ position: 'topright' }).addTo(map);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                subdomains: 'abcd'
+            }).addTo(map);
+
+            // 監聽地圖變化
+            map.on('move zoom', updateCanvas);
+        }
+
+        // 初始化 Canvas
+        function initCanvas() {
+            canvas = document.getElementById('canvas-overlay');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        // 經緯度轉畫素
+        function latLngToPixel(lat, lng) {
+            const point = map.latLngToContainerPoint([lat, lng]);
+            return { x: point.x, y: point.y };
+        }
+
+        // 初始化粒子
+        function initParticles(ships) {
+            particles = [];
+
+            if (!ships || ships.length === 0) return;
+
+            // 為每艘船創建多個粒子（形成尾跡）
+            const particlesPerShip = Math.max(1, Math.floor(PARTICLE_COUNT / ships.length));
+
+            for (const ship of ships) {
+                const [lon, lat, sog, cog, vtype] = ship;
+
+                for (let i = 0; i < particlesPerShip && particles.length < PARTICLE_COUNT; i++) {
+                    particles.push({
+                        lon,
+                        lat,
+                        sog,
+                        cog,
+                        color: getSpeedColor(sog),
+                        age: Math.random() * TRAIL_LENGTH,
+                        maxAge: TRAIL_LENGTH
+                    });
+                }
+            }
+        }
+
+        // 更新粒子位置
+        function updateParticles() {
+            const bounds = map.getBounds();
+
+            for (const p of particles) {
+                // 根據航向和速度移動
+                const speedFactor = p.sog * 0.0001;  // 調整移動速度
+                const rad = (p.cog - 90) * Math.PI / 180;  // 轉換為弧度
+
+                p.lon += Math.cos(rad) * speedFactor;
+                p.lat -= Math.sin(rad) * speedFactor;
+                p.age += 0.3;
+
+                // 超過壽命或出界則重置
+                if (p.age >= p.maxAge ||
+                    p.lon < bounds.getWest() || p.lon > bounds.getEast() ||
+                    p.lat < bounds.getSouth() || p.lat > bounds.getNorth()) {
+                    resetParticle(p);
+                }
+            }
+        }
+
+        // 重置粒子到隨機船舶位置
+        function resetParticle(p) {
+            if (!trajectoryData || currentFrame >= trajectoryData.frames.length) return;
+
+            const ships = trajectoryData.frames[currentFrame].ships;
+            if (ships.length === 0) return;
+
+            const ship = ships[Math.floor(Math.random() * ships.length)];
+            p.lon = ship[0];
+            p.lat = ship[1];
+            p.sog = ship[2];
+            p.cog = ship[3];
+            p.color = getSpeedColor(p.sog);
+            p.age = 0;
+        }
+
+        // 繪製粒子
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (const p of particles) {
+                const pos = latLngToPixel(p.lat, p.lon);
+
+                // 計算透明度（根據年齡漸隱）
+                const alpha = 1 - (p.age / p.maxAge);
+                if (alpha <= 0) continue;
+
+                // 繪製粒子（小圓點）
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = alpha * 0.8;
+                ctx.fill();
+            }
+
+            ctx.globalAlpha = 1;
+        }
+
+        // Canvas 更新
+        function updateCanvas() {
+            drawParticles();
+        }
+
+        // 動畫循環
+        function animate() {
+            updateParticles();
+            drawParticles();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // 渲染幀
+        function renderFrame(frameIndex) {
+            if (!trajectoryData || frameIndex < 0 || frameIndex >= trajectoryData.frames.length) {
+                return;
+            }
+
+            const frame = trajectoryData.frames[frameIndex];
+
+            timeDisplayEl.textContent = frame.time;
+            shipCountEl.textContent = frame.ships.length.toLocaleString();
+            timelineEl.value = frameIndex;
+
+            // 重新初始化粒子
+            initParticles(frame.ships);
+
+            currentFrame = frameIndex;
+        }
+
+        // 播放控制
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                startPlay();
+            }
+        }
+
+        function startPlay() {
+            isPlaying = true;
+            playBtnEl.textContent = '⏸';
+
+            // 開始動畫
+            if (!animationId) {
+                animate();
+            }
+
+            const interval = 2000 / playSpeed;  // 每 2 秒切換一幀
+            playInterval = setInterval(() => {
+                let nextFrame = currentFrame + 1;
+                if (nextFrame >= trajectoryData.frames.length) {
+                    nextFrame = 0;
+                }
+                renderFrame(nextFrame);
+            }, interval);
+        }
+
+        function stopPlay() {
+            isPlaying = false;
+            playBtnEl.textContent = '▶';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function setSpeed(speed) {
+            playSpeed = speed;
+            speedBtns.forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.speed) === speed);
+            });
+
+            if (isPlaying) {
+                stopPlay();
+                startPlay();
+            }
+        }
+
+        // 事件綁定
+        function setupEventListeners() {
+            playBtnEl.addEventListener('click', togglePlay);
+
+            timelineEl.addEventListener('input', (e) => {
+                renderFrame(parseInt(e.target.value));
+            });
+
+            speedBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setSpeed(parseInt(btn.dataset.speed));
+                });
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    togglePlay();
+                } else if (e.code === 'ArrowLeft') {
+                    stopPlay();
+                    renderFrame(Math.max(0, currentFrame - 1));
+                } else if (e.code === 'ArrowRight') {
+                    stopPlay();
+                    renderFrame(Math.min(trajectoryData.frames.length - 1, currentFrame + 1));
+                }
+            });
+        }
+
+        // 載入資料
+        async function loadData() {
+            try {
+                const response = await fetch('ship_trajectory_data.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                trajectoryData = await response.json();
+
+                timelineEl.max = trajectoryData.frames.length - 1;
+
+                loadingEl.style.display = 'none';
+
+                renderFrame(0);
+                startPlay();
+
+            } catch (error) {
+                console.error('載入資料失敗:', error);
+                loadingEl.querySelector('.loading-text').textContent =
+                    '載入資料失敗，請先執行 python3 update_trajectory.py';
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            initCanvas();
+            setupEventListeners();
+            loadData();
+        });
+    </script>
+</body>
+</html>
