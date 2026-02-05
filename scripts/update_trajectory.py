@@ -88,24 +88,24 @@ class S3ShipReader:
             return None
 
 
-def process_ships(ships: List[Dict], bounds: Dict) -> List[List]:
+def process_ships(ships: List[Dict], bounds: Dict) -> Dict[str, List]:
     """
-    處理船舶資料，只保留必要欄位
+    處理船舶資料，以 MMSI 為 key 組織
 
     Returns:
-        [[lon, lat, sog, cog, vessel_type], ...]
+        {mmsi: [lon, lat, sog, cog], ...}
     """
-    result = []
+    result = {}
 
     for ship in ships:
+        mmsi = ship.get("mmsi")
         lon = ship.get("lon")
         lat = ship.get("lat")
         sog = ship.get("sog")  # 速度（節）
         cog = ship.get("cog")  # 航向（度）
-        vtype = ship.get("vessel_type", 0)
 
         # 跳過無效資料
-        if lon is None or lat is None:
+        if mmsi is None or lon is None or lat is None:
             continue
         if sog is None or cog is None:
             continue
@@ -120,13 +120,12 @@ def process_ships(ships: List[Dict], bounds: Dict) -> List[List]:
         if sog < 0.5:
             continue
 
-        result.append([
+        result[str(mmsi)] = [
             round(lon, 4),
             round(lat, 4),
             round(sog, 1),
-            round(cog, 1),
-            vtype
-        ])
+            round(cog, 1)
+        ]
 
     return result
 

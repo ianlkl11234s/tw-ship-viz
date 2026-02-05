@@ -437,10 +437,10 @@
     <div class="legend" id="trajectoryLegend" style="display:none">
         <div class="legend-title">船舶速度（節）</div>
         <div class="legend-items">
-            <div class="legend-item"><div class="legend-color line" style="background:#d00000"></div><span>> 15（高速）</span></div>
-            <div class="legend-item"><div class="legend-color line" style="background:#f48c06"></div><span>10-15</span></div>
-            <div class="legend-item"><div class="legend-color line" style="background:#0096c7"></div><span>5-10</span></div>
-            <div class="legend-item"><div class="legend-color line" style="background:#48cae4"></div><span>< 5（低速）</span></div>
+            <div class="legend-item"><div class="legend-color line" style="background:#c41d3c"></div><span>> 15（高速）</span></div>
+            <div class="legend-item"><div class="legend-color line" style="background:#e85d04"></div><span>10-15</span></div>
+            <div class="legend-item"><div class="legend-color line" style="background:#7b2cbf"></div><span>5-10</span></div>
+            <div class="legend-item"><div class="legend-color line" style="background:#1d4ed8"></div><span>< 5（低速）</span></div>
         </div>
     </div>
 
@@ -594,17 +594,15 @@
         }
 
         // ==================== 軌跡模式 ====================
-        const TRAIL_FRAMES = 3;  // 顯示過去幾幀
-        let frameHistory = [];   // 存放歷史幀資料
+        const TRAIL_FRAMES = 4;  // 顯示過去幾幀的軌跡
+        let frameHistory = [];   // 存放歷史幀資料 [{mmsi: [lon,lat,sog,cog]}, ...]
 
-        // 速度漸變色彩（平滑漸變）
+        // 速度漸變色彩（深色系，易於辨識）
         function getSpeedColor(sog) {
-            // 速度範圍 0-20 節，映射到色相
-            const maxSpeed = 20;
-            const ratio = Math.min(sog / maxSpeed, 1);
-            // 從青色(180°) 漸變到紅色(0°)
-            const hue = 180 - ratio * 180;
-            return `hsl(${hue}, 85%, 50%)`;
+            if (sog > 15) return '#c41d3c';  // 深紅（高速）
+            if (sog > 10) return '#e85d04';  // 橘色
+            if (sog > 5)  return '#7b2cbf';  // 紫色（中速）
+            return '#1d4ed8';                 // 深藍（低速）
         }
 
         function latLngToPixel(lat, lng) {
@@ -613,53 +611,62 @@
         }
 
         function drawShips() {
-            if (!ctx || !canvas) return;
+            if (!ctx || !canvas || frameHistory.length === 0) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const bounds = map.getBounds();
-            const zoom = map.getZoom();
-            // 線段長度根據縮放等級調整
-            const baseLength = Math.max(8, zoom * 2);
+            const currentShips = frameHistory[frameHistory.length - 1];
 
-            // 從舊到新繪製歷史幀（越舊越淡）
+            // 收集每艘船的歷史軌跡
+            const shipTracks = {};  // {mmsi: [[lon,lat,sog,cog], ...]}
+
             for (let i = 0; i < frameHistory.length; i++) {
                 const ships = frameHistory[i];
-                const age = frameHistory.length - 1 - i;  // 0=最新, 1=上一幀...
-                const alpha = age === 0 ? 0.9 : 0.15 / age;  // 當前幀較亮，歷史幀很淡
-
-                for (const ship of ships) {
-                    const [lon, lat, sog, cog] = ship;
-
-                    // 邊界檢查
-                    if (lon < bounds.getWest() || lon > bounds.getEast() ||
-                        lat < bounds.getSouth() || lat > bounds.getNorth()) continue;
-
-                    const pos = latLngToPixel(lat, lon);
-                    const rad = (cog - 90) * Math.PI / 180;
-                    // 線段長度依速度調整
-                    const length = baseLength * (0.5 + sog / 15);
-
-                    const endX = pos.x + Math.cos(rad) * length;
-                    const endY = pos.y + Math.sin(rad) * length;
-
-                    ctx.beginPath();
-                    ctx.moveTo(pos.x, pos.y);
-                    ctx.lineTo(endX, endY);
-                    ctx.strokeStyle = getSpeedColor(sog);
-                    ctx.lineWidth = age === 0 ? 2 : 1;
-                    ctx.globalAlpha = alpha;
-                    ctx.lineCap = 'round';
-                    ctx.stroke();
-
-                    // 當前幀加上船頭圓點
-                    if (age === 0) {
-                        ctx.beginPath();
-                        ctx.arc(endX, endY, 2, 0, Math.PI * 2);
-                        ctx.fillStyle = getSpeedColor(sog);
-                        ctx.globalAlpha = 0.9;
-                        ctx.fill();
-                    }
+                for (const [mmsi, data] of Object.entries(ships)) {
+                    if (!shipTracks[mmsi]) shipTracks[mmsi] = [];
+                    shipTracks[mmsi].push(data);
                 }
+            }
+
+            // 繪製每艘船的軌跡
+            for (const [mmsi, track] of Object.entries(shipTracks)) {
+                if (track.length < 1) continue;
+
+                const lastPos = track[track.length - 1];
+                const [lon, lat, sog, cog] = lastPos;
+
+                // 邊界檢查（只檢查最新位置）
+                if (lon < bounds.getWest() || lon > bounds.getEast() ||
+                    lat < bounds.getSouth() || lat > bounds.getNorth()) continue;
+
+                const color = getSpeedColor(sog);
+
+                // 繪製軌跡線（連接歷史位置）
+                if (track.length > 1) {
+                    ctx.beginPath();
+                    const firstPixel = latLngToPixel(track[0][1], track[0][0]);
+                    ctx.moveTo(firstPixel.x, firstPixel.y);
+
+                    for (let i = 1; i < track.length; i++) {
+                        const pixel = latLngToPixel(track[i][1], track[i][0]);
+                        ctx.lineTo(pixel.x, pixel.y);
+                    }
+
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.6;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                }
+
+                // 繪製船頭（當前位置）
+                const headPixel = latLngToPixel(lat, lon);
+                ctx.beginPath();
+                ctx.arc(headPixel.x, headPixel.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.globalAlpha = 0.95;
+                ctx.fill();
             }
             ctx.globalAlpha = 1;
         }
@@ -676,7 +683,9 @@
 
             const frame = trajectoryData.frames[frameIndex];
             timeDisplayEl.textContent = frame.time;
-            shipCountEl.textContent = frame.ships.length.toLocaleString();
+            // ships 現在是 object {mmsi: [lon,lat,sog,cog]}
+            const shipCount = typeof frame.ships === 'object' ? Object.keys(frame.ships).length : frame.ships.length;
+            shipCountEl.textContent = shipCount.toLocaleString();
             timelineEl.value = frameIndex;
 
             updateFrameHistory(frame.ships);
