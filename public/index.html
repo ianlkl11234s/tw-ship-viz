@@ -461,13 +461,9 @@
         let isPlaying = false;
         let playSpeed = 1;
         let playInterval = null;
-        let animationId = null;
         let gridLayer = null;
-        let particles = [];
 
         const GRID_SCALE = 2;
-        const PARTICLE_COUNT = 2500;
-        const TRAIL_LENGTH = 8;
 
         const VESSEL_CATEGORIES = {
             all: null,
@@ -598,11 +594,17 @@
         }
 
         // ==================== 軌跡模式 ====================
+        const TRAIL_FRAMES = 3;  // 顯示過去幾幀
+        let frameHistory = [];   // 存放歷史幀資料
+
+        // 速度漸變色彩（平滑漸變）
         function getSpeedColor(sog) {
-            if (sog > 15) return '#d00000';
-            if (sog > 10) return '#f48c06';
-            if (sog > 5) return '#0096c7';
-            return '#48cae4';
+            // 速度範圍 0-20 節，映射到色相
+            const maxSpeed = 20;
+            const ratio = Math.min(sog / maxSpeed, 1);
+            // 從青色(180°) 漸變到紅色(0°)
+            const hue = 180 - ratio * 180;
+            return `hsl(${hue}, 85%, 50%)`;
         }
 
         function latLngToPixel(lat, lng) {
@@ -610,85 +612,64 @@
             return { x: point.x, y: point.y };
         }
 
-        function initParticles(ships) {
-            particles = [];
-            if (!ships || ships.length === 0) { console.warn('No ships for particles'); return; }
-            console.log('Initializing particles from', ships.length, 'ships');
-
-            const particlesPerShip = Math.max(1, Math.floor(PARTICLE_COUNT / ships.length));
-            for (const ship of ships) {
-                const [lon, lat, sog, cog] = ship;
-                for (let i = 0; i < particlesPerShip && particles.length < PARTICLE_COUNT; i++) {
-                    particles.push({
-                        lon, lat, sog, cog,
-                        color: getSpeedColor(sog),
-                        age: Math.random() * TRAIL_LENGTH,
-                        maxAge: TRAIL_LENGTH
-                    });
-                }
-            }
-            console.log('Created', particles.length, 'particles');
-        }
-
-        function updateParticles() {
-            const bounds = map.getBounds();
-            for (const p of particles) {
-                const speedFactor = p.sog * 0.0001;
-                const rad = (p.cog - 90) * Math.PI / 180;
-                p.lon += Math.cos(rad) * speedFactor;
-                p.lat -= Math.sin(rad) * speedFactor;
-                p.age += 0.3;
-
-                if (p.age >= p.maxAge ||
-                    p.lon < bounds.getWest() || p.lon > bounds.getEast() ||
-                    p.lat < bounds.getSouth() || p.lat > bounds.getNorth()) {
-                    resetParticle(p);
-                }
-            }
-        }
-
-        function resetParticle(p) {
-            if (!trajectoryData || currentFrame >= trajectoryData.frames.length) return;
-            const ships = trajectoryData.frames[currentFrame].ships;
-            if (ships.length === 0) return;
-            const ship = ships[Math.floor(Math.random() * ships.length)];
-            p.lon = ship[0]; p.lat = ship[1]; p.sog = ship[2]; p.cog = ship[3];
-            p.color = getSpeedColor(p.sog); p.age = 0;
-        }
-
-        let drawCount = 0;
-        function drawParticles() {
-            if (!ctx || !canvas) { console.error('Canvas not ready'); return; }
+        function drawShips() {
+            if (!ctx || !canvas) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (particles.length === 0) { console.warn('No particles'); return; }
-            // Debug: log once every 60 frames
-            if (drawCount++ % 60 === 0) {
-                const p0 = particles[0];
-                const pos0 = latLngToPixel(p0.lat, p0.lon);
-                console.log('Draw debug - Canvas:', canvas.width, 'x', canvas.height,
-                    'Sample particle pos:', pos0.x.toFixed(0), pos0.y.toFixed(0),
-                    'Display:', canvasEl.style.display);
-            }
-            for (const p of particles) {
-                const pos = latLngToPixel(p.lat, p.lon);
-                const alpha = 1 - (p.age / p.maxAge);
-                if (alpha <= 0) continue;
-                ctx.beginPath();
-                ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = Math.max(0.3, alpha * 0.9);
-                ctx.fill();
+
+            const bounds = map.getBounds();
+            const zoom = map.getZoom();
+            // 線段長度根據縮放等級調整
+            const baseLength = Math.max(8, zoom * 2);
+
+            // 從舊到新繪製歷史幀（越舊越淡）
+            for (let i = 0; i < frameHistory.length; i++) {
+                const ships = frameHistory[i];
+                const age = frameHistory.length - 1 - i;  // 0=最新, 1=上一幀...
+                const alpha = age === 0 ? 0.9 : 0.15 / age;  // 當前幀較亮，歷史幀很淡
+
+                for (const ship of ships) {
+                    const [lon, lat, sog, cog] = ship;
+
+                    // 邊界檢查
+                    if (lon < bounds.getWest() || lon > bounds.getEast() ||
+                        lat < bounds.getSouth() || lat > bounds.getNorth()) continue;
+
+                    const pos = latLngToPixel(lat, lon);
+                    const rad = (cog - 90) * Math.PI / 180;
+                    // 線段長度依速度調整
+                    const length = baseLength * (0.5 + sog / 15);
+
+                    const endX = pos.x + Math.cos(rad) * length;
+                    const endY = pos.y + Math.sin(rad) * length;
+
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                    ctx.lineTo(endX, endY);
+                    ctx.strokeStyle = getSpeedColor(sog);
+                    ctx.lineWidth = age === 0 ? 2 : 1;
+                    ctx.globalAlpha = alpha;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+
+                    // 當前幀加上船頭圓點
+                    if (age === 0) {
+                        ctx.beginPath();
+                        ctx.arc(endX, endY, 2, 0, Math.PI * 2);
+                        ctx.fillStyle = getSpeedColor(sog);
+                        ctx.globalAlpha = 0.9;
+                        ctx.fill();
+                    }
+                }
             }
             ctx.globalAlpha = 1;
         }
 
-        function animateTrajectory() {
-            updateParticles();
-            drawParticles();
-            animationId = requestAnimationFrame(animateTrajectory);
+        function updateFrameHistory(ships) {
+            frameHistory.push(ships);
+            if (frameHistory.length > TRAIL_FRAMES + 1) {
+                frameHistory.shift();
+            }
         }
-        // Debug: expose to window for testing
-        window.debugParticles = () => console.log('Particles:', particles.length, 'AnimationId:', animationId);
 
         function renderTrajectoryFrame(frameIndex) {
             if (!trajectoryData || frameIndex < 0 || frameIndex >= trajectoryData.frames.length) return;
@@ -698,7 +679,8 @@
             shipCountEl.textContent = frame.ships.length.toLocaleString();
             timelineEl.value = frameIndex;
 
-            initParticles(frame.ships);
+            updateFrameHistory(frame.ships);
+            drawShips();
             currentFrame = frameIndex;
         }
 
@@ -721,11 +703,6 @@
                 trajectoryLegendEl.style.display = 'none';
                 canvasEl.style.display = 'none';
                 gridLayer.clearLayers();
-
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                    animationId = null;
-                }
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 if (densityData) {
@@ -742,6 +719,7 @@
                 trajectoryLegendEl.style.display = '';
                 canvasEl.style.display = 'block';
                 gridLayer.clearLayers();
+                frameHistory = [];  // 清空歷史
 
                 if (trajectoryData) {
                     timelineEl.max = trajectoryData.frames.length - 1;
@@ -761,10 +739,6 @@
         function startPlay() {
             isPlaying = true;
             playBtnEl.textContent = '⏸';
-
-            if (currentMode === 'trajectory' && !animationId) {
-                animateTrajectory();
-            }
 
             const data = currentMode === 'density' ? densityData : trajectoryData;
             if (!data) return;
@@ -806,7 +780,7 @@
             }).addTo(map);
 
             gridLayer = L.layerGroup().addTo(map);
-            map.on('move zoom', () => { if (currentMode === 'trajectory') drawParticles(); });
+            map.on('move zoom', () => { if (currentMode === 'trajectory') drawShips(); });
         }
 
         function initCanvas() {
