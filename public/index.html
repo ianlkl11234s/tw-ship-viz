@@ -37,6 +37,7 @@
             z-index: 500;
             pointer-events: none;
             display: none;
+            background: transparent;
         }
 
         /* Tab 切換 */
@@ -611,7 +612,8 @@
 
         function initParticles(ships) {
             particles = [];
-            if (!ships || ships.length === 0) return;
+            if (!ships || ships.length === 0) { console.warn('No ships for particles'); return; }
+            console.log('Initializing particles from', ships.length, 'ships');
 
             const particlesPerShip = Math.max(1, Math.floor(PARTICLE_COUNT / ships.length));
             for (const ship of ships) {
@@ -625,6 +627,7 @@
                     });
                 }
             }
+            console.log('Created', particles.length, 'particles');
         }
 
         function updateParticles() {
@@ -653,16 +656,27 @@
             p.color = getSpeedColor(p.sog); p.age = 0;
         }
 
+        let drawCount = 0;
         function drawParticles() {
+            if (!ctx || !canvas) { console.error('Canvas not ready'); return; }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (particles.length === 0) { console.warn('No particles'); return; }
+            // Debug: log once every 60 frames
+            if (drawCount++ % 60 === 0) {
+                const p0 = particles[0];
+                const pos0 = latLngToPixel(p0.lat, p0.lon);
+                console.log('Draw debug - Canvas:', canvas.width, 'x', canvas.height,
+                    'Sample particle pos:', pos0.x.toFixed(0), pos0.y.toFixed(0),
+                    'Display:', canvasEl.style.display);
+            }
             for (const p of particles) {
                 const pos = latLngToPixel(p.lat, p.lon);
                 const alpha = 1 - (p.age / p.maxAge);
                 if (alpha <= 0) continue;
                 ctx.beginPath();
-                ctx.arc(pos.x, pos.y, 2.5, 0, Math.PI * 2);
+                ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
                 ctx.fillStyle = p.color;
-                ctx.globalAlpha = alpha * 0.85;
+                ctx.globalAlpha = Math.max(0.3, alpha * 0.9);
                 ctx.fill();
             }
             ctx.globalAlpha = 1;
@@ -673,6 +687,8 @@
             drawParticles();
             animationId = requestAnimationFrame(animateTrajectory);
         }
+        // Debug: expose to window for testing
+        window.debugParticles = () => console.log('Particles:', particles.length, 'AnimationId:', animationId);
 
         function renderTrajectoryFrame(frameIndex) {
             if (!trajectoryData || frameIndex < 0 || frameIndex >= trajectoryData.frames.length) return;
@@ -724,7 +740,7 @@
                 filterSectionEl.style.display = 'none';
                 densityLegendEl.style.display = 'none';
                 trajectoryLegendEl.style.display = '';
-                canvasEl.style.display = '';
+                canvasEl.style.display = 'block';
                 gridLayer.clearLayers();
 
                 if (trajectoryData) {
