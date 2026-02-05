@@ -782,7 +782,10 @@
             const interval = currentMode === 'density' ? 1000 / playSpeed : 2000 / playSpeed;
             playInterval = setInterval(() => {
                 let nextFrame = currentFrame + 1;
-                if (nextFrame >= data.frames.length) nextFrame = 0;
+                if (nextFrame >= data.frames.length) {
+                    nextFrame = 0;
+                    if (currentMode === 'trajectory') frameHistory = [];  // 循環時清空歷史
+                }
                 currentMode === 'density' ? renderDensityFrame(nextFrame) : renderTrajectoryFrame(nextFrame);
             }, interval);
         }
