@@ -93,7 +93,7 @@ def process_ships(ships: List[Dict], bounds: Dict) -> Dict[str, List]:
     處理船舶資料，以 MMSI 為 key 組織
 
     Returns:
-        {mmsi: [lon, lat, sog, cog], ...}
+        {mmsi: [lon, lat, sog, cog, vessel_type], ...}
     """
     result = {}
 
@@ -103,6 +103,7 @@ def process_ships(ships: List[Dict], bounds: Dict) -> Dict[str, List]:
         lat = ship.get("lat")
         sog = ship.get("sog")  # 速度（節）
         cog = ship.get("cog")  # 航向（度）
+        vtype = ship.get("vessel_type", 0)
 
         # 跳過無效資料
         if mmsi is None or lon is None or lat is None:
@@ -124,7 +125,8 @@ def process_ships(ships: List[Dict], bounds: Dict) -> Dict[str, List]:
             round(lon, 4),
             round(lat, 4),
             round(sog, 1),
-            round(cog, 1)
+            round(cog, 1),
+            vtype
         ]
 
     return result
