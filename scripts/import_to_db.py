@@ -81,8 +81,8 @@ def import_file(conn, reader, key, cursor, batch, stats):
             continue
 
         batch.append((str(mmsi), ts_str, round(lon, 4), round(lat, 4),
-                       round(sog, 1) if sog else None,
-                       round(cog, 1) if cog else None,
+                       round(sog, 1) if sog is not None else None,
+                       round(cog, 1) if cog is not None else None,
                        vtype))
         stats["rows"] += 1
 

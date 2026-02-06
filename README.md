@@ -14,59 +14,62 @@
 
 ```
 ship-gis/
-├── zeabur.json          # Zeabur 部署配置
-├── .env.example         # 環境變數範例
+├── zeabur.json              # Zeabur 部署配置
+├── .env.example             # 環境變數範例
+├── data/
+│   └── ship_data.db         # SQLite 資料庫（永久累積）
 ├── scripts/
-│   ├── requirements.txt # Python 相依套件
-│   ├── update_data.py   # 資料處理主程式
-│   ├── grid_utils.py    # 格網計算工具
-│   └── vessel_types.py  # 船舶類型定義
+│   ├── requirements.txt     # Python 相依套件
+│   ├── import_to_db.py      # S3 → SQLite 匯入
+│   ├── generate_json.py     # SQLite → JSON 產出
+│   ├── update_all.py        # 舊版：直接從 S3 產 JSON
+│   ├── grid_utils.py        # 格網計算工具
+│   └── vessel_types.py      # 船舶類型定義
 └── public/
-    ├── index.html       # 前端 SPA
-    └── ship_density_data.json  # 密度資料
+    ├── index.html                  # 前端 SPA
+    ├── ship_density_data.json      # 密度資料
+    └── ship_trajectory_data.json   # 軌跡資料
 ```
 
-## 格網設定
+## 資料更新
 
-| 參數 | 值 |
-|------|-----|
-| 範圍 | 117°E - 127°E, 20°N - 28°N |
-| 解析度 | 0.05° (~5.5km) |
-| 格網 | 200 x 160 = 32,000 格 |
+架構：`S3 → SQLite（永久累積）→ JSON（按需產生）`
 
-## 使用方式
-
-### 1. 安裝相依套件
+### 安裝
 
 ```bash
-cd scripts
-pip3 install -r requirements.txt
-```
-
-### 2. 設定環境變數
-
-```bash
+pip3 install -r scripts/requirements.txt
 cp .env.example .env
 # 編輯 .env 填入 S3 設定
 ```
 
-### 3. 產生資料
+### 日常更新（一行搞定）
 
 ```bash
-# 預設 7 天
-python3 scripts/update_data.py
-
-# 指定天數
-python3 scripts/update_data.py --days 3
-
-# 指定日期範圍
-python3 scripts/update_data.py --start-date 2025-01-10 --end-date 2025-01-15
-
-# 過濾船舶類型
-python3 scripts/update_data.py --vessel-type cargo
+python3 scripts/import_to_db.py --incremental && python3 scripts/generate_json.py --days 7
 ```
 
-### 4. 本地測試
+這會：
+1. 增量匯入 S3 新資料到 SQLite（只拉上次之後的）
+2. 從 SQLite 產出最近 7 天的 JSON 供前端使用
+
+### 進階用法
+
+```bash
+# 匯入指定天數的 S3 資料（全量）
+python3 scripts/import_to_db.py --days 14
+
+# 從 DB 產出自訂天數的 JSON
+python3 scripts/generate_json.py --days 14
+
+# 指定日期範圍
+python3 scripts/generate_json.py --start 2026-02-01 --end 2026-02-07
+
+# 調整時間間隔（10/30/60 分鐘）
+python3 scripts/generate_json.py --interval 30
+```
+
+### 本地測試
 
 ```bash
 cd public
