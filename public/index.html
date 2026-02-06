@@ -475,6 +475,8 @@
     <div class="tab-container">
         <button class="tab-btn active" data-mode="density">密度熱區</button>
         <button class="tab-btn" data-mode="trajectory">軌跡動畫</button>
+        <button class="tab-btn" data-mode="hexbin">六角網格</button>
+        <button class="tab-btn" data-mode="heatmap">熱力圖</button>
         <button class="tab-btn" data-mode="query">軌跡查詢</button>
     </div>
 
@@ -566,12 +568,40 @@
         </div>
     </div>
 
+    <!-- 六角網格圖例 -->
+    <div class="legend" id="hexbinLegend" style="display:none">
+        <div class="legend-title">船舶密度（艘/格）</div>
+        <div class="legend-items">
+            <div class="legend-item"><div class="legend-color" style="background:#8c2d04"></div><span>> 50</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#e06c52"></div><span>21-50</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#fdb863"></div><span>11-20</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#ffffcc"></div><span>6-10</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#c7e9b4"></div><span>3-5</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#80cdc1"></div><span>1-2</span></div>
+        </div>
+    </div>
+
+    <!-- 熱力圖圖例 -->
+    <div class="legend" id="heatmapLegend" style="display:none">
+        <div class="legend-title">船舶密度（KDE）</div>
+        <div class="legend-items">
+            <div class="legend-item">
+                <div style="width:20px;height:80px;border-radius:2px;border:1px solid rgba(0,0,0,0.1);background:linear-gradient(to bottom, #8c2d04, #e06c52, #fdb863, #ffffcc, #c7e9b4, #80cdc1)"></div>
+                <div style="display:flex;flex-direction:column;justify-content:space-between;height:80px;font-size:11px;color:#666">
+                    <span>高</span>
+                    <span>低</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 資訊面板 -->
     <div class="info-panel">
         <p>資料來源：航港局 AIS</p>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     <script>
         // ==================== 全域變數 ====================
         let map, canvas, ctx;
@@ -584,6 +614,7 @@
         let playSpeed = 1;
         let playInterval = null;
         let gridLayer = null;
+        let heatLayer = null;
 
         const GRID_SCALE = 1.5;
 
@@ -617,6 +648,8 @@
         const filterSectionEl = document.getElementById('filterSection');
         const densityLegendEl = document.getElementById('densityLegend');
         const trajectoryLegendEl = document.getElementById('trajectoryLegend');
+        const hexbinLegendEl = document.getElementById('hexbinLegend');
+        const heatmapLegendEl = document.getElementById('heatmapLegend');
         const canvasEl = document.getElementById('canvas-overlay');
 
         // ==================== 密度模式 ====================
@@ -849,6 +882,144 @@
 
             updateFrameHistory(frame.ships);
             drawShips();
+            currentFrame = frameIndex;
+        }
+
+        // ==================== 六角網格模式 ====================
+        function getHexSize() {
+            const z = map.getZoom();
+            if (z >= 11) return 6;
+            if (z >= 9) return 8;
+            if (z >= 7) return 10;
+            return 14;
+        }
+
+        function pixelToAxial(x, y, size) {
+            const q = (2/3 * x) / size;
+            const r = (-1/3 * x + Math.sqrt(3)/3 * y) / size;
+            return axialRound(q, r);
+        }
+
+        function axialRound(q, r) {
+            const s = -q - r;
+            let rq = Math.round(q);
+            let rr = Math.round(r);
+            let rs = Math.round(s);
+
+            const dq = Math.abs(rq - q);
+            const dr = Math.abs(rr - r);
+            const ds = Math.abs(rs - s);
+
+            if (dq > dr && dq > ds) rq = -rr - rs;
+            else if (dr > ds) rr = -rq - rs;
+
+            return { q: rq, r: rr };
+        }
+
+        function axialToPixel(q, r, size) {
+            const x = size * (3/2 * q);
+            const y = size * (Math.sqrt(3)/2 * q + Math.sqrt(3) * r);
+            return { x, y };
+        }
+
+        function drawHexagon(ctx, cx, cy, size, fill) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = Math.PI / 180 * (60 * i);
+                const hx = cx + size * Math.cos(angle);
+                const hy = cy + size * Math.sin(angle);
+                if (i === 0) ctx.moveTo(hx, hy);
+                else ctx.lineTo(hx, hy);
+            }
+            ctx.closePath();
+            ctx.fillStyle = fill;
+            ctx.globalAlpha = 0.8;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        function renderHexbinFrame(frameIndex) {
+            if (!densityData || frameIndex < 0 || frameIndex >= densityData.frames.length) return;
+
+            const frame = densityData.frames[frameIndex];
+            const validTypes = VESSEL_CATEGORIES[currentFilter];
+
+            timeDisplayEl.textContent = frame.time;
+            timelineEl.value = frameIndex;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const size = getHexSize();
+            const bins = {};
+            let shipCount = 0;
+            let maxCount = 0;
+
+            for (const ship of frame.ships) {
+                const [lon, lat, vtype] = ship;
+                if (validTypes && !validTypes.includes(vtype)) continue;
+
+                const pt = map.latLngToContainerPoint([lat, lon]);
+                const { q, r } = pixelToAxial(pt.x, pt.y, size);
+                const key = `${q},${r}`;
+                bins[key] = (bins[key] || 0) + 1;
+                shipCount++;
+                maxCount = Math.max(maxCount, bins[key]);
+            }
+
+            for (const [key, count] of Object.entries(bins)) {
+                const [q, r] = key.split(',').map(Number);
+                const { x, y } = axialToPixel(q, r, size);
+                const color = getDensityColor(count);
+                drawHexagon(ctx, x, y, size * 0.95, color);
+            }
+            ctx.globalAlpha = 1;
+
+            shipCountEl.textContent = shipCount.toLocaleString();
+            maxDensityEl.textContent = maxCount;
+            currentFrame = frameIndex;
+        }
+
+        // ==================== 熱力圖模式 ====================
+        function initHeatLayer() {
+            if (heatLayer) return;
+            heatLayer = L.heatLayer([], {
+                radius: 12,
+                blur: 8,
+                maxZoom: 12,
+                gradient: {
+                    0.0: '#80cdc1',
+                    0.2: '#c7e9b4',
+                    0.4: '#ffffcc',
+                    0.6: '#fdb863',
+                    0.8: '#e06c52',
+                    1.0: '#8c2d04'
+                }
+            });
+        }
+
+        function renderHeatmapFrame(frameIndex) {
+            if (!densityData || frameIndex < 0 || frameIndex >= densityData.frames.length) return;
+
+            const frame = densityData.frames[frameIndex];
+            const validTypes = VESSEL_CATEGORIES[currentFilter];
+
+            timeDisplayEl.textContent = frame.time;
+            timelineEl.value = frameIndex;
+
+            const points = [];
+            let shipCount = 0;
+
+            for (const ship of frame.ships) {
+                const [lon, lat, vtype] = ship;
+                if (validTypes && !validTypes.includes(vtype)) continue;
+                points.push([lat, lon, 0.5]);
+                shipCount++;
+            }
+
+            heatLayer.setLatLngs(points);
+            shipCountEl.textContent = shipCount.toLocaleString();
             currentFrame = frameIndex;
         }
 
@@ -1184,6 +1355,13 @@
         }
 
         // ==================== 模式切換 ====================
+        function hideAllLegends() {
+            densityLegendEl.style.display = 'none';
+            trajectoryLegendEl.style.display = 'none';
+            hexbinLegendEl.style.display = 'none';
+            heatmapLegendEl.style.display = 'none';
+        }
+
         function switchMode(mode) {
             if (mode === currentMode) return;
 
@@ -1191,11 +1369,13 @@
 
             // 離開舊模式清理
             if (currentMode === 'query') exitQueryMode();
+            if (currentMode === 'heatmap' && heatLayer) map.removeLayer(heatLayer);
 
             currentMode = mode;
             currentFrame = 0;
 
             tabBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+            hideAllLegends();
 
             if (mode === 'density') {
                 modeTitleEl.textContent = '🗺️ 船舶密度分布';
@@ -1203,7 +1383,6 @@
                 maxDensityRowEl.style.display = '';
                 filterSectionEl.style.display = '';
                 densityLegendEl.style.display = '';
-                trajectoryLegendEl.style.display = 'none';
                 document.querySelector('.status-panel').style.display = '';
                 document.querySelector('.timeline-panel').style.display = '';
                 canvasEl.style.display = 'none';
@@ -1220,13 +1399,12 @@
                 statLabelEl.textContent = '移動中船舶';
                 maxDensityRowEl.style.display = 'none';
                 filterSectionEl.style.display = '';
-                densityLegendEl.style.display = 'none';
                 trajectoryLegendEl.style.display = '';
                 document.querySelector('.status-panel').style.display = '';
                 document.querySelector('.timeline-panel').style.display = '';
                 canvasEl.style.display = 'block';
                 gridLayer.clearLayers();
-                frameHistory = [];  // 清空歷史
+                frameHistory = [];
 
                 if (trajectoryData) {
                     timelineEl.max = trajectoryData.frames.length - 1;
@@ -1235,12 +1413,61 @@
                 } else {
                     loadTrajectoryData();
                 }
+            } else if (mode === 'hexbin') {
+                modeTitleEl.textContent = '⬡ 六角網格密度';
+                statLabelEl.textContent = '範圍內船舶';
+                maxDensityRowEl.style.display = '';
+                filterSectionEl.style.display = '';
+                hexbinLegendEl.style.display = '';
+                document.querySelector('.status-panel').style.display = '';
+                document.querySelector('.timeline-panel').style.display = '';
+                canvasEl.style.display = 'block';
+                gridLayer.clearLayers();
+
+                if (densityData) {
+                    timelineEl.max = densityData.frames.length - 1;
+                    renderHexbinFrame(0);
+                    startPlay();
+                } else {
+                    loadDensityData().then(() => {
+                        if (densityData) {
+                            timelineEl.max = densityData.frames.length - 1;
+                            renderHexbinFrame(0);
+                            startPlay();
+                        }
+                    });
+                }
+            } else if (mode === 'heatmap') {
+                modeTitleEl.textContent = '🔥 KDE 熱力圖';
+                statLabelEl.textContent = '範圍內船舶';
+                maxDensityRowEl.style.display = 'none';
+                filterSectionEl.style.display = '';
+                heatmapLegendEl.style.display = '';
+                document.querySelector('.status-panel').style.display = '';
+                document.querySelector('.timeline-panel').style.display = '';
+                canvasEl.style.display = 'none';
+                gridLayer.clearLayers();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                initHeatLayer();
+                map.addLayer(heatLayer);
+
+                if (densityData) {
+                    timelineEl.max = densityData.frames.length - 1;
+                    renderHeatmapFrame(0);
+                    startPlay();
+                } else {
+                    loadDensityData().then(() => {
+                        if (densityData) {
+                            timelineEl.max = densityData.frames.length - 1;
+                            renderHeatmapFrame(0);
+                            startPlay();
+                        }
+                    });
+                }
             } else if (mode === 'query') {
-                // 隱藏其他模式 UI
                 document.querySelector('.status-panel').style.display = 'none';
                 document.querySelector('.timeline-panel').style.display = 'none';
-                densityLegendEl.style.display = 'none';
-                trajectoryLegendEl.style.display = 'none';
                 gridLayer.clearLayers();
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 enterQueryMode();
@@ -1252,21 +1479,35 @@
             isPlaying ? stopPlay() : startPlay();
         }
 
+        function getPlayData() {
+            if (currentMode === 'trajectory') return trajectoryData;
+            return densityData; // density, hexbin, heatmap 都用 densityData
+        }
+
         function startPlay() {
             isPlaying = true;
             playBtnEl.textContent = '⏸';
 
-            const data = currentMode === 'density' ? densityData : trajectoryData;
+            const data = getPlayData();
             if (!data) return;
 
-            const interval = currentMode === 'density' ? 1000 / playSpeed : 2000 / playSpeed;
+            let interval;
+            if (currentMode === 'density') interval = 1000 / playSpeed;
+            else if (currentMode === 'trajectory') interval = 2000 / playSpeed;
+            else if (currentMode === 'hexbin') interval = 1000 / playSpeed;
+            else if (currentMode === 'heatmap') interval = 1500 / playSpeed;
+            else interval = 1000 / playSpeed;
+
             playInterval = setInterval(() => {
                 let nextFrame = currentFrame + 1;
                 if (nextFrame >= data.frames.length) {
                     nextFrame = 0;
-                    if (currentMode === 'trajectory') frameHistory = [];  // 循環時清空歷史
+                    if (currentMode === 'trajectory') frameHistory = [];
                 }
-                currentMode === 'density' ? renderDensityFrame(nextFrame) : renderTrajectoryFrame(nextFrame);
+                if (currentMode === 'density') renderDensityFrame(nextFrame);
+                else if (currentMode === 'trajectory') renderTrajectoryFrame(nextFrame);
+                else if (currentMode === 'hexbin') renderHexbinFrame(nextFrame);
+                else if (currentMode === 'heatmap') renderHeatmapFrame(nextFrame);
             }, interval);
         }
 
@@ -1302,6 +1543,7 @@
             map.on('move zoom', () => {
                 if (currentMode === 'trajectory') drawShips();
                 else if (currentMode === 'query') drawQueryShips();
+                else if (currentMode === 'hexbin') renderHexbinFrame(currentFrame);
             });
         }
 
@@ -1317,7 +1559,10 @@
             playBtnEl.addEventListener('click', togglePlay);
             timelineEl.addEventListener('input', (e) => {
                 const idx = parseInt(e.target.value);
-                currentMode === 'density' ? renderDensityFrame(idx) : renderTrajectoryFrame(idx);
+                if (currentMode === 'density') renderDensityFrame(idx);
+                else if (currentMode === 'trajectory') renderTrajectoryFrame(idx);
+                else if (currentMode === 'hexbin') renderHexbinFrame(idx);
+                else if (currentMode === 'heatmap') renderHeatmapFrame(idx);
             });
             speedBtns.forEach(btn => btn.addEventListener('click', () => setSpeed(parseInt(btn.dataset.speed))));
             tabBtns.forEach(btn => btn.addEventListener('click', () => switchMode(btn.dataset.mode)));
@@ -1325,15 +1570,25 @@
                 currentFilter = vesselFilterEl.value;
                 if (currentMode === 'density') renderDensityFrame(currentFrame);
                 else if (currentMode === 'trajectory') drawShips();
+                else if (currentMode === 'hexbin') renderHexbinFrame(currentFrame);
+                else if (currentMode === 'heatmap') renderHeatmapFrame(currentFrame);
             });
 
             document.addEventListener('keydown', (e) => {
-                if (currentMode === 'query') return; // 查詢模式不處理鍵盤快捷鍵
-                const data = currentMode === 'density' ? densityData : trajectoryData;
+                if (currentMode === 'query') return;
+                const data = getPlayData();
                 if (!data) return;
+
+                const renderFrame = (idx) => {
+                    if (currentMode === 'density') renderDensityFrame(idx);
+                    else if (currentMode === 'trajectory') renderTrajectoryFrame(idx);
+                    else if (currentMode === 'hexbin') renderHexbinFrame(idx);
+                    else if (currentMode === 'heatmap') renderHeatmapFrame(idx);
+                };
+
                 if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
-                else if (e.code === 'ArrowLeft') { stopPlay(); currentMode === 'density' ? renderDensityFrame(Math.max(0, currentFrame - 1)) : renderTrajectoryFrame(Math.max(0, currentFrame - 1)); }
-                else if (e.code === 'ArrowRight') { stopPlay(); currentMode === 'density' ? renderDensityFrame(Math.min(data.frames.length - 1, currentFrame + 1)) : renderTrajectoryFrame(Math.min(data.frames.length - 1, currentFrame + 1)); }
+                else if (e.code === 'ArrowLeft') { stopPlay(); renderFrame(Math.max(0, currentFrame - 1)); }
+                else if (e.code === 'ArrowRight') { stopPlay(); renderFrame(Math.min(data.frames.length - 1, currentFrame + 1)); }
             });
 
             // 查詢模式事件
@@ -1366,8 +1621,11 @@
                 densityData = await res.json();
                 timelineEl.max = densityData.frames.length - 1;
                 loadingEl.style.display = 'none';
-                renderDensityFrame(0);
-                startPlay();
+                // 只在 density 模式下自動 render（其他模式由 switchMode 處理）
+                if (currentMode === 'density') {
+                    renderDensityFrame(0);
+                    startPlay();
+                }
             } catch (err) {
                 console.error(err);
                 loadingTextEl.textContent = '載入失敗，請執行 python3 update_data.py';
