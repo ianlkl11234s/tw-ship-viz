@@ -41,6 +41,11 @@ Thumbs.db
 # Logs
 *.log
 
+# SQLite database
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
 # Keep data files for deployment
 !public/ship_density_data.json
 !public/ship_trajectory_data.json

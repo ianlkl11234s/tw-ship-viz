@@ -69,6 +69,11 @@
             border-radius: 0 8px 8px 0;
         }
 
+        .tab-btn:not(:first-child):not(:last-child) {
+            border-left: 1px solid rgba(0,0,0,0.1);
+            border-right: 1px solid rgba(0,0,0,0.1);
+        }
+
         .tab-btn.active {
             background: #0077b6;
             color: #fff;
@@ -329,6 +334,104 @@
             color: #888;
         }
 
+        /* 查詢模式工具列 */
+        .query-toolbar {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 1000;
+            display: none;
+            gap: 6px;
+        }
+
+        .query-toolbar.visible {
+            display: flex;
+        }
+
+        .tool-btn {
+            padding: 8px 14px;
+            border: 1px solid #ddd;
+            background: rgba(255, 255, 255, 0.95);
+            color: #555;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tool-btn:hover { background: #f0f7ff; border-color: #0077b6; }
+        .tool-btn.active { background: #0077b6; color: #fff; border-color: #0077b6; }
+
+        /* 查詢側邊面板 */
+        .query-panel {
+            position: fixed;
+            top: 120px;
+            right: 20px;
+            width: 320px;
+            max-height: calc(100vh - 160px);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            overflow-y: auto;
+            display: none;
+        }
+
+        .query-panel.visible { display: block; }
+
+        .query-panel-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            position: sticky;
+            top: 0;
+            background: rgba(255,255,255,0.97);
+        }
+
+        .query-panel-body { padding: 12px 16px; }
+
+        .ship-card {
+            padding: 10px 12px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ship-card:hover { border-color: #0077b6; background: #f0f7ff; }
+
+        .ship-card .mmsi { font-weight: 600; font-size: 13px; color: #333; }
+        .ship-card .meta { font-size: 11px; color: #888; margin-top: 4px; }
+        .ship-card .track-color {
+            display: inline-block;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        /* 圈選矩形 */
+        .selection-rect {
+            position: fixed;
+            border: 2px dashed #0077b6;
+            background: rgba(0, 119, 182, 0.1);
+            pointer-events: none;
+            z-index: 600;
+            display: none;
+        }
+
+        /* 查詢模式載入提示 */
+        .query-loading {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-size: 13px;
+        }
+
         /* 響應式 */
         @media (max-width: 700px) {
             .tab-container {
@@ -372,7 +475,26 @@
     <div class="tab-container">
         <button class="tab-btn active" data-mode="density">密度熱區</button>
         <button class="tab-btn" data-mode="trajectory">軌跡動畫</button>
+        <button class="tab-btn" data-mode="query">軌跡查詢</button>
     </div>
+
+    <!-- 查詢模式工具列 -->
+    <div class="query-toolbar" id="queryToolbar">
+        <button class="tool-btn active" data-tool="click" id="toolClick">點選船舶</button>
+        <button class="tool-btn" data-tool="rect" id="toolRect">矩形圈選</button>
+        <button class="tool-btn" data-tool="clear" id="toolClear">清除軌跡</button>
+    </div>
+
+    <!-- 查詢側邊面板 -->
+    <div class="query-panel" id="queryPanel">
+        <div class="query-panel-header" id="queryPanelHeader">船舶資訊</div>
+        <div class="query-panel-body" id="queryPanelBody">
+            <div class="query-loading">點選地圖上的船舶查看軌跡</div>
+        </div>
+    </div>
+
+    <!-- 圈選矩形 -->
+    <div class="selection-rect" id="selectionRect"></div>
 
     <!-- 狀態面板 -->
     <div class="status-panel">
@@ -423,13 +545,13 @@
     <div class="legend" id="densityLegend">
         <div class="legend-title">船舶密度（艘/格）</div>
         <div class="legend-items">
-            <div class="legend-item"><div class="legend-color" style="background:#03045e"></div><span>> 50</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#023e8a"></div><span>21-50</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div><span>11-20</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#0096c7"></div><span>6-10</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#7ec8e3"></div><span>3-5</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#b3d9e8"></div><span>1-2</span></div>
-            <div class="legend-item"><div class="legend-color" style="background:#e8f4f8"></div><span>0</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#8c2d04"></div><span>> 50</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#e06c52"></div><span>21-50</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#fdb863"></div><span>11-20</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#ffffcc"></div><span>6-10</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#c7e9b4"></div><span>3-5</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#80cdc1"></div><span>1-2</span></div>
+            <div class="legend-item"><div class="legend-color" style="background:#f0fffe"></div><span>0</span></div>
         </div>
     </div>
 
@@ -463,7 +585,7 @@
         let playInterval = null;
         let gridLayer = null;
 
-        const GRID_SCALE = 2;
+        const GRID_SCALE = 1.5;
 
         const VESSEL_CATEGORIES = {
             all: null,
@@ -499,18 +621,18 @@
 
         // ==================== 密度模式 ====================
         function getDensityColor(count) {
-            if (count === 0) return '#e8f4f8';
-            if (count <= 2) return '#b3d9e8';
-            if (count <= 5) return '#7ec8e3';
-            if (count <= 10) return '#0096c7';
-            if (count <= 20) return '#0077b6';
-            if (count <= 50) return '#023e8a';
-            return '#03045e';
+            if (count === 0) return '#f0fffe';
+            if (count <= 2) return '#80cdc1';
+            if (count <= 5) return '#c7e9b4';
+            if (count <= 10) return '#ffffcc';
+            if (count <= 20) return '#fdb863';
+            if (count <= 50) return '#e06c52';
+            return '#8c2d04';
         }
 
         function getDensityOpacity(count) {
             if (count === 0) return 0.3;
-            if (count <= 2) return 0.6;
+            if (count <= 2) return 0.65;
             if (count <= 5) return 0.7;
             if (count <= 10) return 0.75;
             if (count <= 20) return 0.8;
@@ -628,14 +750,17 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const bounds = map.getBounds();
-            const currentShips = frameHistory[frameHistory.length - 1];
+            const validTypes = VESSEL_CATEGORIES[currentFilter];
 
             // 收集每艘船的歷史軌跡
-            const shipTracks = {};  // {mmsi: [[lon,lat,sog,cog], ...]}
+            const shipTracks = {};  // {mmsi: [[lon,lat,sog,cog,vtype], ...]}
 
             for (let i = 0; i < frameHistory.length; i++) {
                 const ships = frameHistory[i];
                 for (const [mmsi, data] of Object.entries(ships)) {
+                    // 船型過濾：用最新資料的 vessel_type 判斷
+                    const vtype = data[4] || 0;
+                    if (validTypes && !validTypes.includes(vtype)) continue;
                     if (!shipTracks[mmsi]) shipTracks[mmsi] = [];
                     shipTracks[mmsi].push(data);
                 }
@@ -710,8 +835,15 @@
 
             const frame = trajectoryData.frames[frameIndex];
             timeDisplayEl.textContent = frame.time;
-            // ships 現在是 object {mmsi: [lon,lat,sog,cog]}
-            const shipCount = typeof frame.ships === 'object' ? Object.keys(frame.ships).length : frame.ships.length;
+            // 計算過濾後的船舶數
+            const validTypes = VESSEL_CATEGORIES[currentFilter];
+            let shipCount = 0;
+            if (typeof frame.ships === 'object') {
+                for (const data of Object.values(frame.ships)) {
+                    const vtype = data[4] || 0;
+                    if (!validTypes || validTypes.includes(vtype)) shipCount++;
+                }
+            }
             shipCountEl.textContent = shipCount.toLocaleString();
             timelineEl.value = frameIndex;
 
@@ -720,11 +852,346 @@
             currentFrame = frameIndex;
         }
 
+        // ==================== 查詢模式 ====================
+        let queryShips = [];           // 最新船舶位置 [{mmsi, lon, lat, sog, cog, vessel_type}]
+        let queryTrackLayers = [];     // Leaflet polyline layers
+        let queryMarkerLayers = [];    // 起終點標記
+        let queryTool = 'click';       // 'click' | 'rect'
+        let isSelecting = false;
+        let selStartX = 0, selStartY = 0;
+
+        const VESSEL_TYPE_NAMES = {
+            0: '未知', 30: '漁船', 31: '拖船', 32: '拖船', 33: '疏浚船', 34: '潛水作業',
+            35: '軍艦', 36: '帆船', 37: '遊艇', 40: '高速船',
+            50: '領航船', 51: '搜救船', 52: '拖船', 53: '港務船', 55: '執法船',
+            60: '客輪', 70: '貨船', 80: '油輪', 90: '其他'
+        };
+
+        function getVesselTypeName(vtype) {
+            if (VESSEL_TYPE_NAMES[vtype]) return VESSEL_TYPE_NAMES[vtype];
+            if (vtype >= 60 && vtype <= 69) return '客輪';
+            if (vtype >= 70 && vtype <= 79) return '貨船';
+            if (vtype >= 80 && vtype <= 89) return '油輪';
+            return '其他';
+        }
+
+        function getVesselDotColor(vtype) {
+            if (vtype === 30) return '#16a34a';       // 漁船：綠色
+            if (vtype >= 70 && vtype <= 79) return '#2563eb';  // 貨船：藍色
+            if (vtype >= 80 && vtype <= 89) return '#dc2626';  // 油輪：紅色
+            if (vtype >= 60 && vtype <= 69) return '#9333ea';  // 客輪：紫色
+            if (vtype === 35) return '#475569';        // 軍艦：灰色
+            return '#f59e0b';                          // 其他：橙色
+        }
+
+        function drawQueryShips() {
+            if (!ctx || !canvas || queryShips.length === 0) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const bounds = map.getBounds();
+            for (const ship of queryShips) {
+                const { lon, lat, vessel_type } = ship;
+                if (lon < bounds.getWest() || lon > bounds.getEast() ||
+                    lat < bounds.getSouth() || lat > bounds.getNorth()) continue;
+
+                const pixel = latLngToPixel(lat, lon);
+                ctx.beginPath();
+                ctx.arc(pixel.x, pixel.y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = getVesselDotColor(vessel_type);
+                ctx.globalAlpha = 0.85;
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function findNearestShip(x, y, threshold) {
+            let nearest = null;
+            let minDist = threshold;
+            for (const ship of queryShips) {
+                const pixel = latLngToPixel(ship.lat, ship.lon);
+                const dist = Math.hypot(pixel.x - x, pixel.y - y);
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearest = ship;
+                }
+            }
+            return nearest;
+        }
+
+        async function loadQueryShips() {
+            try {
+                const res = await fetch('/api/ships/latest');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                queryShips = data.ships || [];
+                drawQueryShips();
+                document.getElementById('queryPanelBody').innerHTML =
+                    `<div class="query-loading">已載入 ${queryShips.length} 艘船舶<br>點選船舶查看軌跡</div>`;
+            } catch (err) {
+                console.error('載入船舶位置失敗:', err);
+                document.getElementById('queryPanelBody').innerHTML =
+                    '<div class="query-loading" style="color:#dc2626">載入失敗，請確認 API 伺服器已啟動</div>';
+            }
+        }
+
+        async function queryShipTrack(mmsi, days) {
+            days = days || 7;
+            try {
+                const res = await fetch(`/api/ship/${mmsi}/track?days=${days}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return await res.json();
+            } catch (err) {
+                console.error(`查詢 ${mmsi} 軌跡失敗:`, err);
+                return null;
+            }
+        }
+
+        async function queryShipsInBbox(bbox, days) {
+            days = days || 7;
+            try {
+                const res = await fetch(`/api/ships/tracks?days=${days}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bbox),
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return await res.json();
+            } catch (err) {
+                console.error('圈選查詢失敗:', err);
+                return null;
+            }
+        }
+
+        function drawTrackOnMap(points, color, showMarkers) {
+            if (!points || points.length < 2) return;
+
+            const latlngs = points.map(p => [p.lat, p.lon]);
+            const line = L.polyline(latlngs, {
+                color: color,
+                weight: 3,
+                opacity: 0.8,
+            }).addTo(map);
+            queryTrackLayers.push(line);
+
+            if (showMarkers !== false) {
+                // 起點 — 綠色
+                const startMarker = L.circleMarker(latlngs[0], {
+                    radius: 6, color: '#16a34a', fillColor: '#16a34a', fillOpacity: 1, weight: 2,
+                }).addTo(map).bindPopup(`起點<br>${points[0].timestamp}`);
+                queryMarkerLayers.push(startMarker);
+
+                // 終點 — 紅色
+                const endMarker = L.circleMarker(latlngs[latlngs.length - 1], {
+                    radius: 6, color: '#dc2626', fillColor: '#dc2626', fillOpacity: 1, weight: 2,
+                }).addTo(map).bindPopup(`終點<br>${points[points.length - 1].timestamp}`);
+                queryMarkerLayers.push(endMarker);
+            }
+
+            return line;
+        }
+
+        function clearQueryTracks() {
+            queryTrackLayers.forEach(l => map.removeLayer(l));
+            queryMarkerLayers.forEach(l => map.removeLayer(l));
+            queryTrackLayers = [];
+            queryMarkerLayers = [];
+            document.getElementById('queryPanelBody').innerHTML =
+                `<div class="query-loading">已載入 ${queryShips.length} 艘船舶<br>點選船舶查看軌跡</div>`;
+        }
+
+        function renderShipCard(ship, color, trackData) {
+            const points = trackData ? trackData.points : [];
+            const duration = points.length >= 2
+                ? timeDiff(points[0].timestamp, points[points.length - 1].timestamp)
+                : '--';
+            return `
+                <div class="ship-card" data-mmsi="${ship.mmsi}">
+                    <div class="mmsi">
+                        <span class="track-color" style="background:${color}"></span>
+                        MMSI: ${ship.mmsi}
+                    </div>
+                    <div class="meta">
+                        船型：${getVesselTypeName(ship.vessel_type || 0)} |
+                        速度：${ship.sog != null ? ship.sog + ' kn' : '--'} |
+                        軌跡點：${points.length}
+                    </div>
+                    <div class="meta">時間跨度：${duration}</div>
+                </div>
+            `;
+        }
+
+        function timeDiff(ts1, ts2) {
+            const d1 = new Date(ts1), d2 = new Date(ts2);
+            const diff = Math.abs(d2 - d1);
+            const hours = Math.floor(diff / 3600000);
+            const mins = Math.floor((diff % 3600000) / 60000);
+            if (hours > 24) return `${Math.floor(hours / 24)}天${hours % 24}時`;
+            return `${hours}時${mins}分`;
+        }
+
+        // 點擊船舶處理
+        async function handleQueryClick(e) {
+            if (queryTool !== 'click') return;
+
+            const rect = canvasEl.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const ship = findNearestShip(x, y, 15);
+            if (!ship) return;
+
+            const body = document.getElementById('queryPanelBody');
+            body.innerHTML = '<div class="query-loading">查詢軌跡中...</div>';
+            document.getElementById('queryPanel').classList.add('visible');
+
+            const trackData = await queryShipTrack(ship.mmsi);
+            if (!trackData || !trackData.points.length) {
+                body.innerHTML = '<div class="query-loading">無軌跡資料</div>';
+                return;
+            }
+
+            const color = getVesselDotColor(ship.vessel_type);
+            clearQueryTracks();
+            drawTrackOnMap(trackData.points, color, true);
+
+            // fit bounds
+            const latlngs = trackData.points.map(p => [p.lat, p.lon]);
+            map.fitBounds(L.latLngBounds(latlngs).pad(0.1));
+
+            body.innerHTML = renderShipCard(ship, color, trackData);
+            document.getElementById('queryPanelHeader').textContent = `船舶資訊（1 艘）`;
+        }
+
+        // 矩形圈選處理
+        function handleRectStart(e) {
+            if (queryTool !== 'rect' || currentMode !== 'query') return;
+            isSelecting = true;
+            selStartX = e.clientX;
+            selStartY = e.clientY;
+            const rect = document.getElementById('selectionRect');
+            rect.style.left = selStartX + 'px';
+            rect.style.top = selStartY + 'px';
+            rect.style.width = '0';
+            rect.style.height = '0';
+            rect.style.display = 'block';
+            map.dragging.disable();
+        }
+
+        function handleRectMove(e) {
+            if (!isSelecting) return;
+            const rect = document.getElementById('selectionRect');
+            const x = Math.min(e.clientX, selStartX);
+            const y = Math.min(e.clientY, selStartY);
+            const w = Math.abs(e.clientX - selStartX);
+            const h = Math.abs(e.clientY - selStartY);
+            rect.style.left = x + 'px';
+            rect.style.top = y + 'px';
+            rect.style.width = w + 'px';
+            rect.style.height = h + 'px';
+        }
+
+        async function handleRectEnd(e) {
+            if (!isSelecting) return;
+            isSelecting = false;
+            document.getElementById('selectionRect').style.display = 'none';
+            map.dragging.enable();
+
+            const x1 = Math.min(e.clientX, selStartX);
+            const y1 = Math.min(e.clientY, selStartY);
+            const x2 = Math.max(e.clientX, selStartX);
+            const y2 = Math.max(e.clientY, selStartY);
+
+            if (x2 - x1 < 10 || y2 - y1 < 10) return; // 太小忽略
+
+            // 螢幕座標轉地理座標
+            const sw = map.containerPointToLatLng([x1, y2]);
+            const ne = map.containerPointToLatLng([x2, y1]);
+
+            const bbox = {
+                lon_min: sw.lng, lon_max: ne.lng,
+                lat_min: sw.lat, lat_max: ne.lat,
+            };
+
+            const body = document.getElementById('queryPanelBody');
+            body.innerHTML = '<div class="query-loading">查詢範圍內船舶...</div>';
+            document.getElementById('queryPanel').classList.add('visible');
+
+            const data = await queryShipsInBbox(bbox);
+            if (!data || !data.ships || data.ships.length === 0) {
+                body.innerHTML = '<div class="query-loading">範圍內無船舶</div>';
+                return;
+            }
+
+            clearQueryTracks();
+
+            // 每艘船用不同色相
+            const ships = data.ships;
+            let cardsHtml = '';
+            ships.forEach((ship, i) => {
+                const hue = (i * 360 / ships.length) % 360;
+                const color = `hsl(${hue}, 70%, 50%)`;
+                if (ship.points && ship.points.length >= 2) {
+                    drawTrackOnMap(ship.points, color, true);
+                }
+                cardsHtml += renderShipCard(ship, color, ship);
+            });
+
+            body.innerHTML = cardsHtml;
+            document.getElementById('queryPanelHeader').textContent = `船舶資訊（${ships.length} 艘）`;
+        }
+
+        function setQueryTool(tool) {
+            if (tool === 'clear') {
+                clearQueryTracks();
+                return;
+            }
+            queryTool = tool;
+            document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tool === tool);
+            });
+
+            // 切換 canvas pointer-events
+            if (tool === 'click') {
+                canvasEl.style.pointerEvents = 'auto';
+                canvasEl.style.cursor = 'crosshair';
+                document.getElementById('map').style.cursor = '';
+            } else if (tool === 'rect') {
+                canvasEl.style.pointerEvents = 'none';
+                canvasEl.style.cursor = '';
+                document.getElementById('map').style.cursor = 'crosshair';
+            }
+        }
+
+        function enterQueryMode() {
+            document.getElementById('queryToolbar').classList.add('visible');
+            document.getElementById('queryPanel').classList.add('visible');
+            canvasEl.style.display = 'block';
+            canvasEl.style.pointerEvents = 'auto';
+            canvasEl.style.cursor = 'crosshair';
+            setQueryTool('click');
+            loadQueryShips();
+        }
+
+        function exitQueryMode() {
+            document.getElementById('queryToolbar').classList.remove('visible');
+            document.getElementById('queryPanel').classList.remove('visible');
+            canvasEl.style.pointerEvents = 'none';
+            canvasEl.style.cursor = '';
+            document.getElementById('map').style.cursor = '';
+            clearQueryTracks();
+            queryShips = [];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
         // ==================== 模式切換 ====================
         function switchMode(mode) {
             if (mode === currentMode) return;
 
             stopPlay();
+
+            // 離開舊模式清理
+            if (currentMode === 'query') exitQueryMode();
+
             currentMode = mode;
             currentFrame = 0;
 
@@ -737,6 +1204,8 @@
                 filterSectionEl.style.display = '';
                 densityLegendEl.style.display = '';
                 trajectoryLegendEl.style.display = 'none';
+                document.querySelector('.status-panel').style.display = '';
+                document.querySelector('.timeline-panel').style.display = '';
                 canvasEl.style.display = 'none';
                 gridLayer.clearLayers();
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -746,13 +1215,15 @@
                     renderDensityFrame(0);
                     startPlay();
                 }
-            } else {
+            } else if (mode === 'trajectory') {
                 modeTitleEl.textContent = '🚢 船舶軌跡動畫';
                 statLabelEl.textContent = '移動中船舶';
                 maxDensityRowEl.style.display = 'none';
-                filterSectionEl.style.display = 'none';
+                filterSectionEl.style.display = '';
                 densityLegendEl.style.display = 'none';
                 trajectoryLegendEl.style.display = '';
+                document.querySelector('.status-panel').style.display = '';
+                document.querySelector('.timeline-panel').style.display = '';
                 canvasEl.style.display = 'block';
                 gridLayer.clearLayers();
                 frameHistory = [];  // 清空歷史
@@ -764,6 +1235,15 @@
                 } else {
                     loadTrajectoryData();
                 }
+            } else if (mode === 'query') {
+                // 隱藏其他模式 UI
+                document.querySelector('.status-panel').style.display = 'none';
+                document.querySelector('.timeline-panel').style.display = 'none';
+                densityLegendEl.style.display = 'none';
+                trajectoryLegendEl.style.display = 'none';
+                gridLayer.clearLayers();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                enterQueryMode();
             }
         }
 
@@ -819,7 +1299,10 @@
             }).addTo(map);
 
             gridLayer = L.layerGroup().addTo(map);
-            map.on('move zoom', () => { if (currentMode === 'trajectory') drawShips(); });
+            map.on('move zoom', () => {
+                if (currentMode === 'trajectory') drawShips();
+                else if (currentMode === 'query') drawQueryShips();
+            });
         }
 
         function initCanvas() {
@@ -841,15 +1324,38 @@
             vesselFilterEl.addEventListener('change', () => {
                 currentFilter = vesselFilterEl.value;
                 if (currentMode === 'density') renderDensityFrame(currentFrame);
+                else if (currentMode === 'trajectory') drawShips();
             });
 
             document.addEventListener('keydown', (e) => {
+                if (currentMode === 'query') return; // 查詢模式不處理鍵盤快捷鍵
                 const data = currentMode === 'density' ? densityData : trajectoryData;
                 if (!data) return;
                 if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
                 else if (e.code === 'ArrowLeft') { stopPlay(); currentMode === 'density' ? renderDensityFrame(Math.max(0, currentFrame - 1)) : renderTrajectoryFrame(Math.max(0, currentFrame - 1)); }
                 else if (e.code === 'ArrowRight') { stopPlay(); currentMode === 'density' ? renderDensityFrame(Math.min(data.frames.length - 1, currentFrame + 1)) : renderTrajectoryFrame(Math.min(data.frames.length - 1, currentFrame + 1)); }
             });
+
+            // 查詢模式事件
+            canvasEl.addEventListener('click', (e) => {
+                if (currentMode === 'query') handleQueryClick(e);
+            });
+
+            document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+                btn.addEventListener('click', () => setQueryTool(btn.dataset.tool));
+            });
+
+            // 矩形圈選事件（綁在 document 上以處理 canvas 外的情況）
+            document.addEventListener('mousedown', (e) => {
+                if (currentMode === 'query' && queryTool === 'rect') handleRectStart(e);
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (isSelecting) handleRectMove(e);
+            });
+            document.addEventListener('mouseup', (e) => {
+                if (isSelecting) handleRectEnd(e);
+            });
+
         }
 
         async function loadDensityData() {

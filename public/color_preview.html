@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>密度圖配色預覽</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #333; padding: 30px; }
+  h1 { text-align: center; margin-bottom: 30px; font-size: 22px; }
+  .scheme { margin-bottom: 28px; background: #fff; border-radius: 12px; padding: 18px 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .scheme-title { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+  .scheme-title span { color: #999; font-weight: 400; font-size: 13px; }
+  .bar { display: flex; height: 50px; border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+  .bar div { flex: 1; }
+  .labels { display: flex; font-size: 11px; color: #999; }
+  .labels span { flex: 1; text-align: center; }
+  /* 模擬地圖格網 */
+  .grid-preview { display: grid; grid-template-columns: repeat(14, 1fr); gap: 2px; margin-top: 10px; border-radius: 6px; overflow: hidden; background: #fff; padding: 4px; border: 1px solid #eee; }
+  .grid-preview div { aspect-ratio: 1; border-radius: 2px; }
+  .desc { font-size: 12px; color: #aaa; margin-top: 6px; }
+</style>
+</head>
+<body>
+<h1>船舶密度圖 — 白色底圖配色預覽</h1>
+<p style="text-align:center;color:#999;font-size:13px;margin-top:-20px;margin-bottom:24px;">低密度淡色融入白底，高密度高對比突出</p>
+
+<script>
+const schemes = [
+  {
+    id: 'W1', name: '淡紫漸深', desc: '白→淡紫→深紫，乾淨優雅，科學感',
+    colors: ['#f3f0ff','#d9d2f2','#b4a7de','#8e7cc3','#6a3d9a','#4a1486','#2d004b']
+  },
+  {
+    id: 'W2', name: '薄荷→深藍', desc: '白→薄荷綠→深藍，海洋主題，清爽',
+    colors: ['#f0faf9','#b2e2dc','#6cc4be','#3da6a0','#1f7a8a','#0d4f6b','#002840']
+  },
+  {
+    id: 'W3', name: '淡橘→深紅', desc: '白→淡橘→深紅，熱點醒目，暖色系',
+    colors: ['#fff5f0','#fdd0a2','#fdae6b','#f16913','#d94801','#a63603','#7f2704']
+  },
+  {
+    id: 'W4', name: '淡藍→深藍', desc: '現有方案改良，低密度更白，過渡更順',
+    colors: ['#f7fbff','#c6dbef','#6baed6','#2171b5','#08519c','#08306b','#041e42']
+  },
+  {
+    id: 'W5', name: '淡綠→靛藍', desc: '白→淡綠→藍綠→靛藍，Viridis 白底版',
+    colors: ['#f7fcf5','#c7e9c0','#74c476','#238b45','#1a6d7d','#2b4b8c','#1a1a5e']
+  },
+  {
+    id: 'W6', name: '櫻花粉→酒紅', desc: '白→粉→玫瑰→酒紅，柔和有層次',
+    colors: ['#fff5f5','#fcc5c5','#f08080','#d94f6b','#b02a5e','#7b154e','#4a0030']
+  },
+  {
+    id: 'W7', name: 'Mako 白底版', desc: '白→淺青→深紫藍，沉穩專業',
+    colors: ['#f5fcff','#b8e4f0','#6bc5d9','#3a96b5','#265e8a','#1c3462','#0b1340']
+  },
+  {
+    id: 'W8', name: '暖灰→琥珀', desc: '白→灰→琥珀→棕，低調質感',
+    colors: ['#fafaf8','#e8e4dd','#c9b99a','#b08b4a','#8b6914','#6b4c0a','#3d2b00']
+  },
+
+  // ===== 多色溫度圖風格 =====
+  { id: '—', name: '── 多色對比（溫度圖風格）──', desc: '低密度冷色 → 中間過渡 → 高密度暖色', colors: ['#fff','#fff','#fff','#fff','#fff','#fff','#fff'], skip: true },
+
+  {
+    id: 'T1', name: '冰藍→白→烈紅', desc: '經典溫度圖，冷暖對比最強烈',
+    colors: ['#f7fbff','#9ecae1','#4292c6','#ffffbf','#fdae61','#e34a33','#8b0000']
+  },
+  {
+    id: 'T2', name: '深藍→青→黃→紅', desc: '類似氣象雷達，層次豐富',
+    colors: ['#f0f5ff','#6baed6','#2ca25f','#f7f739','#fd8d3c','#e31a1c','#7f0000']
+  },
+  {
+    id: 'T3', name: '靛藍→綠→黃→橘紅', desc: 'Jet 改良版，科學常見的多色階',
+    colors: ['#eef5ff','#4575b4','#1a9850','#d9ef8b','#fee08b','#f46d43','#a50026']
+  },
+  {
+    id: 'T4', name: '紫→藍→青→綠→黃→紅', desc: '全光譜彩虹，顏色區分度最大',
+    colors: ['#f3f0ff','#7570b3','#3690c0','#41ae76','#ccec5a','#fe9929','#cc0022']
+  },
+  {
+    id: 'T5', name: '淡紫→藍→白→橘→深紅', desc: '中心白色發散，兩端對比',
+    colors: ['#f2f0f7','#807dba','#4a90d9','#ffffd9','#feb24c','#e34a33','#800026']
+  },
+  {
+    id: 'T6', name: '冷青→薄荷→奶油→珊瑚→酒紅', desc: '柔和溫度圖，不刺眼',
+    colors: ['#f0fffe','#80cdc1','#c7e9b4','#ffffcc','#fdb863','#e06c52','#8c2d04']
+  },
+  {
+    id: 'T7', name: '海藍→白→岩漿橘', desc: '海洋到火山，戲劇性對比',
+    colors: ['#f0f8ff','#4393c3','#78b8e0','#f7f7f7','#fdb863','#d6604d','#8b1a1a']
+  },
+  {
+    id: 'T8', name: '森綠→奶白→玫紅', desc: 'PRGn 風格，自然感雙色',
+    colors: ['#f7fcf5','#7fbf7b','#c2e699','#ffffbf','#fcc5c5','#d7301f','#7f0000']
+  }
+];
+
+const densityLevels = ['0','1-2','3-5','6-10','11-20','21-50','>50'];
+
+// 模擬密度分布（類似真實地圖）
+const gridPattern = [
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,1,1,0,0,0,0,0,0,0,0,
+  0,0,0,1,2,2,1,0,0,0,1,0,0,0,
+  0,0,1,2,3,4,2,1,0,1,2,1,0,0,
+  0,0,1,3,5,6,4,2,1,2,3,2,1,0,
+  0,0,1,2,4,5,3,2,1,1,2,1,0,0,
+  0,0,0,1,3,4,3,1,0,0,1,0,0,0,
+  0,0,0,1,2,2,1,1,0,0,0,0,0,0,
+  0,0,0,0,1,1,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+];
+
+for (const s of schemes) {
+  const div = document.createElement('div');
+  if (s.skip) {
+    div.style.cssText = 'text-align:center;color:#999;font-size:15px;font-weight:600;margin:32px 0 12px;';
+    div.textContent = s.name;
+    document.body.appendChild(div);
+    continue;
+  }
+  div.className = 'scheme';
+  div.innerHTML = `
+    <div class="scheme-title">${s.id}. ${s.name} <span>— ${s.desc}</span></div>
+    <div class="bar">${s.colors.map(c => `<div style="background:${c}"></div>`).join('')}</div>
+    <div class="labels">${densityLevels.map(l => `<span>${l}</span>`).join('')}</div>
+    <div class="grid-preview">${gridPattern.map(v => `<div style="background:${s.colors[v]};opacity:${v===0?0.4:0.85}"></div>`).join('')}</div>
+  `;
+  document.body.appendChild(div);
+}
+</script>
+</body>
+</html>
