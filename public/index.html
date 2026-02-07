@@ -144,20 +144,40 @@
             margin-bottom: 6px;
         }
 
-        .filter-select {
-            width: 100%;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 6px 10px;
-            color: #333;
-            font-size: 13px;
-            cursor: pointer;
+        .filter-checks {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 8px;
         }
 
-        .filter-select:focus {
-            outline: none;
-            border-color: #0077b6;
+        .filter-checks label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #333;
+            cursor: pointer;
+            padding: 2px 0;
+        }
+
+        .filter-checks input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
+            accent-color: #0077b6;
+        }
+
+        .filter-toggle-all {
+            font-size: 11px;
+            color: #0077b6;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            margin-bottom: 4px;
+        }
+
+        .filter-toggle-all:hover {
+            text-decoration: underline;
         }
 
         /* 底部時間軸控制 */
@@ -513,19 +533,19 @@
             </div>
         </div>
         <div class="filter-section" id="filterSection">
-            <div class="filter-title">船舶類型</div>
-            <select class="filter-select" id="vesselFilter">
-                <option value="all">所有船舶</option>
-                <option value="cargo">貨船</option>
-                <option value="tanker">油輪</option>
-                <option value="passenger">客輪</option>
-                <option value="fishing">漁船</option>
-                <option value="tug">拖船</option>
-                <option value="military">軍艦</option>
-                <option value="sailing">帆船/遊艇</option>
-                <option value="highspeed">高速船</option>
-                <option value="service">服務船舶</option>
-            </select>
+            <div class="filter-title">船舶類型 <button class="filter-toggle-all" id="toggleAll">取消全選</button></div>
+            <div class="filter-checks" id="vesselFilter">
+                <label><input type="checkbox" value="cargo" checked>貨船</label>
+                <label><input type="checkbox" value="tanker" checked>油輪</label>
+                <label><input type="checkbox" value="passenger" checked>客輪</label>
+                <label><input type="checkbox" value="fishing" checked>漁船</label>
+                <label><input type="checkbox" value="tug" checked>拖船</label>
+                <label><input type="checkbox" value="military" checked>軍艦</label>
+                <label><input type="checkbox" value="sailing" checked>帆船/遊艇</label>
+                <label><input type="checkbox" value="highspeed" checked>高速船</label>
+                <label><input type="checkbox" value="service" checked>服務船舶</label>
+                <label><input type="checkbox" value="unknown" checked>不明</label>
+            </div>
         </div>
     </div>
 
@@ -609,7 +629,7 @@
         let densityData = null;
         let trajectoryData = null;
         let currentFrame = 0;
-        let currentFilter = 'all';
+        // currentFilter 不再使用，改用 getActiveFilterTypes()
         let isPlaying = false;
         let playSpeed = 1;
         let playInterval = null;
@@ -619,7 +639,6 @@
         const GRID_SCALE = 1.5;
 
         const VESSEL_CATEGORIES = {
-            all: null,
             fishing: [30],
             cargo: [70,71,72,73,74,75,76,77,78,79],
             tanker: [80,81,82,83,84,85,86,87,88,89],
@@ -628,8 +647,21 @@
             military: [35],
             sailing: [36, 37],
             service: [50, 51, 52, 53, 55, 33, 34],
-            highspeed: [40]
+            highspeed: [40],
+            unknown: [0, 20, 90]
         };
+        const ALL_CATEGORY_KEYS = Object.keys(VESSEL_CATEGORIES);
+
+        function getActiveFilterTypes() {
+            const checks = document.querySelectorAll('#vesselFilter input[type="checkbox"]');
+            const checked = [...checks].filter(c => c.checked).map(c => c.value);
+            if (checked.length === ALL_CATEGORY_KEYS.length) return null; // 全選 = 不篩選
+            const types = new Set();
+            for (const key of checked) {
+                if (VESSEL_CATEGORIES[key]) VESSEL_CATEGORIES[key].forEach(t => types.add(t));
+            }
+            return types;
+        }
 
         // DOM
         const loadingEl = document.getElementById('loading');
@@ -673,9 +705,8 @@
             return 0.9;
         }
 
-        function calculateDensityGrid(ships, geoInfo, filter) {
+        function calculateDensityGrid(ships, geoInfo, validTypes) {
             const { bottom_left_lon, bottom_left_lat, resolution_lon, resolution_lat, cols, rows } = geoInfo;
-            const validTypes = VESSEL_CATEGORIES[filter];
 
             const scaledCols = Math.ceil(cols / GRID_SCALE);
             const scaledRows = Math.ceil(rows / GRID_SCALE);
@@ -692,7 +723,7 @@
 
             for (const ship of ships) {
                 const [lon, lat, vtype] = ship;
-                if (validTypes && !validTypes.includes(vtype)) continue;
+                if (validTypes && !validTypes.has(vtype)) continue;
                 if (lon < bottom_left_lon || lon >= bottom_left_lon + scaledCols * scaledResLon) continue;
                 if (lat < bottom_left_lat || lat >= bottom_left_lat + scaledRows * scaledResLat) continue;
 
@@ -714,7 +745,7 @@
 
             const frame = densityData.frames[frameIndex];
             const geoInfo = densityData.metadata.geo_info;
-            const result = calculateDensityGrid(frame.ships, geoInfo, currentFilter);
+            const result = calculateDensityGrid(frame.ships, geoInfo, getActiveFilterTypes());
 
             timeDisplayEl.textContent = frame.time;
             shipCountEl.textContent = result.shipCount.toLocaleString();
@@ -783,7 +814,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const bounds = map.getBounds();
-            const validTypes = VESSEL_CATEGORIES[currentFilter];
+            const validTypes = getActiveFilterTypes();
 
             // 收集每艘船的歷史軌跡
             const shipTracks = {};  // {mmsi: [[lon,lat,sog,cog,vtype], ...]}
@@ -793,7 +824,7 @@
                 for (const [mmsi, data] of Object.entries(ships)) {
                     // 船型過濾：用最新資料的 vessel_type 判斷
                     const vtype = data[4] || 0;
-                    if (validTypes && !validTypes.includes(vtype)) continue;
+                    if (validTypes && !validTypes.has(vtype)) continue;
                     if (!shipTracks[mmsi]) shipTracks[mmsi] = [];
                     shipTracks[mmsi].push(data);
                 }
@@ -869,12 +900,12 @@
             const frame = trajectoryData.frames[frameIndex];
             timeDisplayEl.textContent = frame.time;
             // 計算過濾後的船舶數
-            const validTypes = VESSEL_CATEGORIES[currentFilter];
+            const validTypes = getActiveFilterTypes();
             let shipCount = 0;
             if (typeof frame.ships === 'object') {
                 for (const data of Object.values(frame.ships)) {
                     const vtype = data[4] || 0;
-                    if (!validTypes || validTypes.includes(vtype)) shipCount++;
+                    if (!validTypes || validTypes.has(vtype)) shipCount++;
                 }
             }
             shipCountEl.textContent = shipCount.toLocaleString();
@@ -944,7 +975,7 @@
             if (!densityData || frameIndex < 0 || frameIndex >= densityData.frames.length) return;
 
             const frame = densityData.frames[frameIndex];
-            const validTypes = VESSEL_CATEGORIES[currentFilter];
+            const validTypes = getActiveFilterTypes();
 
             timeDisplayEl.textContent = frame.time;
             timelineEl.value = frameIndex;
@@ -958,7 +989,7 @@
 
             for (const ship of frame.ships) {
                 const [lon, lat, vtype] = ship;
-                if (validTypes && !validTypes.includes(vtype)) continue;
+                if (validTypes && !validTypes.has(vtype)) continue;
 
                 const pt = map.latLngToContainerPoint([lat, lon]);
                 const { q, r } = pixelToAxial(pt.x, pt.y, size);
@@ -1003,7 +1034,7 @@
             if (!densityData || frameIndex < 0 || frameIndex >= densityData.frames.length) return;
 
             const frame = densityData.frames[frameIndex];
-            const validTypes = VESSEL_CATEGORIES[currentFilter];
+            const validTypes = getActiveFilterTypes();
 
             timeDisplayEl.textContent = frame.time;
             timelineEl.value = frameIndex;
@@ -1013,7 +1044,7 @@
 
             for (const ship of frame.ships) {
                 const [lon, lat, vtype] = ship;
-                if (validTypes && !validTypes.includes(vtype)) continue;
+                if (validTypes && !validTypes.has(vtype)) continue;
                 points.push([lat, lon, 0.5]);
                 shipCount++;
             }
@@ -1566,12 +1597,22 @@
             });
             speedBtns.forEach(btn => btn.addEventListener('click', () => setSpeed(parseInt(btn.dataset.speed))));
             tabBtns.forEach(btn => btn.addEventListener('click', () => switchMode(btn.dataset.mode)));
-            vesselFilterEl.addEventListener('change', () => {
-                currentFilter = vesselFilterEl.value;
+            function onFilterChange() {
                 if (currentMode === 'density') renderDensityFrame(currentFrame);
                 else if (currentMode === 'trajectory') drawShips();
                 else if (currentMode === 'hexbin') renderHexbinFrame(currentFrame);
                 else if (currentMode === 'heatmap') renderHeatmapFrame(currentFrame);
+                // 更新全選按鈕文字
+                const checks = vesselFilterEl.querySelectorAll('input[type="checkbox"]');
+                const allChecked = [...checks].every(c => c.checked);
+                document.getElementById('toggleAll').textContent = allChecked ? '取消全選' : '全選';
+            }
+            vesselFilterEl.addEventListener('change', onFilterChange);
+            document.getElementById('toggleAll').addEventListener('click', () => {
+                const checks = vesselFilterEl.querySelectorAll('input[type="checkbox"]');
+                const allChecked = [...checks].every(c => c.checked);
+                checks.forEach(c => c.checked = !allChecked);
+                onFilterChange();
             });
 
             document.addEventListener('keydown', (e) => {
