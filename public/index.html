@@ -180,6 +180,55 @@
             text-decoration: underline;
         }
 
+        /* 日夜間切換 */
+        .theme-toggle {
+            position: fixed;
+            top: 24px;
+            right: 70px;
+            z-index: 1001;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.85);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .theme-toggle:hover { transform: scale(1.1); }
+
+        /* 夜間模式 */
+        body.dark-theme { background: #0f0f1a; color: #e0e0e0; }
+        body.dark-theme .status-panel { background: rgba(20,20,40,0.92); }
+        body.dark-theme .status-panel .stat-item span:first-child { color: #888; }
+        body.dark-theme .stats-value { color: #e0e0e0; }
+        body.dark-theme .filter-title { color: #888; }
+        body.dark-theme .filter-checks label { color: #ccc; }
+        body.dark-theme .filter-toggle-all { color: #4cc9f0; }
+        body.dark-theme .timeline-panel { background: rgba(20,20,40,0.92); }
+        body.dark-theme .play-btn { background: linear-gradient(135deg, #4cc9f0, #72efdd); }
+        body.dark-theme .time-display { color: #e0e0e0; }
+        body.dark-theme .speed-btn { background: rgba(255,255,255,0.08); color: #aaa; }
+        body.dark-theme .speed-btn.active { background: #4cc9f0; color: #111; }
+        body.dark-theme .legend { background: rgba(20,20,40,0.92); }
+        body.dark-theme .legend-title { color: #ccc; }
+        body.dark-theme .legend-item { color: #aaa; }
+        body.dark-theme .info-panel { background: rgba(20,20,40,0.9); color: #666; }
+        body.dark-theme .tab-btn { background: rgba(30,30,55,0.8); color: #999; }
+        body.dark-theme .tab-btn.active { background: #4cc9f0; color: #111; }
+        body.dark-theme .loading { background: #0f0f1a; }
+        body.dark-theme .loading-text { color: #888; }
+        body.dark-theme .theme-toggle { background: rgba(30,30,55,0.85); }
+        body.dark-theme .query-toolbar .tool-btn { background: rgba(20,20,40,0.95); color: #aaa; border-color: #333; }
+        body.dark-theme .query-toolbar .tool-btn:hover { background: rgba(40,40,70,0.95); border-color: #4cc9f0; }
+        body.dark-theme .query-toolbar .tool-btn.active { background: #4cc9f0; color: #111; border-color: #4cc9f0; }
+        body.dark-theme .query-panel { background: rgba(20,20,40,0.97); }
+        body.dark-theme .query-panel-header { background: rgba(20,20,40,0.97); color: #ccc; border-bottom-color: #333; }
+
         /* 底部時間軸控制 */
         .timeline-panel {
             position: fixed;
@@ -491,6 +540,9 @@
     <div id="map"></div>
     <canvas id="canvas-overlay"></canvas>
 
+    <!-- 日夜間切換 -->
+    <button class="theme-toggle" id="themeToggle" title="切換日間/夜間模式">&#9790;</button>
+
     <!-- Tab 切換 -->
     <div class="tab-container">
         <button class="tab-btn active" data-mode="density">密度熱區</button>
@@ -637,6 +689,25 @@
         let heatLayer = null;
 
         const GRID_SCALE = 1.5;
+        let currentTheme = 'day';
+        let tileLayer = null;
+
+        const THEMES = {
+            day: {
+                tiles: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                density: ['#f0fffe','#80cdc1','#c7e9b4','#ffffcc','#fdb863','#e06c52','#8c2d04'],
+                speed: ['#1d4ed8','#7b2cbf','#e85d04','#c41d3c'],
+                heatGradient: {0.0:'#80cdc1',0.2:'#c7e9b4',0.4:'#ffffcc',0.6:'#fdb863',0.8:'#e06c52',1.0:'#8c2d04'},
+                heatGradientCSS: 'linear-gradient(to bottom, #8c2d04, #e06c52, #fdb863, #ffffcc, #c7e9b4, #80cdc1)',
+            },
+            night: {
+                tiles: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                density: ['transparent','#160b39','#420a68','#932667','#dd513a','#fba40a','#fcffa4'],
+                speed: ['#4cc9f0','#72efdd','#fee440','#ff2d75'],
+                heatGradient: {0.0:'#160b39',0.2:'#420a68',0.4:'#932667',0.6:'#dd513a',0.8:'#fba40a',1.0:'#fcffa4'},
+                heatGradientCSS: 'linear-gradient(to bottom, #fcffa4, #fba40a, #dd513a, #932667, #420a68, #160b39)',
+            }
+        };
 
         const VESSEL_CATEGORIES = {
             fishing: [30],
@@ -686,13 +757,14 @@
 
         // ==================== 密度模式 ====================
         function getDensityColor(count) {
-            if (count === 0) return '#f0fffe';
-            if (count <= 2) return '#80cdc1';
-            if (count <= 5) return '#c7e9b4';
-            if (count <= 10) return '#ffffcc';
-            if (count <= 20) return '#fdb863';
-            if (count <= 50) return '#e06c52';
-            return '#8c2d04';
+            const c = THEMES[currentTheme].density;
+            if (count === 0) return c[0];
+            if (count <= 2) return c[1];
+            if (count <= 5) return c[2];
+            if (count <= 10) return c[3];
+            if (count <= 20) return c[4];
+            if (count <= 50) return c[5];
+            return c[6];
         }
 
         function getDensityOpacity(count) {
@@ -785,10 +857,11 @@
 
         // 速度漸變色彩（深色系，易於辨識）
         function getSpeedColor(sog) {
-            if (sog > 15) return '#c41d3c';  // 深紅（高速）
-            if (sog > 10) return '#e85d04';  // 橘色
-            if (sog > 5)  return '#7b2cbf';  // 紫色（中速）
-            return '#1d4ed8';                 // 深藍（低速）
+            const s = THEMES[currentTheme].speed;
+            if (sog > 15) return s[3];
+            if (sog > 10) return s[2];
+            if (sog > 5)  return s[1];
+            return s[0];
         }
 
         function latLngToPixel(lat, lng) {
@@ -1014,19 +1087,15 @@
 
         // ==================== 熱力圖模式 ====================
         function initHeatLayer() {
-            if (heatLayer) return;
+            if (heatLayer) {
+                map.removeLayer(heatLayer);
+                heatLayer = null;
+            }
             heatLayer = L.heatLayer([], {
                 radius: 12,
                 blur: 8,
                 maxZoom: 12,
-                gradient: {
-                    0.0: '#80cdc1',
-                    0.2: '#c7e9b4',
-                    0.4: '#ffffcc',
-                    0.6: '#fdb863',
-                    0.8: '#e06c52',
-                    1.0: '#8c2d04'
-                }
+                gradient: THEMES[currentTheme].heatGradient
             });
         }
 
@@ -1565,7 +1634,7 @@
             });
 
             L.control.zoom({ position: 'topright' }).addTo(map);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            tileLayer = L.tileLayer(THEMES[currentTheme].tiles, {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
                 subdomains: 'abcd'
             }).addTo(map);
@@ -1586,7 +1655,50 @@
             window.addEventListener('resize', resize);
         }
 
+        function updateLegends() {
+            const t = THEMES[currentTheme];
+            // 密度圖例
+            const dItems = document.querySelectorAll('#densityLegend .legend-color');
+            const dColors = [...t.density].reverse(); // [>50, 21-50, ..., 0]
+            dItems.forEach((el, i) => { if (dColors[i]) el.style.background = dColors[i]; });
+            // 六角圖例（無 0 格）
+            const hItems = document.querySelectorAll('#hexbinLegend .legend-color');
+            dColors.slice(0, -1).forEach((c, i) => { if (hItems[i]) hItems[i].style.background = c; });
+            // 軌跡圖例
+            const sItems = document.querySelectorAll('#trajectoryLegend .legend-color');
+            const sColors = [...t.speed].reverse(); // [高速, ..., 低速]
+            sItems.forEach((el, i) => { if (sColors[i]) el.style.background = sColors[i]; });
+            // 熱力圖圖例
+            const heatBar = document.querySelector('#heatmapLegend .legend-item > div:first-child');
+            if (heatBar) heatBar.style.background = t.heatGradientCSS;
+        }
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'day' ? 'night' : 'day';
+            document.body.classList.toggle('dark-theme', currentTheme === 'night');
+            document.getElementById('themeToggle').textContent = currentTheme === 'night' ? '\u2600' : '\u263E';
+            // 切換底圖
+            map.removeLayer(tileLayer);
+            tileLayer = L.tileLayer(THEMES[currentTheme].tiles, {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                subdomains: 'abcd'
+            }).addTo(map);
+            // 重建熱力圖層
+            initHeatLayer();
+            // 更新圖例
+            updateLegends();
+            // 重新渲染當前幀
+            if (currentMode === 'density') renderDensityFrame(currentFrame);
+            else if (currentMode === 'trajectory') drawShips();
+            else if (currentMode === 'hexbin') renderHexbinFrame(currentFrame);
+            else if (currentMode === 'heatmap') {
+                heatLayer.addTo(map);
+                renderHeatmapFrame(currentFrame);
+            }
+        }
+
         function setupEventListeners() {
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
             playBtnEl.addEventListener('click', togglePlay);
             timelineEl.addEventListener('input', (e) => {
                 const idx = parseInt(e.target.value);
