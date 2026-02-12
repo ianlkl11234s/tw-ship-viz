@@ -2010,11 +2010,22 @@
             }
         }
 
+        async function checkQueryAPI() {
+            try {
+                const res = await fetch('/api/ships/latest', { method: 'HEAD' });
+                if (!res.ok) throw new Error();
+            } catch {
+                const queryTab = document.querySelector('.tab-btn[data-mode="query"]');
+                if (queryTab) queryTab.style.display = 'none';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             initMap();
             initCanvas();
             setupEventListeners();
             loadDensityData();
+            checkQueryAPI();
         });
     </script>
 </body>
