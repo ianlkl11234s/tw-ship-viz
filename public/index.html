@@ -688,6 +688,11 @@
         let gridLayer = null;
         let heatLayer = null;
 
+        // rAF 播放相關
+        let rafId = null;
+        let lastFrameTime = 0;
+        let interpolationT = 0;
+
         const GRID_SCALE = 1.5;
         let currentTheme = 'day';
         let tileLayer = null;
@@ -812,6 +817,29 @@
             return { grid, shipCount, maxDensity, resolution: scaledResLon, cols: scaledCols, rows: scaledRows };
         }
 
+        function drawDensityGridOnCanvas(gridResult, geoInfo, alpha) {
+            const resolution = gridResult.resolution;
+            for (let row = 0; row < gridResult.grid.length; row++) {
+                for (let col = 0; col < gridResult.grid[row].length; col++) {
+                    const count = gridResult.grid[row][col];
+                    if (count === 0) continue;
+
+                    const lat1 = geoInfo.bottom_left_lat + row * resolution;
+                    const lat2 = lat1 + resolution;
+                    const lon1 = geoInfo.bottom_left_lon + col * resolution;
+                    const lon2 = lon1 + resolution;
+
+                    const p1 = map.latLngToContainerPoint([lat2, lon1]);
+                    const p2 = map.latLngToContainerPoint([lat1, lon2]);
+
+                    ctx.fillStyle = getDensityColor(count);
+                    ctx.globalAlpha = getDensityOpacity(count) * alpha;
+                    ctx.fillRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+                }
+            }
+            ctx.globalAlpha = 1;
+        }
+
         function renderDensityFrame(frameIndex) {
             if (!densityData || frameIndex < 0 || frameIndex >= densityData.frames.length) return;
 
@@ -824,30 +852,9 @@
             maxDensityEl.textContent = result.maxDensity;
             timelineEl.value = frameIndex;
 
-            gridLayer.clearLayers();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawDensityGridOnCanvas(result, geoInfo, 1);
 
-            const resolution = result.resolution;
-            for (let row = 0; row < result.grid.length; row++) {
-                for (let col = 0; col < result.grid[row].length; col++) {
-                    const count = result.grid[row][col];
-                    const lat1 = geoInfo.bottom_left_lat + row * resolution;
-                    const lat2 = lat1 + resolution;
-                    const lon1 = geoInfo.bottom_left_lon + col * resolution;
-                    const lon2 = lon1 + resolution;
-
-                    const rect = L.rectangle([[lat1, lon1], [lat2, lon2]], {
-                        color: 'transparent',
-                        weight: 0,
-                        fillColor: getDensityColor(count),
-                        fillOpacity: getDensityOpacity(count)
-                    });
-
-                    if (count > 0) {
-                        rect.bindPopup(`<strong>船舶：${count}</strong><br>${lon1.toFixed(2)}°~${lon2.toFixed(2)}°E<br>${lat1.toFixed(2)}°~${lat2.toFixed(2)}°N`);
-                    }
-                    gridLayer.addLayer(rect);
-                }
-            }
             currentFrame = frameIndex;
         }
 
@@ -960,6 +967,103 @@
             ctx.globalAlpha = 1;
         }
 
+        function drawShipsInterpolated(t) {
+            if (!ctx || !canvas || !trajectoryData) return;
+            const trajData = trajectoryData;
+            const nextIdx = Math.min(currentFrame + 1, trajData.frames.length - 1);
+            if (nextIdx === currentFrame || t <= 0) {
+                drawShips();
+                return;
+            }
+
+            const currShips = trajData.frames[currentFrame].ships;
+            const nextShips = trajData.frames[nextIdx].ships;
+            const bounds = map.getBounds();
+            const validTypes = getActiveFilterTypes();
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 收集歷史軌跡 + 補間位置
+            const shipTracks = {};
+
+            for (let i = 0; i < frameHistory.length; i++) {
+                const ships = frameHistory[i];
+                for (const [mmsi, data] of Object.entries(ships)) {
+                    const vtype = data[4] || 0;
+                    if (validTypes && !validTypes.has(vtype)) continue;
+                    if (!shipTracks[mmsi]) shipTracks[mmsi] = [];
+                    shipTracks[mmsi].push(data);
+                }
+            }
+
+            // 對同一 MMSI 做 lerp 補間
+            for (const [mmsi, track] of Object.entries(shipTracks)) {
+                if (track.length < 1) continue;
+
+                const lastPos = track[track.length - 1];
+                let [lon, lat, sog, cog] = lastPos;
+
+                // 若在 nextShips 中也有此 MMSI，做 lerp
+                if (nextShips[mmsi]) {
+                    const [nLon, nLat, nSog, nCog] = nextShips[mmsi];
+                    const dist = haversineDistance(lat, lon, nLat, nLon);
+                    if (dist <= MAX_DISTANCE_KM) {
+                        lon = lon + (nLon - lon) * t;
+                        lat = lat + (nLat - lat) * t;
+                        sog = sog + (nSog - sog) * t;
+                    }
+                }
+
+                if (lon < bounds.getWest() || lon > bounds.getEast() ||
+                    lat < bounds.getSouth() || lat > bounds.getNorth()) continue;
+
+                const color = getSpeedColor(sog);
+
+                // 繪製歷史軌跡線
+                if (track.length > 1) {
+                    ctx.beginPath();
+                    for (let i = 0; i < track.length; i++) {
+                        const [pLon, pLat] = track[i];
+                        const pixel = latLngToPixel(pLat, pLon);
+                        if (i === 0) {
+                            ctx.moveTo(pixel.x, pixel.y);
+                        } else {
+                            const [prevLon, prevLat] = track[i - 1];
+                            const d = haversineDistance(prevLat, prevLon, pLat, pLon);
+                            if (d <= MAX_DISTANCE_KM) ctx.lineTo(pixel.x, pixel.y);
+                            else ctx.moveTo(pixel.x, pixel.y);
+                        }
+                    }
+                    // 連接到補間位置
+                    const prevPt = track[track.length - 1];
+                    const d = haversineDistance(prevPt[1], prevPt[0], lat, lon);
+                    if (d <= MAX_DISTANCE_KM) {
+                        const interpPixel = latLngToPixel(lat, lon);
+                        ctx.lineTo(interpPixel.x, interpPixel.y);
+                    }
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.6;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                }
+
+                // 繪製船頭
+                const headPixel = latLngToPixel(lat, lon);
+                ctx.beginPath();
+                ctx.arc(headPixel.x, headPixel.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.globalAlpha = 0.95;
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function renderTrajectoryInterpolated(t) {
+            drawShipsInterpolated(t);
+        }
+
         function updateFrameHistory(ships) {
             frameHistory.push(ships);
             if (frameHistory.length > TRAIL_FRAMES + 1) {
@@ -1044,6 +1148,50 @@
             ctx.stroke();
         }
 
+        function computeHexBins(ships, size, validTypes) {
+            const bins = {};
+            let shipCount = 0;
+            let maxCount = 0;
+
+            for (const ship of ships) {
+                const [lon, lat, vtype] = ship;
+                if (validTypes && !validTypes.has(vtype)) continue;
+
+                const pt = map.latLngToContainerPoint([lat, lon]);
+                const { q, r } = pixelToAxial(pt.x, pt.y, size);
+                const key = `${q},${r}`;
+                bins[key] = (bins[key] || 0) + 1;
+                shipCount++;
+                maxCount = Math.max(maxCount, bins[key]);
+            }
+
+            return { bins, shipCount, maxCount };
+        }
+
+        function drawHexBins(bins, size, alpha) {
+            for (const [key, count] of Object.entries(bins)) {
+                const [q, r] = key.split(',').map(Number);
+                const { x, y } = axialToPixel(q, r, size);
+                const color = getDensityColor(count);
+                ctx.globalAlpha = 0.8 * alpha;
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = Math.PI / 180 * (60 * i);
+                    const hx = x + size * 0.95 * Math.cos(angle);
+                    const hy = y + size * 0.95 * Math.sin(angle);
+                    if (i === 0) ctx.moveTo(hx, hy);
+                    else ctx.lineTo(hx, hy);
+                }
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+        }
+
         function renderHexbinFrame(frameIndex) {
             if (!densityData || frameIndex < 0 || frameIndex >= densityData.frames.length) return;
 
@@ -1056,33 +1204,42 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const size = getHexSize();
-            const bins = {};
-            let shipCount = 0;
-            let maxCount = 0;
-
-            for (const ship of frame.ships) {
-                const [lon, lat, vtype] = ship;
-                if (validTypes && !validTypes.has(vtype)) continue;
-
-                const pt = map.latLngToContainerPoint([lat, lon]);
-                const { q, r } = pixelToAxial(pt.x, pt.y, size);
-                const key = `${q},${r}`;
-                bins[key] = (bins[key] || 0) + 1;
-                shipCount++;
-                maxCount = Math.max(maxCount, bins[key]);
-            }
-
-            for (const [key, count] of Object.entries(bins)) {
-                const [q, r] = key.split(',').map(Number);
-                const { x, y } = axialToPixel(q, r, size);
-                const color = getDensityColor(count);
-                drawHexagon(ctx, x, y, size * 0.95, color);
-            }
-            ctx.globalAlpha = 1;
+            const { bins, shipCount, maxCount } = computeHexBins(frame.ships, size, validTypes);
+            drawHexBins(bins, size, 1);
 
             shipCountEl.textContent = shipCount.toLocaleString();
             maxDensityEl.textContent = maxCount;
             currentFrame = frameIndex;
+        }
+
+        function renderHexbinCrossfade(t) {
+            if (!densityData) return;
+            const nextIdx = Math.min(currentFrame + 1, densityData.frames.length - 1);
+            if (nextIdx === currentFrame || t <= 0) return; // 不需要補間
+
+            const validTypes = getActiveFilterTypes();
+            const size = getHexSize();
+            const currBins = computeHexBins(densityData.frames[currentFrame].ships, size, validTypes);
+            const nextBins = computeHexBins(densityData.frames[nextIdx].ships, size, validTypes);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawHexBins(currBins.bins, size, 1 - t);
+            drawHexBins(nextBins.bins, size, t);
+        }
+
+        function renderDensityCrossfade(t) {
+            if (!densityData) return;
+            const nextIdx = Math.min(currentFrame + 1, densityData.frames.length - 1);
+            if (nextIdx === currentFrame || t <= 0) return; // 不需要補間
+
+            const geoInfo = densityData.metadata.geo_info;
+            const validTypes = getActiveFilterTypes();
+            const currResult = calculateDensityGrid(densityData.frames[currentFrame].ships, geoInfo, validTypes);
+            const nextResult = calculateDensityGrid(densityData.frames[nextIdx].ships, geoInfo, validTypes);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawDensityGridOnCanvas(currResult, geoInfo, 1 - t);
+            drawDensityGridOnCanvas(nextResult, geoInfo, t);
         }
 
         // ==================== 熱力圖模式 ====================
@@ -1485,8 +1642,7 @@
                 densityLegendEl.style.display = '';
                 document.querySelector('.status-panel').style.display = '';
                 document.querySelector('.timeline-panel').style.display = '';
-                canvasEl.style.display = 'none';
-                gridLayer.clearLayers();
+                canvasEl.style.display = 'block';
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 if (densityData) {
@@ -1584,6 +1740,21 @@
             return densityData; // density, hexbin, heatmap 都用 densityData
         }
 
+        function getFrameInterval() {
+            if (currentMode === 'density') return 1000 / playSpeed;
+            if (currentMode === 'trajectory') return 2000 / playSpeed;
+            if (currentMode === 'hexbin') return 1000 / playSpeed;
+            if (currentMode === 'heatmap') return 1500 / playSpeed;
+            return 1000 / playSpeed;
+        }
+
+        function renderInterpolated(t) {
+            if (currentMode === 'trajectory') renderTrajectoryInterpolated(t);
+            else if (currentMode === 'hexbin') renderHexbinCrossfade(t);
+            else if (currentMode === 'density') renderDensityCrossfade(t);
+            // heatmap 不做補間（由 Leaflet.heat 自行處理）
+        }
+
         function startPlay() {
             isPlaying = true;
             playBtnEl.textContent = '⏸';
@@ -1591,30 +1762,45 @@
             const data = getPlayData();
             if (!data) return;
 
-            let interval;
-            if (currentMode === 'density') interval = 1000 / playSpeed;
-            else if (currentMode === 'trajectory') interval = 2000 / playSpeed;
-            else if (currentMode === 'hexbin') interval = 1000 / playSpeed;
-            else if (currentMode === 'heatmap') interval = 1500 / playSpeed;
-            else interval = 1000 / playSpeed;
+            lastFrameTime = performance.now();
+            interpolationT = 0;
 
-            playInterval = setInterval(() => {
-                let nextFrame = currentFrame + 1;
-                if (nextFrame >= data.frames.length) {
-                    nextFrame = 0;
-                    if (currentMode === 'trajectory') frameHistory = [];
+            function tick(now) {
+                if (!isPlaying) return;
+
+                const elapsed = now - lastFrameTime;
+                const interval = getFrameInterval();
+                interpolationT = Math.min(elapsed / interval, 1);
+
+                // 補間渲染
+                renderInterpolated(interpolationT);
+
+                // 累計時間到達 interval，切下一幀
+                if (elapsed >= interval) {
+                    lastFrameTime = now;
+                    interpolationT = 0;
+
+                    let nextFrame = currentFrame + 1;
+                    if (nextFrame >= data.frames.length) {
+                        nextFrame = 0;
+                        if (currentMode === 'trajectory') frameHistory = [];
+                    }
+                    if (currentMode === 'density') renderDensityFrame(nextFrame);
+                    else if (currentMode === 'trajectory') renderTrajectoryFrame(nextFrame);
+                    else if (currentMode === 'hexbin') renderHexbinFrame(nextFrame);
+                    else if (currentMode === 'heatmap') renderHeatmapFrame(nextFrame);
                 }
-                if (currentMode === 'density') renderDensityFrame(nextFrame);
-                else if (currentMode === 'trajectory') renderTrajectoryFrame(nextFrame);
-                else if (currentMode === 'hexbin') renderHexbinFrame(nextFrame);
-                else if (currentMode === 'heatmap') renderHeatmapFrame(nextFrame);
-            }, interval);
+
+                rafId = requestAnimationFrame(tick);
+            }
+
+            rafId = requestAnimationFrame(tick);
         }
 
         function stopPlay() {
             isPlaying = false;
             playBtnEl.textContent = '▶';
-            if (playInterval) { clearInterval(playInterval); playInterval = null; }
+            if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
         }
 
         function setSpeed(speed) {
@@ -1641,7 +1827,8 @@
 
             gridLayer = L.layerGroup().addTo(map);
             map.on('move zoom', () => {
-                if (currentMode === 'trajectory') drawShips();
+                if (currentMode === 'density') renderDensityFrame(currentFrame);
+                else if (currentMode === 'trajectory') drawShips();
                 else if (currentMode === 'query') drawQueryShips();
                 else if (currentMode === 'hexbin') renderHexbinFrame(currentFrame);
             });
@@ -1650,7 +1837,13 @@
         function initCanvas() {
             canvas = canvasEl;
             ctx = canvas.getContext('2d');
-            const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+            const resize = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                if (currentMode === 'density') renderDensityFrame(currentFrame);
+                else if (currentMode === 'hexbin') renderHexbinFrame(currentFrame);
+                else if (currentMode === 'trajectory') drawShips();
+            };
             resize();
             window.addEventListener('resize', resize);
         }
@@ -1702,6 +1895,9 @@
             playBtnEl.addEventListener('click', togglePlay);
             timelineEl.addEventListener('input', (e) => {
                 const idx = parseInt(e.target.value);
+                // 重置補間狀態，避免拖曳時間軸產生衝突
+                lastFrameTime = performance.now();
+                interpolationT = 0;
                 if (currentMode === 'density') renderDensityFrame(idx);
                 else if (currentMode === 'trajectory') renderTrajectoryFrame(idx);
                 else if (currentMode === 'hexbin') renderHexbinFrame(idx);
@@ -1740,8 +1936,18 @@
                 };
 
                 if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
-                else if (e.code === 'ArrowLeft') { stopPlay(); renderFrame(Math.max(0, currentFrame - 1)); }
-                else if (e.code === 'ArrowRight') { stopPlay(); renderFrame(Math.min(data.frames.length - 1, currentFrame + 1)); }
+                else if (e.code === 'ArrowLeft') {
+                    stopPlay();
+                    lastFrameTime = performance.now();
+                    interpolationT = 0;
+                    renderFrame(Math.max(0, currentFrame - 1));
+                }
+                else if (e.code === 'ArrowRight') {
+                    stopPlay();
+                    lastFrameTime = performance.now();
+                    interpolationT = 0;
+                    renderFrame(Math.min(data.frames.length - 1, currentFrame + 1));
+                }
             });
 
             // 查詢模式事件
