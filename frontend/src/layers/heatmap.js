@@ -21,27 +21,29 @@ function getColorRange(theme) {
 }
 
 /**
- * @param {{ positions: Float32Array, count: number }} flatData - TypedArray 格式的位置資料
+ * @param {{ positions: Float32Array, weights: Float32Array, count: number }} heatData
+ *   空間預聚合後的資料（~2,000 個帶權重格子，非原始 12,000 點）
  * @param {string} theme - 'day' | 'night'
  * @returns {Array} deck.gl Layer 陣列
  */
-export function createHeatmapLayers(flatData, theme = 'day') {
+export function createHeatmapLayers(heatData, theme = 'day') {
   const colorRange = getColorRange(theme);
 
   const heatLayer = new HeatmapLayer({
     id: 'heatmap-layer',
     data: {
-      length: flatData.count,
+      length: heatData.count,
       attributes: {
-        getPosition: { value: flatData.positions, size: 2 },
+        getPosition: { value: heatData.positions, size: 2 },
+        getWeight: { value: heatData.weights, size: 1 },
       },
     },
-    getWeight: 1,
-    radiusPixels: 30,
+    radiusPixels: 40,
     intensity: 1,
     threshold: 0.05,
     colorRange,
     opacity: 0.8,
+    debounceTimeout: 100,
   });
 
   return [heatLayer];

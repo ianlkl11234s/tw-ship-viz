@@ -194,6 +194,58 @@ class FrameIndex {
   }
 
   /**
+   * 取得指定幀的熱力圖資料（空間預聚合 + TypedArray）。
+   *
+   * 將 ~12,000 個點聚合為 ~2,000 個帶權重的格子，大幅降低 GPU KDE 負擔。
+   * cellSize 0.03° ≈ 3.3km，在 HeatmapLayer radiusPixels=40 下聚合效果平滑。
+   *
+   * @param {number} frameIdx
+   * @param {number} cellSize - 聚合格子大小（度）
+   * @returns {{ positions: Float32Array, weights: Float32Array, count: number } | null}
+   */
+  getFrameHeatmapData(frameIdx, cellSize = 0.03) {
+    if (frameIdx < 0 || frameIdx >= this._frameTimes.length) return null;
+    const start = this._starts[frameIdx];
+    const end = this._starts[frameIdx + 1];
+    if (start >= end) return null;
+
+    const cellInv = 1 / cellSize;
+    const grid = new Map();
+
+    for (let i = start; i < end; i++) {
+      const lon = this._lonCol.get(i);
+      const lat = this._latCol.get(i);
+      // 整數格子 key（數值 key 比字串快）
+      const cx = Math.round(lon * cellInv);
+      const cy = Math.round(lat * cellInv);
+      const key = cx * 100000 + cy;
+
+      const cell = grid.get(key);
+      if (cell) {
+        cell[0] += lon;
+        cell[1] += lat;
+        cell[2]++;
+      } else {
+        grid.set(key, [lon, lat, 1]);
+      }
+    }
+
+    const count = grid.size;
+    const positions = new Float32Array(count * 2);
+    const weights = new Float32Array(count);
+    let idx = 0;
+    for (const cell of grid.values()) {
+      const w = cell[2];
+      positions[idx * 2] = cell[0] / w;     // centroid lon
+      positions[idx * 2 + 1] = cell[1] / w; // centroid lat
+      weights[idx] = w;
+      idx++;
+    }
+
+    return { positions, weights, count };
+  }
+
+  /**
    * 取得指定幀的 [lon, lat, weight] 陣列（HeatmapLayer 用）。
    */
   getFrameHeatData(frameIdx, vesselFilter = null) {

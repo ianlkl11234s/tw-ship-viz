@@ -163,9 +163,9 @@ function updateLayers(currentTime) {
       const key = `heatmap|${theme}|${frameIdx}`;
       if (key === _cachedLayerKey) return;
       _cachedLayerKey = key;
-      // 用 TypedArray 路徑：零物件分配，直接送 GPU
-      const flatData = frameIndex.getFramePositionsFlat(frameIdx);
-      if (flatData && flatData.count > 0) layers = createHeatmapLayers(flatData, theme);
+      // 空間預聚合 + TypedArray：~12,000 點 → ~2,000 帶權重格子
+      const heatData = frameIndex.getFrameHeatmapData(frameIdx);
+      if (heatData && heatData.count > 0) layers = createHeatmapLayers(heatData, theme);
       break;
     }
     case 'query':
