@@ -1,30 +1,20 @@
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { initMap, toggleTheme, getCurrentTheme, getMap } from './map.js';
-import { loadArrowData } from './data/loader.js';
-import {
-  transformTrajectoryArrow, transformPositionsArrow,
-  transformTrajectoryJson, transformPositionsJson,
-} from './data/transform.js';
-import { createTripsLayers } from './layers/trips.js';
-import { createGridLayers } from './layers/grid.js';
-import { createHexagonLayers } from './layers/hexagon.js';
-import { createHeatmapLayers } from './layers/heatmap.js';
-import { createQueryLayers, createQueryShipDots } from './layers/path.js';
-import { initTimeline, setMode, getCurrentTime, destroyTimeline } from './controls/timeline.js';
-import { initQueryControls, enableQueryMode, disableQueryMode, handlePick } from './controls/query.js';
-import { updateLegend } from './ui/legends.js';
+import { loadTrajectoryData, loadPositionsData } from './data/loader.js';
+import { arrowToTrips, buildFrameIndex, jsonToTrips, jsonToFrameIndex } from './data/transform.js';
+import { createTrajectoryLayers, preprocessTrips } from './layers/trips.js';
+import { initTimeline, getCurrentTime } from './controls/timeline.js';
 import { VESSEL_CATEGORIES } from './utils/constants.js';
 import './style.css';
 
 // === 全域狀態 ===
 let map = null;
 let deckOverlay = null;
-let tripsData = null;       // TripsLayer 用的資料
-let positionsData = null;    // 密度/六角/熱力圖用的 per-frame 資料
+let tripsData = null;       // TripsLayer 用
+let frameIndex = null;      // 密度/六角/熱力圖用的幀索引
 let currentMode = 'trajectory';
-let activeCategories = null; // null = 全部
-let queryResults = [];       // 查詢模式的軌跡結果
-let queryShips = [];         // 查詢模式的船舶散點
+let activeCategories = null; // null = 全部，否則 Set<category key>
+let metadata = null;         // Arrow metadata
 
 // === 初始化 ===
 async function init() {
@@ -37,9 +27,6 @@ async function init() {
     deckOverlay = new MapboxOverlay({
       interleaved: false,
       layers: [],
-      onClick: (info) => {
-        if (currentMode === 'query') handlePick(info);
-      },
     });
     map.addControl(deckOverlay);
 
@@ -54,56 +41,58 @@ async function init() {
     setupTabs();
     setupFilters();
     setupThemeToggle();
-    initQueryControls({
-      map,
-      onQueryResult: (results) => { queryResults = results; updateLayers(getCurrentTime()); },
-      onQueryShipsLoad: (ships) => { queryShips = ships; updateLayers(getCurrentTime()); },
-    });
-
-    // 初始圖例
-    updateLegend(currentMode, getCurrentTheme());
+    checkQueryApi();
   });
 }
 
 // === 資料載入 ===
 async function loadData() {
   const loadingText = document.querySelector('.loading-text');
-
-  // 平行載入兩個資料集
   if (loadingText) loadingText.textContent = '載入船舶資料中...';
 
+  // 平行載入
   const [trajResult, posResult] = await Promise.all([
-    loadArrowData('trajectory'),
-    loadArrowData('positions'),
+    loadTrajectoryData(),
+    loadPositionsData(),
   ]);
 
-  // 轉換資料
   if (loadingText) loadingText.textContent = '處理資料中...';
 
-  if (trajResult.format === 'arrow') {
-    tripsData = transformTrajectoryArrow(trajResult.table);
+  // 轉換軌跡資料
+  if (trajResult.type === 'arrow') {
+    tripsData = arrowToTrips(trajResult.table);
+    preprocessTrips(tripsData, trajResult.table);
+    metadata = trajResult.metadata;
   } else {
-    tripsData = transformTrajectoryJson(trajResult.data);
+    tripsData = jsonToTrips(trajResult.data);
+    metadata = {
+      baseTimestamp: new Date(trajResult.data.frames[0].time).getTime() / 1000,
+      frameTimes: trajResult.data.frames.map((f, i) => i * 600),
+      totalFrames: trajResult.data.frames.length,
+    };
   }
 
-  if (posResult.format === 'arrow') {
-    positionsData = transformPositionsArrow(posResult.table, posResult.metadata);
+  // 轉換位置資料（幀索引）
+  if (posResult.type === 'arrow') {
+    frameIndex = buildFrameIndex(posResult.table, posResult.metadata.frameTimes);
   } else {
-    positionsData = transformPositionsJson(posResult.data);
+    frameIndex = jsonToFrameIndex(posResult.data);
   }
 
-  // 初始化時間軸（使用 positionsData 的幀時間）
+  // 計算時間範圍
+  const frameTimes = metadata.frameTimes || [];
+  const minTime = frameTimes.length > 0 ? frameTimes[0] : 0;
+  const maxTime = frameTimes.length > 0 ? frameTimes[frameTimes.length - 1] : 0;
+
+  console.log(`[ship-gis] 資料載入完成: ${tripsData.length} 艘船軌跡, ${frameTimes.length} 幀, 時間 ${minTime}-${maxTime}s`);
+
+  // 初始化時間軸
   initTimeline({
-    frameTimes: positionsData.frameTimes,
-    baseDatetime: positionsData.baseDatetime,
+    minTime,
+    maxTime,
+    baseTimestamp: metadata.baseTimestamp,
     onTimeChange: handleTimeChange,
   });
-
-  // 初始渲染
-  updateLayers(getCurrentTime());
-
-  // 更新統計
-  updateStats(getCurrentTime());
 }
 
 // === 時間變化回調 ===
@@ -112,7 +101,7 @@ function handleTimeChange(currentTime) {
   updateStats(currentTime);
 }
 
-// === 圖層更新 ===
+// === 圖層更新（核心）===
 function updateLayers(currentTime) {
   if (!deckOverlay) return;
 
@@ -122,93 +111,64 @@ function updateLayers(currentTime) {
   switch (currentMode) {
     case 'trajectory':
       if (tripsData) {
-        layers = createTripsLayers(tripsData, currentTime, theme, activeCategories);
+        layers = createTrajectoryLayers(tripsData, currentTime, theme, activeCategories);
       }
       break;
     case 'density':
     case 'hexbin':
-    case 'heatmap': {
-      const framePositions = getFramePositions(currentTime);
-      if (framePositions.length > 0) {
-        if (currentMode === 'density') {
-          layers = createGridLayers(framePositions, theme);
-        } else if (currentMode === 'hexbin') {
-          layers = createHexagonLayers(framePositions, theme);
-        } else {
-          layers = createHeatmapLayers(framePositions, theme);
-        }
-      }
+    case 'heatmap':
+      // TODO: Step 4 實作
       break;
-    }
     case 'query':
-      if (queryResults.length > 0) {
-        layers = createQueryLayers(queryResults, theme);
-      }
-      if (queryShips.length > 0) {
-        layers.push(createQueryShipDots(queryShips));
-      }
+      // TODO: Step 5 實作
       break;
   }
 
   deckOverlay.setProps({ layers });
 }
 
-// === 取得當前幀的船舶位置（密度/六角/熱力圖用）===
+// === 取得當前幀的船舶位置 ===
 function getFramePositions(currentTime) {
-  if (!positionsData) return [];
-
-  // 找最接近的幀
-  const frameTimes = positionsData.frameTimes;
-  let closest = frameTimes[0];
-  let minDiff = Math.abs(closest - currentTime);
-  for (const ft of frameTimes) {
-    const diff = Math.abs(ft - currentTime);
-    if (diff < minDiff) {
-      minDiff = diff;
-      closest = ft;
-    }
+  if (!frameIndex) return [];
+  const ft = frameIndex.frameTimes;
+  let closestIdx = 0;
+  let minDiff = Infinity;
+  for (let i = 0; i < ft.length; i++) {
+    const diff = Math.abs(ft[i] - currentTime);
+    if (diff < minDiff) { minDiff = diff; closestIdx = i; }
   }
-
-  const frame = positionsData.frames.get(closest);
-  if (!frame) return [];
-
-  // 篩選船舶類別
-  return activeCategories
-    ? frame.filter(s => activeCategories.has(s.category))
-    : frame;
+  return frameIndex.getFrame(closestIdx);
 }
 
-// === 統計面板更新 ===
+// === 統計面板 ===
 function updateStats(currentTime) {
   const statShips = document.getElementById('statShips');
   if (!statShips) return;
 
   if (currentMode === 'trajectory' && tripsData) {
-    // 計算在 currentTime 可見的船舶數
     let count = 0;
     for (const trip of tripsData) {
-      if (activeCategories && !activeCategories.has(trip.category)) continue;
+      if (activeCategories) {
+        const cat = getCategoryForVessel(trip.vesselType);
+        if (!activeCategories.has(cat)) continue;
+      }
       const ts = trip.timestamps;
       if (ts.length > 0 && currentTime >= ts[0] && currentTime <= ts[ts.length - 1]) {
         count++;
       }
     }
     statShips.textContent = count.toLocaleString();
-  } else if (positionsData) {
-    // 找最接近的幀
-    const frameTimes = positionsData.frameTimes;
-    let closest = frameTimes[0];
-    for (const ft of frameTimes) {
-      if (Math.abs(ft - currentTime) < Math.abs(closest - currentTime)) closest = ft;
-    }
-    const frame = positionsData.frames.get(closest);
-    if (frame) {
-      const filtered = activeCategories
-        ? frame.filter(s => activeCategories.has(s.category))
-        : frame;
-      statShips.textContent = filtered.length.toLocaleString();
-    }
+  } else if (frameIndex) {
+    const positions = getFramePositions(currentTime);
+    statShips.textContent = positions.length.toLocaleString();
   }
+}
+
+function getCategoryForVessel(vtype) {
+  for (const [key, { codes }] of Object.entries(VESSEL_CATEGORIES)) {
+    if (codes.includes(vtype)) return key;
+  }
+  return 'unknown';
 }
 
 // === Tab 模式切換 ===
@@ -224,33 +184,16 @@ function setupTabs() {
     tab.addEventListener('click', () => {
       const mode = tab.dataset.mode;
       currentMode = mode;
-      setMode(mode);
 
-      // 更新 tab 樣式
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
 
-      // 更新標題
       if (modeTitle) modeTitle.textContent = modeNames[mode] || mode;
 
-      // 查詢模式特殊處理
-      if (mode === 'query') {
-        enableQueryMode();
-      } else {
-        disableQueryMode();
-      }
-
-      // 更新圖例
-      updateLegend(mode, getCurrentTheme());
-
-      // 重新渲染
       updateLayers(getCurrentTime());
       updateStats(getCurrentTime());
     });
   });
-
-  // 檢查 API 可用性（查詢模式需要後端）
-  checkQueryApi();
 }
 
 // === 船舶類型篩選 ===
@@ -259,42 +202,35 @@ function setupFilters() {
   const toggleBtn = document.getElementById('filterToggle');
   if (!container) return;
 
-  // 建立 checkbox
   for (const [key, { label }] of Object.entries(VESSEL_CATEGORIES)) {
     const labelEl = document.createElement('label');
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = true;
     checkbox.value = key;
-    checkbox.addEventListener('change', updateFilters);
+    checkbox.addEventListener('change', onFilterChange);
     labelEl.appendChild(checkbox);
     labelEl.appendChild(document.createTextNode(label));
     container.appendChild(labelEl);
   }
 
-  // 全選/取消全選
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
-      const checkboxes = container.querySelectorAll('input[type="checkbox"]');
-      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-      checkboxes.forEach(cb => { cb.checked = !allChecked; });
+      const cbs = container.querySelectorAll('input[type="checkbox"]');
+      const allChecked = Array.from(cbs).every(cb => cb.checked);
+      cbs.forEach(cb => { cb.checked = !allChecked; });
       toggleBtn.textContent = allChecked ? '全選' : '取消全選';
-      updateFilters();
+      onFilterChange();
     });
   }
 }
 
-function updateFilters() {
-  const container = document.getElementById('filterChecks');
-  const checkboxes = container.querySelectorAll('input[type="checkbox"]');
-  const checked = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
-
-  if (checked.length === Object.keys(VESSEL_CATEGORIES).length) {
-    activeCategories = null; // 全部
-  } else {
-    activeCategories = new Set(checked);
-  }
-
+function onFilterChange() {
+  const cbs = document.querySelectorAll('#filterChecks input[type="checkbox"]');
+  const checked = Array.from(cbs).filter(cb => cb.checked).map(cb => cb.value);
+  activeCategories = (checked.length === Object.keys(VESSEL_CATEGORIES).length)
+    ? null
+    : new Set(checked);
   updateLayers(getCurrentTime());
   updateStats(getCurrentTime());
 }
@@ -307,12 +243,12 @@ function setupThemeToggle() {
   themeBtn.addEventListener('click', () => {
     const theme = toggleTheme();
     themeBtn.textContent = theme === 'day' ? '\u263D' : '\u2600';
-
-    // deck.gl 在 map style 變更後需要重新加 overlay
-    // MapLibre setStyle 會清掉所有 controls，需要重新 add
     map.once('style.load', () => {
+      // style 重載後重新加入 overlay
+      if (deckOverlay) {
+        map.addControl(deckOverlay);
+      }
       updateLayers(getCurrentTime());
-      updateLegend(currentMode, theme);
     });
   });
 }
@@ -325,9 +261,7 @@ async function checkQueryApi() {
       const queryTab = document.getElementById('query-tab');
       if (queryTab) queryTab.style.display = '';
     }
-  } catch {
-    // API 不可用，隱藏查詢 tab
-  }
+  } catch { /* API 不可用 */ }
 }
 
 // === 啟動 ===

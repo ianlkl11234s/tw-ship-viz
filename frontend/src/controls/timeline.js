@@ -1,8 +1,8 @@
-import { BASE_INTERVALS, PLAY_SPEEDS } from '../utils/constants.js';
-
 /**
- * 時間軸控制器：播放/暫停、速度、slider、鍵盤快捷鍵。
+ * 時間軸控制模組
+ * 管理播放/暫停、速度、slider、鍵盤快捷鍵。
  */
+import { PLAY_SPEEDS } from '../utils/constants.js';
 
 let isPlaying = false;
 let playSpeed = 1;
@@ -10,152 +10,148 @@ let currentTime = 0;
 let minTime = 0;
 let maxTime = 0;
 let rafId = null;
-let lastTickTime = 0;
+let lastTick = 0;
+let baseTimestamp = 0; // unix epoch of time 0
 
-/** @type {Function} 外部回調：currentTime 變化時通知 */
+// 回調：當 currentTime 變化時通知外部
 let onTimeChange = null;
 
-/** @type {string} 當前模式 */
-let currentMode = 'trajectory';
-
-// DOM elements
-let playBtn, slider, speedBtns, timeDisplay;
-
 /**
- * 初始化時間軸控制器。
- * @param {Object} opts
- * @param {number[]} opts.frameTimes - 所有幀的時間（秒）
- * @param {string} opts.baseDatetime - 起始時間 ISO string
- * @param {Function} opts.onTimeChange - currentTime 更新回調
+ * 初始化時間軸控制。
+ * @param {object} opts
+ * @param {number} opts.minTime - 起始時間（秒）
+ * @param {number} opts.maxTime - 結束時間（秒）
+ * @param {number} opts.baseTimestamp - base unix timestamp
+ * @param {function} opts.onTimeChange - 時間變化回調 (currentTime) => void
  */
 export function initTimeline(opts) {
-  minTime = opts.frameTimes[0] || 0;
-  maxTime = opts.frameTimes[opts.frameTimes.length - 1] || 0;
+  minTime = opts.minTime;
+  maxTime = opts.maxTime;
+  baseTimestamp = opts.baseTimestamp || 0;
   currentTime = minTime;
   onTimeChange = opts.onTimeChange;
 
-  playBtn = document.getElementById('playBtn');
-  slider = document.getElementById('timeline');
-  timeDisplay = document.getElementById('timeDisplay');
+  setupSlider();
+  setupPlayButton();
+  setupSpeedButtons();
+  setupKeyboard();
 
-  // 初始化 slider 範圍
-  slider.min = minTime;
-  slider.max = maxTime;
-  slider.value = minTime;
-  slider.step = 1;
-
-  // 播放按鈕
-  playBtn.addEventListener('click', togglePlay);
-
-  // slider 拖曳
-  slider.addEventListener('input', (e) => {
-    currentTime = parseFloat(e.target.value);
-    notifyTimeChange();
-  });
-
-  // 速度按鈕
-  initSpeedButtons();
-
-  // 鍵盤快捷鍵
-  document.addEventListener('keydown', handleKeyboard);
-
-  // 初始更新
-  updateTimeDisplay(opts.baseDatetime);
-  notifyTimeChange();
-}
-
-/**
- * 設定當前模式（影響播放間隔）。
- */
-export function setMode(mode) {
-  currentMode = mode;
-}
-
-/**
- * 取得當前播放時間。
- */
-export function getCurrentTime() {
-  return currentTime;
-}
-
-/**
- * 外部設定當前時間。
- */
-export function setCurrentTime(time) {
-  currentTime = Math.max(minTime, Math.min(maxTime, time));
-  slider.value = currentTime;
-  notifyTimeChange();
-}
-
-function togglePlay() {
-  isPlaying = !isPlaying;
-  playBtn.innerHTML = isPlaying ? '&#9208;' : '&#9654;';
-  if (isPlaying) {
-    lastTickTime = performance.now();
-    rafId = requestAnimationFrame(tick);
-  } else {
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = null;
-  }
-}
-
-function tick(now) {
-  if (!isPlaying) return;
-
-  const elapsed = now - lastTickTime;
-  const interval = getFrameInterval();
-
-  // 根據經過的實際時間推進 currentTime
-  // interval ms 對應 600 秒（10 分鐘一幀）
-  const timeAdvance = (elapsed / interval) * 600;
-  currentTime += timeAdvance;
-  lastTickTime = now;
-
-  // 到底時循環
-  if (currentTime > maxTime) {
-    currentTime = minTime;
-  }
-
-  slider.value = currentTime;
-  notifyTimeChange();
-
-  rafId = requestAnimationFrame(tick);
-}
-
-function getFrameInterval() {
-  const base = BASE_INTERVALS[currentMode] || 1000;
-  return base / playSpeed;
-}
-
-function notifyTimeChange() {
+  // 初始渲染
   updateTimeDisplay();
   if (onTimeChange) onTimeChange(currentTime);
 }
 
-function updateTimeDisplay(baseDatetime) {
-  if (!timeDisplay) return;
-  // currentTime 是相對秒數，需要 baseDatetime 來算絕對時間
-  // baseDatetime 在 initTimeline 時存起來
-  if (baseDatetime) {
-    updateTimeDisplay._baseDt = new Date(baseDatetime.replace(' ', 'T'));
-  }
-  if (!updateTimeDisplay._baseDt) return;
-
-  const dt = new Date(updateTimeDisplay._baseDt.getTime() + currentTime * 1000);
-  const pad = (n) => String(n).padStart(2, '0');
-  timeDisplay.textContent =
-    `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())} ` +
-    `${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+export function getCurrentTime() {
+  return currentTime;
 }
 
-function initSpeedButtons() {
+export function setCurrentTime(t) {
+  currentTime = Math.max(minTime, Math.min(maxTime, t));
+  updateSliderPosition();
+  updateTimeDisplay();
+  if (onTimeChange) onTimeChange(currentTime);
+}
+
+export function getIsPlaying() {
+  return isPlaying;
+}
+
+// === Slider ===
+function setupSlider() {
+  const slider = document.getElementById('timeline');
+  if (!slider) return;
+
+  slider.min = 0;
+  slider.max = 1000; // 用 0-1000 作為精度
+  slider.value = 0;
+
+  slider.addEventListener('input', (e) => {
+    const ratio = parseInt(e.target.value) / 1000;
+    currentTime = minTime + ratio * (maxTime - minTime);
+    updateTimeDisplay();
+    if (onTimeChange) onTimeChange(currentTime);
+  });
+}
+
+function updateSliderPosition() {
+  const slider = document.getElementById('timeline');
+  if (!slider) return;
+  const ratio = (maxTime > minTime) ? (currentTime - minTime) / (maxTime - minTime) : 0;
+  slider.value = Math.round(ratio * 1000);
+}
+
+// === 播放/暫停 ===
+function setupPlayButton() {
+  const btn = document.getElementById('playBtn');
+  if (!btn) return;
+  btn.addEventListener('click', togglePlay);
+}
+
+export function togglePlay() {
+  if (isPlaying) {
+    stopPlay();
+  } else {
+    startPlay();
+  }
+}
+
+function startPlay() {
+  isPlaying = true;
+  lastTick = performance.now();
+  updatePlayButtonUI();
+
+  // 如果已經到底，從頭開始
+  if (currentTime >= maxTime - 1) {
+    currentTime = minTime;
+  }
+
+  function tick(now) {
+    if (!isPlaying) return;
+
+    const elapsed = (now - lastTick) / 1000; // 秒
+    lastTick = now;
+
+    // 前進量 = 真實秒 × 速度 × 600（10 分鐘的秒數，讓 1x 速度 = 1 秒播一幀）
+    currentTime += elapsed * playSpeed * 600;
+
+    if (currentTime >= maxTime) {
+      currentTime = minTime; // 循環播放
+    }
+
+    updateSliderPosition();
+    updateTimeDisplay();
+    if (onTimeChange) onTimeChange(currentTime);
+
+    rafId = requestAnimationFrame(tick);
+  }
+
+  rafId = requestAnimationFrame(tick);
+}
+
+function stopPlay() {
+  isPlaying = false;
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+  updatePlayButtonUI();
+}
+
+function updatePlayButtonUI() {
+  const btn = document.getElementById('playBtn');
+  if (!btn) return;
+  btn.innerHTML = isPlaying ? '&#9646;&#9646;' : '&#9654;';
+}
+
+// === 速度控制 ===
+function setupSpeedButtons() {
   const container = document.getElementById('speedControls');
   if (!container) return;
-  container.innerHTML = '';
 
+  container.innerHTML = '';
   for (const speed of PLAY_SPEEDS) {
     const btn = document.createElement('button');
-    btn.className = `speed-btn${speed === playSpeed ? ' active' : ''}`;
+    btn.className = 'speed-btn' + (speed === playSpeed ? ' active' : '');
     btn.textContent = `${speed}x`;
     btn.addEventListener('click', () => {
       playSpeed = speed;
@@ -166,30 +162,37 @@ function initSpeedButtons() {
   }
 }
 
-function handleKeyboard(e) {
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+// === 鍵盤快捷鍵 ===
+function setupKeyboard() {
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-  switch (e.code) {
-    case 'Space':
-      e.preventDefault();
-      togglePlay();
-      break;
-    case 'ArrowLeft':
-      e.preventDefault();
-      setCurrentTime(currentTime - 600); // 後退一幀（10分鐘）
-      break;
-    case 'ArrowRight':
-      e.preventDefault();
-      setCurrentTime(currentTime + 600); // 前進一幀
-      break;
-  }
+    switch (e.code) {
+      case 'Space':
+        e.preventDefault();
+        togglePlay();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        setCurrentTime(currentTime + 600); // 前進 10 分鐘
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        setCurrentTime(currentTime - 600); // 後退 10 分鐘
+        break;
+    }
+  });
 }
 
-/**
- * 清理資源。
- */
-export function destroyTimeline() {
-  isPlaying = false;
-  if (rafId) cancelAnimationFrame(rafId);
-  document.removeEventListener('keydown', handleKeyboard);
+// === 時間顯示 ===
+function updateTimeDisplay() {
+  const el = document.getElementById('timeDisplay');
+  if (!el) return;
+
+  const unixTs = baseTimestamp + currentTime;
+  const date = new Date(unixTs * 1000);
+  const pad = (n) => String(n).padStart(2, '0');
+
+  el.textContent = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+    `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }

@@ -1,107 +1,160 @@
+/**
+ * 軌跡動畫 Layer
+ * 使用 deck.gl TripsLayer 渲染船舶軌跡 + ScatterplotLayer 渲染船頭位置。
+ */
 import { TripsLayer } from '@deck.gl/geo-layers';
 import { ScatterplotLayer } from '@deck.gl/layers';
-import { getSpeedColor, TRAIL_LENGTH_SEC } from '../utils/constants.js';
+import { getSpeedColor, VESSEL_CODE_TO_CATEGORY } from '../utils/constants.js';
 
 /**
- * 建立軌跡動畫圖層組（TripsLayer + 船頭 ScatterplotLayer）。
+ * 建立軌跡動畫的 deck.gl layers。
  *
- * @param {Array} tripsData - transformTrajectoryArrow() 的輸出
- * @param {number} currentTime - 當前時間（秒，相對於 base）
+ * @param {Array} tripsData - arrowToTrips() 的輸出
+ * @param {number} currentTime - 當前時間（秒，相對 base_timestamp）
  * @param {string} theme - 'day' | 'night'
- * @param {Set|null} activeCategories - 啟用的船舶類別，null=全部
+ * @param {Set|null} vesselFilter - 允許的 category key 集合，null = 全部
  * @returns {Array} deck.gl Layer 陣列
  */
-export function createTripsLayers(tripsData, currentTime, theme = 'day', activeCategories = null) {
-  const filteredData = activeCategories
-    ? tripsData.filter(d => activeCategories.has(d.category))
+export function createTrajectoryLayers(tripsData, currentTime, theme = 'day', vesselFilter = null) {
+  // 篩選船舶類型
+  const filteredData = vesselFilter
+    ? tripsData.filter(d => {
+        const cat = VESSEL_CODE_TO_CATEGORY[d.vesselType];
+        return cat && vesselFilter.has(cat);
+      })
     : tripsData;
 
-  return [
-    new TripsLayer({
-      id: 'trips-layer',
-      data: filteredData,
-      getPath: d => d.path,
-      getTimestamps: d => d.timestamps,
-      getColor: d => {
-        // 用該船的平均速度決定顏色
-        const avgSpeed = d.speeds.reduce((a, b) => a + b, 0) / d.speeds.length;
-        return getSpeedColor(avgSpeed, theme);
-      },
-      currentTime,
-      trailLength: TRAIL_LENGTH_SEC,
-      widthMinPixels: 2,
-      widthMaxPixels: 4,
-      opacity: 0.7,
-      shadowEnabled: false,
-      jointRounded: true,
-      capRounded: true,
+  const tripsLayer = new TripsLayer({
+    id: 'trips-layer',
+    data: filteredData,
+    getPath: d => d.path,
+    getTimestamps: d => d.timestamps,
+    getColor: d => {
+      // 用該船最後已知的速度決定顏色
+      const lastIdx = d.timestamps.findIndex(t => t > currentTime) - 1;
+      const idx = lastIdx >= 0 ? lastIdx : d.timestamps.length - 1;
+      // 粗略用 path 點間距離估算速度，但直接用固定色也可以
+      return getSpeedColor(d.avgSog || 5, theme);
+    },
+    getWidth: 2,
+    widthMinPixels: 2,
+    widthMaxPixels: 4,
+    trailLength: 3600, // 尾跡 1 小時（秒）
+    currentTime,
+    opacity: 0.8,
+    rounded: true,
+    updateTriggers: {
+      getColor: [theme],
+    },
+  });
 
-      // 效能優化
-      updateTriggers: {
-        getColor: [theme],
-      },
-    }),
+  // 船頭位置（ScatterplotLayer）：顯示在 currentTime 時刻活躍的船舶
+  const shipPositions = getShipPositionsAtTime(filteredData, currentTime);
 
-    // 船頭位置圓點
-    new ScatterplotLayer({
-      id: 'ship-heads-layer',
-      data: getShipPositionsAtTime(filteredData, currentTime),
-      getPosition: d => d.position,
-      getFillColor: d => [...getSpeedColor(d.sog, theme), 240],
-      getRadius: 3,
-      radiusUnits: 'pixels',
-      radiusMinPixels: 2,
-      radiusMaxPixels: 5,
-      opacity: 0.95,
+  const scatterLayer = new ScatterplotLayer({
+    id: 'ship-positions-layer',
+    data: shipPositions,
+    getPosition: d => d.position,
+    getFillColor: d => [...getSpeedColor(d.sog, theme), 240],
+    getRadius: 3,
+    radiusMinPixels: 3,
+    radiusMaxPixels: 6,
+    radiusUnits: 'pixels',
+    opacity: 0.95,
+    updateTriggers: {
+      getFillColor: [theme],
+    },
+  });
 
-      updateTriggers: {
-        getFillColor: [theme],
-      },
-    }),
-  ];
+  return [tripsLayer, scatterLayer];
 }
 
 /**
- * 從 trips 資料中，找出在 currentTime 時刻每艘船的位置。
- * 使用線性補間計算精確位置。
+ * 根據 currentTime 計算每艘船的插值位置。
  */
 function getShipPositionsAtTime(tripsData, currentTime) {
   const positions = [];
 
   for (const trip of tripsData) {
-    const { timestamps, path, speeds, vessel_type, category, mmsi } = trip;
+    const { timestamps, path, mmsi, vesselType } = trip;
     if (timestamps.length === 0) continue;
 
-    // 找到 currentTime 在哪兩個時間點之間
-    const lastIdx = timestamps.length - 1;
-    if (currentTime < timestamps[0] || currentTime > timestamps[lastIdx]) continue;
-
-    // 二分搜尋
-    let lo = 0, hi = lastIdx;
-    while (lo < hi - 1) {
-      const mid = (lo + hi) >> 1;
-      if (timestamps[mid] <= currentTime) lo = mid;
-      else hi = mid;
+    // 找到 currentTime 落在哪兩個時間點之間
+    if (currentTime < timestamps[0] || currentTime > timestamps[timestamps.length - 1]) {
+      continue; // 不在這艘船的時間範圍內
     }
 
-    // 線性補間
-    const t0 = timestamps[lo];
-    const t1 = timestamps[hi];
-    const dt = t1 - t0;
-    const t = dt > 0 ? (currentTime - t0) / dt : 0;
+    let idx = -1;
+    for (let i = 0; i < timestamps.length - 1; i++) {
+      if (timestamps[i] <= currentTime && currentTime <= timestamps[i + 1]) {
+        idx = i;
+        break;
+      }
+    }
 
-    const lon = path[lo][0] + (path[hi][0] - path[lo][0]) * t;
-    const lat = path[lo][1] + (path[hi][1] - path[lo][1]) * t;
-    const sog = speeds[lo] + (speeds[hi] - speeds[lo]) * t;
+    if (idx === -1) {
+      // 剛好在最後一個時間點
+      if (currentTime >= timestamps[timestamps.length - 1] &&
+          currentTime - timestamps[timestamps.length - 1] < 600) { // 10 分鐘內
+        const last = path[path.length - 1];
+        positions.push({
+          position: last,
+          mmsi,
+          vesselType,
+          sog: trip.avgSog || 5,
+        });
+      }
+      continue;
+    }
+
+    // 線性插值
+    const t0 = timestamps[idx];
+    const t1 = timestamps[idx + 1];
+    const ratio = (t1 > t0) ? (currentTime - t0) / (t1 - t0) : 0;
+
+    const p0 = path[idx];
+    const p1 = path[idx + 1];
+    const lon = p0[0] + (p1[0] - p0[0]) * ratio;
+    const lat = p0[1] + (p1[1] - p0[1]) * ratio;
 
     positions.push({
       position: [lon, lat],
-      sog,
-      vessel_type,
-      category,
       mmsi,
+      vesselType,
+      sog: trip.avgSog || 5,
     });
   }
 
   return positions;
+}
+
+/**
+ * 預處理 trips 資料：計算每艘船的平均速度（用於著色）。
+ * 在資料載入後呼叫一次。
+ */
+export function preprocessTrips(tripsData, arrowTable) {
+  if (!arrowTable) return tripsData;
+
+  const sogCol = arrowTable.getChild('sog');
+  const mmsiCol = arrowTable.getChild('mmsi');
+  if (!sogCol || !mmsiCol) return tripsData;
+
+  // 計算每艘船的平均 SOG
+  const sogSums = new Map();
+  const sogCounts = new Map();
+  const numRows = arrowTable.numRows;
+  for (let i = 0; i < numRows; i++) {
+    const mmsi = mmsiCol.get(i);
+    const sog = sogCol.get(i);
+    sogSums.set(mmsi, (sogSums.get(mmsi) || 0) + sog);
+    sogCounts.set(mmsi, (sogCounts.get(mmsi) || 0) + 1);
+  }
+
+  for (const trip of tripsData) {
+    const sum = sogSums.get(trip.mmsi) || 0;
+    const count = sogCounts.get(trip.mmsi) || 1;
+    trip.avgSog = sum / count;
+  }
+
+  return tripsData;
 }
