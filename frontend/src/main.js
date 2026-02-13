@@ -6,6 +6,10 @@ import {
   transformTrajectoryJson, transformPositionsJson,
 } from './data/transform.js';
 import { createTripsLayers } from './layers/trips.js';
+import { createGridLayers } from './layers/grid.js';
+import { createHexagonLayers } from './layers/hexagon.js';
+import { createHeatmapLayers } from './layers/heatmap.js';
+import { createQueryLayers, createQueryShipDots } from './layers/path.js';
 import { initTimeline, setMode, getCurrentTime, destroyTimeline } from './controls/timeline.js';
 import { VESSEL_CATEGORIES } from './utils/constants.js';
 import './style.css';
@@ -17,6 +21,8 @@ let tripsData = null;       // TripsLayer 用的資料
 let positionsData = null;    // 密度/六角/熱力圖用的 per-frame 資料
 let currentMode = 'trajectory';
 let activeCategories = null; // null = 全部
+let queryResults = [];       // 查詢模式的軌跡結果
+let queryShips = [];         // 查詢模式的船舶散點
 
 // === 初始化 ===
 async function init() {
@@ -103,18 +109,57 @@ function updateLayers(currentTime) {
         layers = createTripsLayers(tripsData, currentTime, theme, activeCategories);
       }
       break;
-    // Step 4 會加入其他模式
     case 'density':
     case 'hexbin':
-    case 'heatmap':
-      // TODO: Step 4
+    case 'heatmap': {
+      const framePositions = getFramePositions(currentTime);
+      if (framePositions.length > 0) {
+        if (currentMode === 'density') {
+          layers = createGridLayers(framePositions, theme);
+        } else if (currentMode === 'hexbin') {
+          layers = createHexagonLayers(framePositions, theme);
+        } else {
+          layers = createHeatmapLayers(framePositions, theme);
+        }
+      }
       break;
+    }
     case 'query':
-      // TODO: Step 5
+      if (queryResults.length > 0) {
+        layers = createQueryLayers(queryResults, theme);
+      }
+      if (queryShips.length > 0) {
+        layers.push(createQueryShipDots(queryShips));
+      }
       break;
   }
 
   deckOverlay.setProps({ layers });
+}
+
+// === 取得當前幀的船舶位置（密度/六角/熱力圖用）===
+function getFramePositions(currentTime) {
+  if (!positionsData) return [];
+
+  // 找最接近的幀
+  const frameTimes = positionsData.frameTimes;
+  let closest = frameTimes[0];
+  let minDiff = Math.abs(closest - currentTime);
+  for (const ft of frameTimes) {
+    const diff = Math.abs(ft - currentTime);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closest = ft;
+    }
+  }
+
+  const frame = positionsData.frames.get(closest);
+  if (!frame) return [];
+
+  // 篩選船舶類別
+  return activeCategories
+    ? frame.filter(s => activeCategories.has(s.category))
+    : frame;
 }
 
 // === 統計面板更新 ===
