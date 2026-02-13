@@ -28,8 +28,30 @@ LON_MIN, LON_MAX = 117.0, 127.0
 LAT_MIN, LAT_MAX = 20.0, 28.0
 
 INTERVAL_MINUTES = 10
-MAX_SPEED_KNOTS = 25   # 超過此速度視為異常跳點（一般商船 < 20 節）
-MAX_GAP_SECONDS = 7200  # 超過 2 小時斷點則拆分為新航段
+MAX_SPEED_KNOTS = 40   # 隱含速度閾值（節）— 高速船可達 35 節，留餘量
+MAX_JUMP_NM = 15       # 單次跳躍距離上限（海浬）— 40 節 × 10 分鐘 ≈ 6.7 nm，留彈性
+MAX_GAP_SECONDS = 3600 # 超過 1 小時斷點拆分為新航段（降低共用 MMSI 混合風險）
+
+# 無效 MMSI 黑名單：AIS 設備未正確設定或多船共用
+MMSI_BLACKLIST = {
+    0, 1, 111111111, 123456789, 200000000,
+    666666666, 888888888, 999999999,
+}
+# 格式異常的 MMSI 前綴（如 x00000000，通常是未設定的佔位符）
+def is_invalid_mmsi(mmsi_str):
+    """判斷 MMSI 是否無效。"""
+    try:
+        m = int(mmsi_str)
+    except (ValueError, TypeError):
+        return True
+    if m in MMSI_BLACKLIST:
+        return True
+    if m < 100000000 or m > 799999999:
+        return True  # 有效 MMSI 為 9 位數，2xx-7xx 開頭
+    # x00000000 佔位符模式
+    if m % 1000000 == 0:
+        return True
+    return False
 
 
 def haversine_nm(lon1, lat1, lon2, lat2):
@@ -41,52 +63,90 @@ def haversine_nm(lon1, lat1, lon2, lat2):
     return 2 * R_NM * math.asin(math.sqrt(a))
 
 
+def is_jump(p1, p2):
+    """判斷兩點之間是否為異常跳躍。"""
+    dt_hours = (p2[0] - p1[0]) / 3600.0
+    if dt_hours <= 0:
+        return False
+    dist = haversine_nm(p1[1], p1[2], p2[1], p2[2])
+    speed = dist / dt_hours
+    # 雙重條件：速度異常 OR 單次跳太遠（即便速度因長時間差而被稀釋）
+    return speed > MAX_SPEED_KNOTS or dist > MAX_JUMP_NM
+
+
+def split_by_gap(points):
+    """按時間間隔拆分為多段軌跡，降低 MMSI 共用的交叉汙染。"""
+    if not points:
+        return []
+    segments = []
+    current = [points[0]]
+    for i in range(1, len(points)):
+        if points[i][0] - points[i - 1][0] > MAX_GAP_SECONDS:
+            segments.append(current)
+            current = []
+        current.append(points[i])
+    if current:
+        segments.append(current)
+    return segments
+
+
 def filter_track_outliers(points):
     """過濾單艘船軌跡中的 GPS 跳點。
 
-    策略：
-    1. 隱含速度超過閾值 → 丟棄該點
-    2. 若當前點被判定異常，但下一個點與當前點合理、與前一個有效點不合理
-       → 說明前一個有效點才是壞點，替換之
+    改進策略：
+    1. 先按時間間隔拆段（降低 MMSI 共用導致的交叉汙染）
+    2. 每段內用滑動窗口過濾：
+       - 當前點與前一有效點跳躍 → 檢查下一點來判斷誰是壞點
+       - 連續多個跳點 → 全部丟棄直到找到與已知好點連續的位置
     points: [(ts_sec, lon, lat, sog, cog, vtype), ...]（已按時間排序）
     """
     if len(points) <= 1:
         return points
 
-    filtered = [points[0]]
-    i = 1
-    while i < len(points):
-        prev = filtered[-1]
-        curr = points[i]
-        dt_hours = (curr[0] - prev[0]) / 3600.0
-        if dt_hours <= 0:
-            filtered.append(curr)
-            i += 1
+    all_clean = []
+    for segment in split_by_gap(points):
+        if len(segment) <= 1:
+            all_clean.extend(segment)
             continue
-        dist_nm = haversine_nm(prev[1], prev[2], curr[1], curr[2])
-        implied_speed = dist_nm / dt_hours
 
-        if implied_speed <= MAX_SPEED_KNOTS:
-            filtered.append(curr)
-            i += 1
-        else:
-            # curr 看起來是跳點，但也可能是 prev 才是壞點
-            # 往前看一個點：curr→next 是否合理？
-            if i + 1 < len(points):
-                nxt = points[i + 1]
-                dt_cn = (nxt[0] - curr[0]) / 3600.0
-                dt_pn = (nxt[0] - prev[0]) / 3600.0
-                if dt_cn > 0 and dt_pn > 0:
-                    speed_cn = haversine_nm(curr[1], curr[2], nxt[1], nxt[2]) / dt_cn
-                    speed_pn = haversine_nm(prev[1], prev[2], nxt[1], nxt[2]) / dt_pn
-                    if speed_cn <= MAX_SPEED_KNOTS and speed_pn > MAX_SPEED_KNOTS:
-                        # prev 是壞點，用 curr 取代
-                        filtered[-1] = curr
-                        i += 1
-                        continue
+        filtered = [segment[0]]
+        i = 1
+        consecutive_bad = 0  # 連續被判定為壞點的計數
+
+        while i < len(segment):
+            prev = filtered[-1]
+            curr = segment[i]
+
+            if not is_jump(prev, curr):
+                filtered.append(curr)
+                consecutive_bad = 0
+                i += 1
+                continue
+
+            # curr 看起來是跳點 — 往前看一個點決定
+            if i + 1 < len(segment):
+                nxt = segment[i + 1]
+                curr_to_nxt_ok = not is_jump(curr, nxt)
+                prev_to_nxt_ok = not is_jump(prev, nxt)
+
+                if curr_to_nxt_ok and not prev_to_nxt_ok:
+                    # prev 是壞點，curr→nxt 連續 → 替換 prev
+                    filtered[-1] = curr
+                    consecutive_bad = 0
+                    i += 1
+                    continue
+
             # curr 是壞點，跳過
+            consecutive_bad += 1
+            # 若連續 5+ 個壞點，表示可能是 MMSI 共用造成的持續跳躍
+            # 放棄整段後續（已經無法判斷哪邊是真的）
+            if consecutive_bad >= 5:
+                break
             i += 1
-    return filtered
+
+        all_clean.extend(filtered)
+
+    return all_clean
 
 
 def align_time(ts_str, interval_min=INTERVAL_MINUTES):
@@ -134,9 +194,13 @@ def generate_arrow_files(args):
     """, (start_ts, end_ts, LON_MIN, LON_MAX, LAT_MIN, LAT_MAX))
 
     # 收集並按時間對齊
-    time_slots = {}  # aligned_ts → [(mmsi, lon, lat, sog, cog, vtype), ...]
+    time_slots = {}  # aligned_ts → {mmsi: (lon, lat, sog, cog, vtype)}
     row_count = 0
+    skipped_mmsi = 0
     for mmsi, ts, lon, lat, sog, cog, vtype in cursor:
+        if is_invalid_mmsi(mmsi):
+            skipped_mmsi += 1
+            continue
         aligned = align_time(ts)
         key = aligned.isoformat()
         if key not in time_slots:
@@ -147,6 +211,8 @@ def generate_arrow_files(args):
 
     conn.close()
     print(f"原始資料: {row_count} 筆, 時間幀: {len(time_slots)} 個")
+    if skipped_mmsi > 0:
+        print(f"已過濾無效 MMSI: {skipped_mmsi} 筆")
 
     # 計算 base_timestamp（最小時間的 unix epoch）
     sorted_times = sorted(time_slots.keys())

@@ -27,7 +27,8 @@ export function arrowToTrips(table) {
   const cogCol = table.getChild('cog');
   const vtypeCol = table.getChild('vessel_type');
 
-  const MAX_GAP = 7200; // 2 小時：超過此間隔拆分為新航段
+  const MAX_GAP = 3600;      // 1 小時：超過此間隔拆分為新航段
+  const MAX_JUMP_DEG = 0.25; // 約 15 海浬：單步跳躍超過此值視為異常
 
   // trajectory.arrow 已按 MMSI 排序，直接線性掃描分組
   const trips = [];
@@ -37,9 +38,25 @@ export function arrowToTrips(table) {
   for (let i = 0; i < numRows; i++) {
     const mmsi = mmsiCol.get(i);
     const ts = tsCol.get(i);
+    const lon = lonCol.get(i);
+    const lat = latCol.get(i);
 
-    // 新船 或 同船但時間斷點過大 → 拆分新航段
-    if (mmsi !== currentMmsi || (currentTrip && ts - currentTrip.timestamps[currentTrip.timestamps.length - 1] > MAX_GAP)) {
+    let shouldSplit = mmsi !== currentMmsi;
+
+    if (!shouldSplit && currentTrip && currentTrip.path.length > 0) {
+      const lastTs = currentTrip.timestamps[currentTrip.timestamps.length - 1];
+      const lastPos = currentTrip.path[currentTrip.path.length - 1];
+      const dt = ts - lastTs;
+      const dLon = Math.abs(lon - lastPos[0]);
+      const dLat = Math.abs(lat - lastPos[1]);
+
+      // 時間斷裂 或 距離跳躍過大 → 拆段
+      if (dt > MAX_GAP || dLon > MAX_JUMP_DEG || dLat > MAX_JUMP_DEG) {
+        shouldSplit = true;
+      }
+    }
+
+    if (shouldSplit) {
       if (currentTrip && currentTrip.path.length >= 2) trips.push(currentTrip);
       currentMmsi = mmsi;
       currentTrip = {
@@ -49,7 +66,7 @@ export function arrowToTrips(table) {
         timestamps: [],
       };
     }
-    currentTrip.path.push([lonCol.get(i), latCol.get(i)]);
+    currentTrip.path.push([lon, lat]);
     currentTrip.timestamps.push(ts);
   }
   if (currentTrip && currentTrip.path.length >= 2) trips.push(currentTrip);
