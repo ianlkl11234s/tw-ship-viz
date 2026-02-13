@@ -1,9 +1,14 @@
 import { MapboxOverlay } from '@deck.gl/mapbox';
-import { initMap, toggleTheme, getCurrentTheme, getMap } from './map.js';
+import { initMap, toggleTheme, getCurrentTheme } from './map.js';
 import { loadTrajectoryData, loadPositionsData } from './data/loader.js';
 import { arrowToTrips, buildFrameIndex, jsonToTrips, jsonToFrameIndex } from './data/transform.js';
 import { createTrajectoryLayers, preprocessTrips } from './layers/trips.js';
+import { createGridLayers } from './layers/grid.js';
+import { createHexagonLayers } from './layers/hexagon.js';
+import { createHeatmapLayers } from './layers/heatmap.js';
+import { createQueryLayers, createQueryShipDots } from './layers/path.js';
 import { initTimeline, getCurrentTime } from './controls/timeline.js';
+import { updateLegend } from './ui/legends.js';
 import { VESSEL_CATEGORIES } from './utils/constants.js';
 import './style.css';
 
@@ -42,6 +47,7 @@ async function init() {
     setupFilters();
     setupThemeToggle();
     checkQueryApi();
+    updateLegend(currentMode, getCurrentTheme());
   });
 }
 
@@ -114,13 +120,23 @@ function updateLayers(currentTime) {
         layers = createTrajectoryLayers(tripsData, currentTime, theme, activeCategories);
       }
       break;
-    case 'density':
-    case 'hexbin':
-    case 'heatmap':
-      // TODO: Step 4 實作
+    case 'density': {
+      const positions = getFramePositions(currentTime);
+      if (positions.length > 0) layers = createGridLayers(positions, theme);
       break;
+    }
+    case 'hexbin': {
+      const positions = getFramePositions(currentTime);
+      if (positions.length > 0) layers = createHexagonLayers(positions, theme);
+      break;
+    }
+    case 'heatmap': {
+      const positions = getFramePositions(currentTime);
+      if (positions.length > 0) layers = createHeatmapLayers(positions, theme);
+      break;
+    }
     case 'query':
-      // TODO: Step 5 實作
+      // TODO: Step 5 完整查詢模式實作
       break;
   }
 
@@ -190,6 +206,7 @@ function setupTabs() {
 
       if (modeTitle) modeTitle.textContent = modeNames[mode] || mode;
 
+      updateLegend(mode, getCurrentTheme());
       updateLayers(getCurrentTime());
       updateStats(getCurrentTime());
     });
@@ -243,8 +260,8 @@ function setupThemeToggle() {
   themeBtn.addEventListener('click', () => {
     const theme = toggleTheme();
     themeBtn.textContent = theme === 'day' ? '\u263D' : '\u2600';
+    updateLegend(currentMode, theme);
     map.once('style.load', () => {
-      // style 重載後重新加入 overlay
       if (deckOverlay) {
         map.addControl(deckOverlay);
       }

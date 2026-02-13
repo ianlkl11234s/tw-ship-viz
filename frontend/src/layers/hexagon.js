@@ -1,37 +1,33 @@
+/**
+ * 六角網格 Layer（HexagonLayer）
+ * GPU 端六角形 binning 密度聚合。
+ */
 import { HexagonLayer } from '@deck.gl/aggregation-layers';
 import { THEMES, hexToRgb } from '../utils/constants.js';
 
 /**
- * 建立六角網格密度圖層（HexagonLayer）。
- *
- * @param {Array} shipPositions - 當前幀的船舶位置 [{position: [lon,lat], ...}]
+ * @param {Array} positions - [{position: [lon,lat], ...}, ...]
  * @param {string} theme - 'day' | 'night'
  * @returns {Array} deck.gl Layer 陣列
  */
-export function createHexagonLayers(shipPositions, theme = 'day') {
+export function createHexagonLayers(positions, theme = 'day') {
   const colors = THEMES[theme].density;
 
-  const colorRange = colors
-    .filter(c => c !== 'transparent')
-    .slice(1)
-    .map(c => hexToRgb(c));
-
-  return [
-    new HexagonLayer({
-      id: 'hexagon-layer',
-      data: shipPositions,
-      getPosition: d => d.position,
-      radius: 5000,           // 5km 半徑
-      elevationScale: 0,      // 2D 模式
-      extruded: false,
-      colorRange,
-      opacity: 0.7,
-      coverage: 0.9,
-      gpuAggregation: true,
-
-      updateTriggers: {
-        colorRange: [theme],
-      },
+  const hexLayer = new HexagonLayer({
+    id: 'hexagon-layer',
+    data: positions,
+    getPosition: d => d.position,
+    radius: 5000, // 5km 半徑
+    elevationScale: 0, // 2D 模式
+    colorRange: colors.slice(1).map(c => {
+      if (c === 'transparent') return [0, 0, 0, 0];
+      return hexToRgb(c);
     }),
-  ];
+    coverage: 0.9,
+    opacity: 0.7,
+    extruded: false,
+    gpuAggregation: true,
+  });
+
+  return [hexLayer];
 }
