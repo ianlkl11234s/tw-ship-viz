@@ -12,6 +12,7 @@
 """
 
 import argparse
+import math
 import os
 import sqlite3
 from datetime import datetime, timedelta
@@ -27,6 +28,65 @@ LON_MIN, LON_MAX = 117.0, 127.0
 LAT_MIN, LAT_MAX = 20.0, 28.0
 
 INTERVAL_MINUTES = 10
+MAX_SPEED_KNOTS = 25   # 超過此速度視為異常跳點（一般商船 < 20 節）
+MAX_GAP_SECONDS = 7200  # 超過 2 小時斷點則拆分為新航段
+
+
+def haversine_nm(lon1, lat1, lon2, lat2):
+    """計算兩點間距離（海浬）。"""
+    R_NM = 3440.065  # 地球半徑（海浬）
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
+    return 2 * R_NM * math.asin(math.sqrt(a))
+
+
+def filter_track_outliers(points):
+    """過濾單艘船軌跡中的 GPS 跳點。
+
+    策略：
+    1. 隱含速度超過閾值 → 丟棄該點
+    2. 若當前點被判定異常，但下一個點與當前點合理、與前一個有效點不合理
+       → 說明前一個有效點才是壞點，替換之
+    points: [(ts_sec, lon, lat, sog, cog, vtype), ...]（已按時間排序）
+    """
+    if len(points) <= 1:
+        return points
+
+    filtered = [points[0]]
+    i = 1
+    while i < len(points):
+        prev = filtered[-1]
+        curr = points[i]
+        dt_hours = (curr[0] - prev[0]) / 3600.0
+        if dt_hours <= 0:
+            filtered.append(curr)
+            i += 1
+            continue
+        dist_nm = haversine_nm(prev[1], prev[2], curr[1], curr[2])
+        implied_speed = dist_nm / dt_hours
+
+        if implied_speed <= MAX_SPEED_KNOTS:
+            filtered.append(curr)
+            i += 1
+        else:
+            # curr 看起來是跳點，但也可能是 prev 才是壞點
+            # 往前看一個點：curr→next 是否合理？
+            if i + 1 < len(points):
+                nxt = points[i + 1]
+                dt_cn = (nxt[0] - curr[0]) / 3600.0
+                dt_pn = (nxt[0] - prev[0]) / 3600.0
+                if dt_cn > 0 and dt_pn > 0:
+                    speed_cn = haversine_nm(curr[1], curr[2], nxt[1], nxt[2]) / dt_cn
+                    speed_pn = haversine_nm(prev[1], prev[2], nxt[1], nxt[2]) / dt_pn
+                    if speed_cn <= MAX_SPEED_KNOTS and speed_pn > MAX_SPEED_KNOTS:
+                        # prev 是壞點，用 curr 取代
+                        filtered[-1] = curr
+                        i += 1
+                        continue
+            # curr 是壞點，跳過
+            i += 1
+    return filtered
 
 
 def align_time(ts_str, interval_min=INTERVAL_MINUTES):
@@ -163,9 +223,13 @@ def generate_arrow_files(args):
                 ship_tracks[mmsi_int] = []
             ship_tracks[mmsi_int].append((ts_sec, lon, lat, sog, cog, vtype))
 
-    # 按 MMSI 排序後展開
+    # 按 MMSI 排序，過濾跳點後展開
+    outlier_count = 0
     for mmsi_int in sorted(ship_tracks.keys()):
-        for ts_sec, lon, lat, sog, cog, vtype in ship_tracks[mmsi_int]:
+        raw_points = ship_tracks[mmsi_int]
+        clean_points = filter_track_outliers(raw_points)
+        outlier_count += len(raw_points) - len(clean_points)
+        for ts_sec, lon, lat, sog, cog, vtype in clean_points:
             traj_timestamps.append(ts_sec)
             traj_mmsi.append(mmsi_int)
             traj_lon.append(lon)
@@ -173,6 +237,8 @@ def generate_arrow_files(args):
             traj_sog.append(sog)
             traj_cog.append(cog)
             traj_vtype.append(vtype)
+    if outlier_count > 0:
+        print(f"已過濾 GPS 跳點: {outlier_count} 筆")
 
     traj_table = pa.table({
         'timestamp': pa.array(traj_timestamps, type=pa.float32()),

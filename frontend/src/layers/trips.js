@@ -39,7 +39,7 @@ export function createTrajectoryLayers(tripsData, currentTime, theme = 'day', ve
     getWidth: 2,
     widthMinPixels: 2,
     widthMaxPixels: 4,
-    trailLength: 3600, // 尾跡 1 小時（秒）
+    trailLength: 1800, // 尾跡 30 分鐘（秒）
     currentTime,
     opacity: 0.8,
     rounded: true,

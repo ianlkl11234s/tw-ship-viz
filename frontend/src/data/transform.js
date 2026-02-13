@@ -27,6 +27,8 @@ export function arrowToTrips(table) {
   const cogCol = table.getChild('cog');
   const vtypeCol = table.getChild('vessel_type');
 
+  const MAX_GAP = 7200; // 2 小時：超過此間隔拆分為新航段
+
   // trajectory.arrow 已按 MMSI 排序，直接線性掃描分組
   const trips = [];
   let currentMmsi = null;
@@ -34,8 +36,11 @@ export function arrowToTrips(table) {
 
   for (let i = 0; i < numRows; i++) {
     const mmsi = mmsiCol.get(i);
-    if (mmsi !== currentMmsi) {
-      if (currentTrip) trips.push(currentTrip);
+    const ts = tsCol.get(i);
+
+    // 新船 或 同船但時間斷點過大 → 拆分新航段
+    if (mmsi !== currentMmsi || (currentTrip && ts - currentTrip.timestamps[currentTrip.timestamps.length - 1] > MAX_GAP)) {
+      if (currentTrip && currentTrip.path.length >= 2) trips.push(currentTrip);
       currentMmsi = mmsi;
       currentTrip = {
         mmsi,
@@ -45,11 +50,11 @@ export function arrowToTrips(table) {
       };
     }
     currentTrip.path.push([lonCol.get(i), latCol.get(i)]);
-    currentTrip.timestamps.push(tsCol.get(i));
+    currentTrip.timestamps.push(ts);
   }
-  if (currentTrip) trips.push(currentTrip);
+  if (currentTrip && currentTrip.path.length >= 2) trips.push(currentTrip);
 
-  console.log(`[transform] arrowToTrips: ${trips.length} 艘船`);
+  console.log(`[transform] arrowToTrips: ${trips.length} 航段`);
   return trips;
 }
 
