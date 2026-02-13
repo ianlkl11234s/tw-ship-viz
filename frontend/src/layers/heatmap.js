@@ -79,7 +79,7 @@ function ensureSourceAndLayer(map, theme) {
           11, 1.2,
         ],
         'heatmap-color': buildColorRamp(theme),
-        'heatmap-opacity': 0.85,
+        'heatmap-opacity': 0.6,
       },
     });
   }

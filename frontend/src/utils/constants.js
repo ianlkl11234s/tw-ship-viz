@@ -63,15 +63,15 @@ export const THEMES = {
     mapStyle: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
     density: ['#f0fffe','#80cdc1','#c7e9b4','#ffffcc','#fdb863','#e06c52','#8c2d04'],
     speed:   ['#1d4ed8','#7b2cbf','#e85d04','#c41d3c'],
-    heatGradient: {0.0:'#80cdc1',0.2:'#c7e9b4',0.4:'#ffffcc',0.6:'#fdb863',0.8:'#e06c52',1.0:'#8c2d04'},
-    heatGradientCSS: 'linear-gradient(to bottom, #8c2d04, #e06c52, #fdb863, #ffffcc, #c7e9b4, #80cdc1)',
+    heatGradient: {0.0:'#0a1628',0.2:'#0d3b66',0.4:'#1d7874',0.6:'#679436',0.8:'#f5a623',1.0:'#f7f052'},
+    heatGradientCSS: 'linear-gradient(to bottom, #f7f052, #f5a623, #679436, #1d7874, #0d3b66, #0a1628)',
   },
   night: {
     mapStyle: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
     density: ['transparent','#160b39','#420a68','#932667','#dd513a','#fba40a','#fcffa4'],
     speed:   ['#4cc9f0','#72efdd','#fee440','#ff2d75'],
-    heatGradient: {0.0:'#160b39',0.2:'#420a68',0.4:'#932667',0.6:'#dd513a',0.8:'#fba40a',1.0:'#fcffa4'},
-    heatGradientCSS: 'linear-gradient(to bottom, #fcffa4, #fba40a, #dd513a, #932667, #420a68, #160b39)',
+    heatGradient: {0.0:'#0a1628',0.2:'#0d3b66',0.4:'#1d7874',0.6:'#679436',0.8:'#f5a623',1.0:'#f7f052'},
+    heatGradientCSS: 'linear-gradient(to bottom, #f7f052, #f5a623, #679436, #1d7874, #0d3b66, #0a1628)',
   },
 };
 
