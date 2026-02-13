@@ -1,0 +1,23 @@
+{
+  "name": "ship-gis-frontend",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@deck.gl/core": "^9.1.0",
+    "@deck.gl/geo-layers": "^9.1.0",
+    "@deck.gl/aggregation-layers": "^9.1.0",
+    "@deck.gl/layers": "^9.1.0",
+    "@deck.gl/mapbox": "^9.1.0",
+    "apache-arrow": "^18.0.0",
+    "maplibre-gl": "^4.7.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

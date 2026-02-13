@@ -41,6 +41,10 @@ Thumbs.db
 # Logs
 *.log
 
+# Node.js
+node_modules/
+frontend/dist/
+
 # SQLite database
 data/*.db
 data/*.db-wal

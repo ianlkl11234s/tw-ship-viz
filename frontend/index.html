@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>台灣海域船舶動態 GIS</title>
+</head>
+<body>
+  <!-- 載入動畫 -->
+  <div id="loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">載入地圖中...</div>
+  </div>
+
+  <!-- 地圖容器 -->
+  <div id="map"></div>
+
+  <!-- 主題切換 -->
+  <button id="theme-toggle" class="theme-toggle" title="切換日間/夜間模式">&#9789;</button>
+
+  <!-- 模式切換 tabs -->
+  <div class="tab-container">
+    <button class="tab-btn active" data-mode="trajectory">軌跡動畫</button>
+    <button class="tab-btn" data-mode="density">密度熱區</button>
+    <button class="tab-btn" data-mode="hexbin">六角網格</button>
+    <button class="tab-btn" data-mode="heatmap">熱力圖</button>
+    <button class="tab-btn" data-mode="query" id="query-tab" style="display:none;">軌跡查詢</button>
+  </div>
+
+  <!-- 狀態面板 -->
+  <div class="status-panel">
+    <div class="status-title" id="modeTitle">軌跡動畫</div>
+    <div class="time-display" id="timeDisplay">--</div>
+    <div class="stats-row" id="statsRow">
+      <div class="stat-item"><span>船舶數</span><span class="stats-value" id="statShips">--</span></div>
+    </div>
+    <div class="filter-section">
+      <div class="filter-title">船舶類型篩選</div>
+      <div class="filter-checks" id="filterChecks"></div>
+      <button class="filter-toggle-all" id="filterToggle">取消全選</button>
+    </div>
+  </div>
+
+  <!-- 時間軸控制 -->
+  <div class="timeline-panel">
+    <button class="play-btn" id="playBtn">&#9654;</button>
+    <input type="range" class="timeline" id="timeline" min="0" max="100" value="0" />
+    <div class="speed-controls" id="speedControls"></div>
+  </div>
+
+  <!-- 圖例（各模式動態顯示）-->
+  <div class="legend" id="legend" style="display:none;"></div>
+
+  <!-- 查詢工具列 -->
+  <div class="query-toolbar" id="queryToolbar" style="display:none;">
+    <button class="tool-btn active" data-tool="click">點選船舶</button>
+    <button class="tool-btn" data-tool="rect">矩形圈選</button>
+    <button class="tool-btn" data-tool="clear">清除軌跡</button>
+  </div>
+
+  <!-- 查詢結果面板 -->
+  <div class="query-panel" id="queryPanel" style="display:none;">
+    <div class="query-panel-header">查詢結果</div>
+    <div class="query-panel-body" id="queryPanelBody"></div>
+  </div>
+
+  <!-- 資料來源 -->
+  <div class="info-panel">資料來源：航港局 AIS</div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
