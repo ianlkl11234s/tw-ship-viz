@@ -8,6 +8,7 @@ import { createHexagonLayers } from './layers/hexagon.js';
 import { createHeatmapLayers } from './layers/heatmap.js';
 import { createQueryLayers, createQueryShipDots } from './layers/path.js';
 import { initTimeline, getCurrentTime } from './controls/timeline.js';
+import { initQueryControls, enableQueryMode, disableQueryMode, handlePick } from './controls/query.js';
 import { updateLegend } from './ui/legends.js';
 import { VESSEL_CATEGORIES } from './utils/constants.js';
 import './style.css';
@@ -20,6 +21,8 @@ let frameIndex = null;      // 密度/六角/熱力圖用的幀索引
 let currentMode = 'trajectory';
 let activeCategories = null; // null = 全部，否則 Set<category key>
 let metadata = null;         // Arrow metadata
+let queryResults = [];       // 查詢模式軌跡結果
+let queryShips = [];         // 查詢模式船舶散點
 
 // === 初始化 ===
 async function init() {
@@ -32,6 +35,9 @@ async function init() {
     deckOverlay = new MapboxOverlay({
       interleaved: false,
       layers: [],
+      onClick: (info) => {
+        if (currentMode === 'query') handlePick(info);
+      },
     });
     map.addControl(deckOverlay);
 
@@ -46,6 +52,11 @@ async function init() {
     setupTabs();
     setupFilters();
     setupThemeToggle();
+    initQueryControls({
+      map,
+      onQueryResult: (results) => { queryResults = results; updateLayers(getCurrentTime()); },
+      onQueryShipsLoad: (ships) => { queryShips = ships; updateLayers(getCurrentTime()); },
+    });
     checkQueryApi();
     updateLegend(currentMode, getCurrentTheme());
   });
@@ -136,7 +147,12 @@ function updateLayers(currentTime) {
       break;
     }
     case 'query':
-      // TODO: Step 5 完整查詢模式實作
+      if (queryResults.length > 0) {
+        layers = createQueryLayers(queryResults, theme);
+      }
+      if (queryShips.length > 0) {
+        layers.push(createQueryShipDots(queryShips));
+      }
       break;
   }
 
@@ -205,6 +221,10 @@ function setupTabs() {
       tab.classList.add('active');
 
       if (modeTitle) modeTitle.textContent = modeNames[mode] || mode;
+
+      // 查詢模式特殊處理
+      if (mode === 'query') enableQueryMode();
+      else disableQueryMode();
 
       updateLegend(mode, getCurrentTheme());
       updateLayers(getCurrentTime());
