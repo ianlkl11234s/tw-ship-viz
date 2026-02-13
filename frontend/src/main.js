@@ -11,6 +11,8 @@ import { createHexagonLayers } from './layers/hexagon.js';
 import { createHeatmapLayers } from './layers/heatmap.js';
 import { createQueryLayers, createQueryShipDots } from './layers/path.js';
 import { initTimeline, setMode, getCurrentTime, destroyTimeline } from './controls/timeline.js';
+import { initQueryControls, enableQueryMode, disableQueryMode, handlePick } from './controls/query.js';
+import { updateLegend } from './ui/legends.js';
 import { VESSEL_CATEGORIES } from './utils/constants.js';
 import './style.css';
 
@@ -32,7 +34,13 @@ async function init() {
     console.log('[ship-gis] MapLibre 地圖初始化完成');
 
     // 初始化 deck.gl overlay
-    deckOverlay = new MapboxOverlay({ interleaved: false, layers: [] });
+    deckOverlay = new MapboxOverlay({
+      interleaved: false,
+      layers: [],
+      onClick: (info) => {
+        if (currentMode === 'query') handlePick(info);
+      },
+    });
     map.addControl(deckOverlay);
 
     // 載入資料
@@ -46,6 +54,14 @@ async function init() {
     setupTabs();
     setupFilters();
     setupThemeToggle();
+    initQueryControls({
+      map,
+      onQueryResult: (results) => { queryResults = results; updateLayers(getCurrentTime()); },
+      onQueryShipsLoad: (ships) => { queryShips = ships; updateLayers(getCurrentTime()); },
+    });
+
+    // 初始圖例
+    updateLegend(currentMode, getCurrentTheme());
   });
 }
 
@@ -217,6 +233,16 @@ function setupTabs() {
       // 更新標題
       if (modeTitle) modeTitle.textContent = modeNames[mode] || mode;
 
+      // 查詢模式特殊處理
+      if (mode === 'query') {
+        enableQueryMode();
+      } else {
+        disableQueryMode();
+      }
+
+      // 更新圖例
+      updateLegend(mode, getCurrentTheme());
+
       // 重新渲染
       updateLayers(getCurrentTime());
       updateStats(getCurrentTime());
@@ -285,8 +311,8 @@ function setupThemeToggle() {
     // deck.gl 在 map style 變更後需要重新加 overlay
     // MapLibre setStyle 會清掉所有 controls，需要重新 add
     map.once('style.load', () => {
-      // MapboxOverlay 會自動重新 attach
       updateLayers(getCurrentTime());
+      updateLegend(currentMode, theme);
     });
   });
 }
