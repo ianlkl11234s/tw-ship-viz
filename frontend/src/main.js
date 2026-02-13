@@ -24,6 +24,17 @@ let metadata = null;         // Arrow metadata
 let queryResults = [];       // 查詢模式軌跡結果
 let queryShips = [];         // 查詢模式船舶散點
 
+// === 幀快取（避免 60fps 下每幀都重建資料和 Layer）===
+let _cachedFrameIdx = -1;
+let _cachedPositions = null;
+let _cachedLayerKey = '';
+
+function invalidateFrameCache() {
+  _cachedFrameIdx = -1;
+  _cachedPositions = null;
+  _cachedLayerKey = '';
+}
+
 // === 初始化 ===
 async function init() {
   map = initMap('map');
@@ -127,52 +138,76 @@ function updateLayers(currentTime) {
 
   switch (currentMode) {
     case 'trajectory':
+      // 軌跡模式每幀都需更新（TripsLayer 用 currentTime 做動畫插值）
       if (tripsData) {
         layers = createTrajectoryLayers(tripsData, currentTime, theme, activeCategories);
       }
       break;
-    case 'density': {
-      const positions = getFramePositions(currentTime);
-      if (positions.length > 0) layers = createGridLayers(positions, theme);
-      break;
-    }
+    case 'density':
     case 'hexbin': {
+      // 幀快取：資料每 10 分鐘才變一次，同一幀 + 同模式/主題 → 跳過
+      const frameIdx = getFrameIdx(currentTime);
+      const key = `${currentMode}|${theme}|${frameIdx}`;
+      if (key === _cachedLayerKey) return;
+      _cachedLayerKey = key;
       const positions = getFramePositions(currentTime);
-      if (positions.length > 0) layers = createHexagonLayers(positions, theme);
+      if (positions.length > 0) {
+        layers = currentMode === 'density'
+          ? createGridLayers(positions, theme)
+          : createHexagonLayers(positions, theme);
+      }
       break;
     }
     case 'heatmap': {
-      const positions = getFramePositions(currentTime);
-      if (positions.length > 0) layers = createHeatmapLayers(positions, theme);
+      const frameIdx = getFrameIdx(currentTime);
+      const key = `heatmap|${theme}|${frameIdx}`;
+      if (key === _cachedLayerKey) return;
+      _cachedLayerKey = key;
+      // 用 TypedArray 路徑：零物件分配，直接送 GPU
+      const flatData = frameIndex.getFramePositionsFlat(frameIdx);
+      if (flatData && flatData.count > 0) layers = createHeatmapLayers(flatData, theme);
       break;
     }
     case 'query':
-      if (queryResults.length > 0) {
-        layers = createQueryLayers(queryResults, theme);
-      }
-      if (queryShips.length > 0) {
-        layers.push(createQueryShipDots(queryShips));
-      }
+      if (queryResults.length > 0) layers = createQueryLayers(queryResults, theme);
+      if (queryShips.length > 0) layers.push(createQueryShipDots(queryShips));
       break;
   }
 
   deckOverlay.setProps({ layers });
 }
 
-// === 取得當前幀的船舶位置 ===
-function getFramePositions(currentTime) {
-  if (!frameIndex) return [];
+// === 二分搜尋最近幀索引 ===
+function getFrameIdx(currentTime) {
+  if (!frameIndex) return -1;
   const ft = frameIndex.frameTimes;
-  let closestIdx = 0;
-  let minDiff = Infinity;
-  for (let i = 0; i < ft.length; i++) {
-    const diff = Math.abs(ft[i] - currentTime);
-    if (diff < minDiff) { minDiff = diff; closestIdx = i; }
+  if (ft.length === 0) return -1;
+  let lo = 0, hi = ft.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (ft[mid] < currentTime) lo = mid + 1;
+    else hi = mid;
   }
-  return frameIndex.getFrame(closestIdx);
+  // lo 是第一個 >= currentTime 的幀，檢查 lo-1 是否更近
+  if (lo > 0 && (currentTime - ft[lo - 1]) < (ft[lo] - currentTime)) {
+    return lo - 1;
+  }
+  return lo;
+}
+
+// === 取得當前幀的船舶位置（帶快取）===
+function getFramePositions(currentTime) {
+  const idx = getFrameIdx(currentTime);
+  if (idx < 0) return [];
+  if (idx === _cachedFrameIdx) return _cachedPositions;
+  _cachedFrameIdx = idx;
+  _cachedPositions = frameIndex.getFrame(idx);
+  return _cachedPositions;
 }
 
 // === 統計面板 ===
+let _lastStatsKey = '';
+
 function updateStats(currentTime) {
   const statShips = document.getElementById('statShips');
   if (!statShips) return;
@@ -191,8 +226,12 @@ function updateStats(currentTime) {
     }
     statShips.textContent = count.toLocaleString();
   } else if (frameIndex) {
-    const positions = getFramePositions(currentTime);
-    statShips.textContent = positions.length.toLocaleString();
+    // 幀快取：同一幀不重算
+    const frameIdx = getFrameIdx(currentTime);
+    const key = `stats|${frameIdx}`;
+    if (key === _lastStatsKey) return;
+    _lastStatsKey = key;
+    statShips.textContent = frameIndex.getFrameCount(frameIdx).toLocaleString();
   }
 }
 
@@ -216,6 +255,8 @@ function setupTabs() {
     tab.addEventListener('click', () => {
       const mode = tab.dataset.mode;
       currentMode = mode;
+      invalidateFrameCache();
+      _lastStatsKey = '';
 
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
@@ -280,6 +321,7 @@ function setupThemeToggle() {
   themeBtn.addEventListener('click', () => {
     const theme = toggleTheme();
     themeBtn.textContent = theme === 'day' ? '\u263D' : '\u2600';
+    invalidateFrameCache();
     updateLegend(currentMode, theme);
     map.once('style.load', () => {
       if (deckOverlay) {

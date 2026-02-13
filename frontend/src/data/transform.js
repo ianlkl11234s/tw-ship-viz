@@ -139,6 +139,14 @@ class FrameIndex {
   }
 
   /**
+   * 取得指定幀的船舶數量（不建立陣列，用於統計面板）。
+   */
+  getFrameCount(frameIdx) {
+    if (frameIdx < 0 || frameIdx >= this._frameTimes.length) return 0;
+    return this._starts[frameIdx + 1] - this._starts[frameIdx];
+  }
+
+  /**
    * 取得指定幀的所有船舶位置。
    * @param {number} frameIdx - 幀索引
    * @param {Set|null} vesselFilter - 允許的 vessel_type 集合，null 表示不篩選
@@ -163,6 +171,26 @@ class FrameIndex {
       });
     }
     return positions;
+  }
+
+  /**
+   * 取得指定幀的位置資料（TypedArray 格式，零物件分配）。
+   * 供 HeatmapLayer binary attributes 使用。
+   * @param {number} frameIdx
+   * @returns {{ positions: Float32Array, count: number } | null}
+   */
+  getFramePositionsFlat(frameIdx) {
+    if (frameIdx < 0 || frameIdx >= this._frameTimes.length) return null;
+    const start = this._starts[frameIdx];
+    const end = this._starts[frameIdx + 1];
+    const count = end - start;
+    const positions = new Float32Array(count * 2);
+    for (let i = start; i < end; i++) {
+      const j = (i - start) * 2;
+      positions[j] = this._lonCol.get(i);
+      positions[j + 1] = this._latCol.get(i);
+    }
+    return { positions, count };
   }
 
   /**
