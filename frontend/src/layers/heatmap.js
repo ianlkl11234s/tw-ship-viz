@@ -1,50 +1,99 @@
 /**
- * 熱力圖 Layer（HeatmapLayer）
- * WebGL 核密度估計熱力圖。
+ * 熱力圖（MapLibre 原生 heatmap layer）
  *
- * 使用 binary attributes 格式：直接傳 Float32Array 給 GPU，
- * 避免建立 12,000+ 個 JS 物件。
+ * 直接在 MapLibre 的 WebGL pipeline 中渲染，不經 deck.gl overlay，
+ * 拖曳/縮放時零額外開銷。
  */
-import { HeatmapLayer } from '@deck.gl/aggregation-layers';
-import { THEMES, hexToRgb } from '../utils/constants.js';
+import { THEMES } from '../utils/constants.js';
 
-// 快取 colorRange 避免每次重算
-const _colorRangeCache = {};
-function getColorRange(theme) {
-  if (_colorRangeCache[theme]) return _colorRangeCache[theme];
-  const gradient = THEMES[theme].heatGradient;
-  const range = Object.entries(gradient)
-    .sort(([a], [b]) => parseFloat(a) - parseFloat(b))
-    .map(([, hex]) => hexToRgb(hex));
-  _colorRangeCache[theme] = range;
-  return range;
+const SOURCE_ID = 'ship-heatmap-src';
+const LAYER_ID = 'ship-heatmap-lyr';
+
+/**
+ * 建構 MapLibre heatmap-color 漸層表達式。
+ */
+function buildColorRamp(theme) {
+  const g = THEMES[theme].heatGradient;
+  const expr = ['interpolate', ['linear'], ['heatmap-density']];
+  expr.push(0, 'rgba(0,0,0,0)'); // density=0 透明
+
+  for (const [stop, color] of Object.entries(g).sort(([a], [b]) => a - b)) {
+    const s = parseFloat(stop);
+    expr.push(s <= 0 ? 0.01 : s, color);
+  }
+  return expr;
 }
 
 /**
- * @param {{ positions: Float32Array, weights: Float32Array, count: number }} heatData
- *   空間預聚合後的資料（~2,000 個帶權重格子，非原始 12,000 點）
- * @param {string} theme - 'day' | 'night'
- * @returns {Array} deck.gl Layer 陣列
+ * 確保 source + layer 存在。
+ * 主題切換（setStyle）會移除所有自訂 layer，故每次都需檢查。
  */
-export function createHeatmapLayers(heatData, theme = 'day') {
-  const colorRange = getColorRange(theme);
-
-  const heatLayer = new HeatmapLayer({
-    id: 'heatmap-layer',
-    data: {
-      length: heatData.count,
-      attributes: {
-        getPosition: { value: heatData.positions, size: 2 },
-        getWeight: { value: heatData.weights, size: 1 },
+function ensureSourceAndLayer(map, theme) {
+  if (!map.getSource(SOURCE_ID)) {
+    map.addSource(SOURCE_ID, {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+    });
+  }
+  if (!map.getLayer(LAYER_ID)) {
+    map.addLayer({
+      id: LAYER_ID,
+      type: 'heatmap',
+      source: SOURCE_ID,
+      paint: {
+        // 隨 zoom 調整：遠看平滑大範圍，近看精細高對比
+        'heatmap-radius': [
+          'interpolate', ['linear'], ['zoom'],
+          5, 8,    // zoom 5：全台灣 → 小半徑避免過曝
+          7, 15,
+          9, 25,
+          11, 40,  // zoom 11：港口特寫 → 大半徑顯示細節
+        ],
+        'heatmap-intensity': [
+          'interpolate', ['linear'], ['zoom'],
+          5, 0.3,
+          7, 0.8,
+          9, 1.5,
+          11, 3,
+        ],
+        'heatmap-color': buildColorRamp(theme),
+        'heatmap-opacity': 0.85,
       },
-    },
-    radiusPixels: 40,
-    intensity: 1,
-    threshold: 0.05,
-    colorRange,
-    opacity: 0.8,
-    debounceTimeout: 100,
-  });
+    });
+  }
+}
 
-  return [heatLayer];
+/**
+ * 更新熱力圖資料（僅在幀變化時呼叫）。
+ */
+export function updateNativeHeatmap(map, frameIndex, frameIdx, theme) {
+  ensureSourceAndLayer(map, theme);
+
+  const flatData = frameIndex.getFramePositionsFlat(frameIdx);
+  if (!flatData) return;
+
+  // Float32Array → GeoJSON（12,000 點對 MapLibre 是輕量級）
+  const { positions, count } = flatData;
+  const features = new Array(count);
+  for (let i = 0; i < count; i++) {
+    features[i] = {
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [positions[i * 2], positions[i * 2 + 1]],
+      },
+    };
+  }
+
+  map.getSource(SOURCE_ID).setData({ type: 'FeatureCollection', features });
+  map.setLayoutProperty(LAYER_ID, 'visibility', 'visible');
+}
+
+/**
+ * 隱藏熱力圖（切換到其他模式時呼叫）。
+ */
+export function hideNativeHeatmap(map) {
+  if (map.getLayer(LAYER_ID)) {
+    map.setLayoutProperty(LAYER_ID, 'visibility', 'none');
+  }
 }

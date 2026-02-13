@@ -5,7 +5,7 @@ import { arrowToTrips, buildFrameIndex, jsonToTrips, jsonToFrameIndex } from './
 import { createTrajectoryLayers, preprocessTrips } from './layers/trips.js';
 import { createGridLayers } from './layers/grid.js';
 import { createHexagonLayers } from './layers/hexagon.js';
-import { createHeatmapLayers } from './layers/heatmap.js';
+import { updateNativeHeatmap, hideNativeHeatmap } from './layers/heatmap.js';
 import { createQueryLayers, createQueryShipDots } from './layers/path.js';
 import { initTimeline, getCurrentTime } from './controls/timeline.js';
 import { initQueryControls, enableQueryMode, disableQueryMode, handlePick } from './controls/query.js';
@@ -163,9 +163,8 @@ function updateLayers(currentTime) {
       const key = `heatmap|${theme}|${frameIdx}`;
       if (key === _cachedLayerKey) return;
       _cachedLayerKey = key;
-      // 空間預聚合 + TypedArray：~12,000 點 → ~2,000 帶權重格子
-      const heatData = frameIndex.getFrameHeatmapData(frameIdx);
-      if (heatData && heatData.count > 0) layers = createHeatmapLayers(heatData, theme);
+      // MapLibre 原生 heatmap — 不走 deck.gl，layers 保持空
+      updateNativeHeatmap(map, frameIndex, frameIdx, theme);
       break;
     }
     case 'query':
@@ -253,10 +252,16 @@ function setupTabs() {
 
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
+      const prevMode = currentMode;
       const mode = tab.dataset.mode;
       currentMode = mode;
       invalidateFrameCache();
       _lastStatsKey = '';
+
+      // 離開 heatmap 模式時隱藏原生 MapLibre layer
+      if (prevMode === 'heatmap' && mode !== 'heatmap') {
+        hideNativeHeatmap(map);
+      }
 
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
