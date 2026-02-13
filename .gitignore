@@ -45,6 +45,9 @@ Thumbs.db
 node_modules/
 frontend/dist/
 
+# Arrow data files (generated, large binary)
+frontend/public/data/*.arrow
+
 # SQLite database
 data/*.db
 data/*.db-wal
