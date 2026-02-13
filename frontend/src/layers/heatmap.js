@@ -11,15 +11,32 @@ const LAYER_ID = 'ship-heatmap-lyr';
 
 /**
  * 建構 MapLibre heatmap-color 漸層表達式。
+ *
+ * 可調參數說明（修改此處即可改變視覺效果）：
+ *
+ *   heatmap-color 的 stop 值 = heatmap-density（0~1）
+ *     - 把暖色 stop 推高 → 需要更高密度才出現深色（延緩飽和）
+ *     - 把冷色 stop 壓低 → 低密度就有顏色（漸層更明顯）
+ *
+ *   heatmap-radius（在 ensureSourceAndLayer 裡）：
+ *     - 加大 → 點與點重疊更多 → 邊緣更模糊
+ *
+ *   heatmap-intensity：
+ *     - 降低 → 累加速度慢 → 不會太快進入深色
  */
 function buildColorRamp(theme) {
   const g = THEMES[theme].heatGradient;
-  const expr = ['interpolate', ['linear'], ['heatmap-density']];
-  expr.push(0, 'rgba(0,0,0,0)'); // density=0 透明
+  const stops = Object.entries(g).sort(([a], [b]) => a - b);
 
-  for (const [stop, color] of Object.entries(g).sort(([a], [b]) => a - b)) {
-    const s = parseFloat(stop);
-    expr.push(s <= 0 ? 0.01 : s, color);
+  const expr = ['interpolate', ['linear'], ['heatmap-density']];
+  expr.push(0, 'rgba(0,0,0,0)');
+
+  // 對 stop 值做指數映射：讓低密度區佔更大色域，高密度延後飽和
+  // 原始 stops: 0, 0.2, 0.4, 0.6, 0.8, 1.0
+  // 映射後:      0.02, 0.15, 0.35, 0.55, 0.75, 1.0
+  const remapped = [0.02, 0.15, 0.35, 0.55, 0.75, 1.0];
+  for (let i = 0; i < stops.length; i++) {
+    expr.push(remapped[i] ?? parseFloat(stops[i][0]), stops[i][1]);
   }
   return expr;
 }
@@ -41,20 +58,25 @@ function ensureSourceAndLayer(map, theme) {
       type: 'heatmap',
       source: SOURCE_ID,
       paint: {
-        // 隨 zoom 調整：遠看平滑大範圍，近看精細高對比
+        // --- heatmap-radius ---
+        // 加大半徑讓點與點高度重疊，消除「圓圈感」
+        // 調高 → 更模糊柔和；調低 → 更精細但邊緣明顯
         'heatmap-radius': [
           'interpolate', ['linear'], ['zoom'],
-          5, 8,    // zoom 5：全台灣 → 小半徑避免過曝
-          7, 15,
-          9, 25,
-          11, 40,  // zoom 11：港口特寫 → 大半徑顯示細節
+          5, 15,   // zoom 5：全台灣
+          7, 25,
+          9, 40,
+          11, 55,  // zoom 11：港口特寫
         ],
+        // --- heatmap-intensity ---
+        // 控制「多快飽和」：值越低，需要越多船才到深色
+        // 調低 → 漸層層次更豐富；調高 → 港口更突出
         'heatmap-intensity': [
           'interpolate', ['linear'], ['zoom'],
-          5, 0.3,
-          7, 0.8,
-          9, 1.5,
-          11, 3,
+          5, 0.1,
+          7, 0.3,
+          9, 0.6,
+          11, 1.2,
         ],
         'heatmap-color': buildColorRamp(theme),
         'heatmap-opacity': 0.85,
