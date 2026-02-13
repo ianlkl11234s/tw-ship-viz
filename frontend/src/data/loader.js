@@ -1,48 +1,100 @@
+/**
+ * 資料載入模組
+ * 優先載入 Arrow IPC 格式，失敗時 fallback 到 JSON。
+ */
 import { tableFromIPC } from 'apache-arrow';
 
 /**
- * 載入 Arrow IPC 檔案，失敗時 fallback 到 JSON。
- *
- * @param {'positions' | 'trajectory'} type
- * @returns {{ table, metadata }}
+ * 載入 Arrow 檔案，返回 Arrow Table。
+ * @param {string} url - Arrow 檔案 URL
+ * @returns {Promise<import('apache-arrow').Table>}
  */
-export async function loadArrowData(type) {
-  const arrowUrl = `./data/${type}.arrow`;
-  const jsonFallbacks = {
-    positions: '/ship_density_data.json',
-    trajectory: '/ship_trajectory_data.json',
+async function loadArrow(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status}`);
+  const buffer = await response.arrayBuffer();
+  return tableFromIPC(buffer);
+}
+
+/**
+ * 從 Arrow Table 的 schema metadata 提取資訊。
+ * @param {import('apache-arrow').Table} table
+ * @returns {object} metadata object
+ */
+export function getArrowMetadata(table) {
+  const meta = table.schema.metadata;
+  if (!meta) return {};
+
+  const get = (key) => {
+    const val = meta.get(key);
+    return val || null;
   };
 
+  const baseTimestamp = parseFloat(get('base_timestamp') || '0');
+  const frameTimes = (get('frame_times') || '')
+    .split(',')
+    .filter(Boolean)
+    .map(Number);
+
+  return {
+    baseTimestamp,
+    baseDatetime: get('base_datetime') || '',
+    endDatetime: get('end_datetime') || '',
+    totalFrames: parseInt(get('total_frames') || '0', 10),
+    intervalMinutes: parseInt(get('interval_minutes') || '10', 10),
+    frameTimes,
+  };
+}
+
+/**
+ * 載入軌跡資料（Arrow 優先，JSON fallback）。
+ * 返回統一的資料結構。
+ */
+export async function loadTrajectoryData() {
   try {
-    const res = await fetch(arrowUrl);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const buffer = await res.arrayBuffer();
-    const table = tableFromIPC(buffer);
+    console.log('[loader] 嘗試載入 trajectory.arrow...');
+    const table = await loadArrow('/data/trajectory.arrow');
+    const metadata = getArrowMetadata(table);
+    console.log(`[loader] Arrow 載入成功: ${table.numRows} 筆, ${metadata.totalFrames} 幀`);
+    return { type: 'arrow', table, metadata };
+  } catch (arrowErr) {
+    console.warn('[loader] Arrow 載入失敗，嘗試 JSON fallback:', arrowErr.message);
+  }
 
-    // 從 Arrow schema metadata 取出自訂 metadata
-    const rawMeta = table.schema.metadata;
-    const metadata = {};
-    if (rawMeta) {
-      for (const [k, v] of rawMeta) {
-        metadata[k] = v;
-      }
-    }
-
-    console.log(`[loader] ${type}.arrow 載入成功: ${table.numRows} 筆`);
-    return { table, metadata, format: 'arrow' };
-  } catch (err) {
-    console.warn(`[loader] Arrow 載入失敗 (${err.message})，嘗試 JSON fallback...`);
-    return loadJsonFallback(type, jsonFallbacks[type]);
+  // JSON fallback
+  try {
+    const res = await fetch('/ship_trajectory_data.json');
+    const json = await res.json();
+    console.log(`[loader] JSON fallback 載入成功: ${json.metadata.total_frames} 幀`);
+    return { type: 'json', data: json, metadata: json.metadata };
+  } catch (jsonErr) {
+    console.error('[loader] JSON 也載入失敗:', jsonErr);
+    throw new Error('無法載入軌跡資料');
   }
 }
 
 /**
- * JSON fallback 載入（相容舊版資料格式）。
+ * 載入密度/位置資料（Arrow 優先，JSON fallback）。
  */
-async function loadJsonFallback(type, url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`JSON fallback 也失敗: HTTP ${res.status}`);
-  const data = await res.json();
-  console.log(`[loader] ${type} JSON fallback 載入成功: ${data.frames?.length || 0} 幀`);
-  return { data, metadata: data.metadata, format: 'json' };
+export async function loadPositionsData() {
+  try {
+    console.log('[loader] 嘗試載入 positions.arrow...');
+    const table = await loadArrow('/data/positions.arrow');
+    const metadata = getArrowMetadata(table);
+    console.log(`[loader] Arrow 載入成功: ${table.numRows} 筆, ${metadata.totalFrames} 幀`);
+    return { type: 'arrow', table, metadata };
+  } catch (arrowErr) {
+    console.warn('[loader] Arrow 載入失敗，嘗試 JSON fallback:', arrowErr.message);
+  }
+
+  // JSON fallback
+  try {
+    const res = await fetch('/ship_density_data.json');
+    const json = await res.json();
+    console.log(`[loader] JSON fallback 載入成功: ${json.metadata.total_frames} 幀`);
+    return { type: 'json', data: json, metadata: json.metadata };
+  } catch (jsonErr) {
+    console.error('[loader] JSON 也載入失敗:', jsonErr);
+    throw new Error('無法載入位置資料');
+  }
 }

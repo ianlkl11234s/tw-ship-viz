@@ -45,6 +45,9 @@ Thumbs.db
 node_modules/
 frontend/dist/
 
+# Arrow data files (generated, too large for git)
+frontend/public/data/*.arrow
+
 # Arrow data files (generated, large binary)
 frontend/public/data/*.arrow
 
