@@ -165,8 +165,8 @@ async function onRectEnd(e) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        min_lon: sw.lng, max_lon: ne.lng,
-        min_lat: sw.lat, max_lat: ne.lat,
+        lon_min: sw.lng, lon_max: ne.lng,
+        lat_min: sw.lat, lat_max: ne.lat,
       }),
     });
     if (!res.ok) return;
