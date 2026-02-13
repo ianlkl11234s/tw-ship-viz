@@ -1,0 +1,45 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    volumes:
+      - arrow-data:/data:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    volumes:
+      - db-data:/app/data
+      - arrow-data:/app/frontend/public/data:ro
+    environment:
+      - DB_PATH=/app/data/ship_data.db
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.scheduler
+    volumes:
+      - db-data:/app/data
+      - arrow-data:/app/arrow-data
+    env_file:
+      - .env
+    environment:
+      - DB_PATH=/app/data/ship_data.db
+      - ARROW_OUTPUT_DIR=/app/arrow-data
+    restart: unless-stopped
+
+volumes:
+  db-data:
+    driver: local
+  arrow-data:
+    driver: local

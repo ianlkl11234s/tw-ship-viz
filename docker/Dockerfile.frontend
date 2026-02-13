@@ -1,0 +1,14 @@
+# 前端建置 + Nginx 服務
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+FROM nginx:alpine
+# Nginx 設定
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+# Arrow 資料會掛載到 /data
+EXPOSE 80

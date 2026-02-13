@@ -19,8 +19,8 @@ from datetime import datetime, timedelta
 import pyarrow as pa
 import pyarrow.ipc as ipc
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'ship_data.db')
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'public', 'data')
+DB_PATH = os.environ.get('DB_PATH', os.path.join(os.path.dirname(__file__), '..', 'data', 'ship_data.db'))
+OUTPUT_DIR = os.environ.get('ARROW_OUTPUT_DIR', os.path.join(os.path.dirname(__file__), '..', 'frontend', 'public', 'data'))
 
 # 地理範圍（台灣海域）
 LON_MIN, LON_MAX = 117.0, 127.0
