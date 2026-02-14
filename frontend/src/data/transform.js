@@ -30,6 +30,7 @@ export function arrowToTrips(table) {
   const MAX_GAP = 7200;      // 2 小時：超過此間隔拆分為新航段
   const MAX_SPEED_KT = 40;   // 速度閾值（節）：超過此值視為異常跳躍
   const DEG_PER_NM = 1 / 60; // 1 海浬 ≈ 1/60 度
+  const MIN_POINTS = 6;      // 最少 6 個點（~50 分鐘）才保留，過濾閃現雜訊
 
   // trajectory.arrow 已按 MMSI 排序，直接線性掃描分組
   const trips = [];
@@ -66,7 +67,7 @@ export function arrowToTrips(table) {
     }
 
     if (shouldSplit) {
-      if (currentTrip && currentTrip.path.length >= 2) trips.push(currentTrip);
+      if (currentTrip && currentTrip.path.length >= MIN_POINTS) trips.push(currentTrip);
       currentMmsi = mmsi;
       currentTrip = {
         mmsi,
@@ -78,7 +79,7 @@ export function arrowToTrips(table) {
     currentTrip.path.push([lon, lat]);
     currentTrip.timestamps.push(ts);
   }
-  if (currentTrip && currentTrip.path.length >= 2) trips.push(currentTrip);
+  if (currentTrip && currentTrip.path.length >= MIN_POINTS) trips.push(currentTrip);
 
   console.log(`[transform] arrowToTrips: ${trips.length} 航段`);
   return trips;
