@@ -29,7 +29,7 @@ LAT_MIN, LAT_MAX = 20.0, 28.0
 
 INTERVAL_MINUTES = 10
 MAX_SPEED_KNOTS = 40   # 隱含速度閾值（節）— 高速船可達 35 節，留餘量
-MAX_GAP_SECONDS = 7200 # 超過 2 小時斷點拆分為新航段（AIS 長間隔正常航行不中斷）
+MAX_GAP_SECONDS = 21600 # 超過 6 小時才拆分（錨點已橋接短暫停泊，6hr 足以涵蓋大部分漁撈作業）
 
 # 無效 MMSI 黑名單：AIS 設備未正確設定或多船共用
 MMSI_BLACKLIST = {
@@ -275,17 +275,42 @@ def generate_arrow_files(args):
     traj_vtype = []
 
     # 按 MMSI 分組收集（TripsLayer 需要按船分組的軌跡）
-    ship_tracks = {}  # mmsi → [(ts_sec, lon, lat, sog, cog, vtype), ...]
+    # 策略：低速點（sog < 0.5）不全部保留，只保留「錨點」—
+    #   移動→停 的第一個低速點 + 停→移動 的第一個高速點前的最後低速點
+    #   這樣軌跡連續，停泊期間船會停在原地，不會產生時間斷裂
+    ship_all_points = {}  # mmsi → [(ts_sec, lon, lat, sog, cog, vtype), ...]
     for ts_key in sorted_times:
         ts_sec = datetime.fromisoformat(ts_key).timestamp() - base_ts
         ships = time_slots[ts_key]
         for mmsi, (lon, lat, sog, cog, vtype) in ships.items():
-            if sog < 0.5:
-                continue
             mmsi_int = int(mmsi) if isinstance(mmsi, str) else mmsi
-            if mmsi_int not in ship_tracks:
-                ship_tracks[mmsi_int] = []
-            ship_tracks[mmsi_int].append((ts_sec, lon, lat, sog, cog, vtype))
+            if mmsi_int not in ship_all_points:
+                ship_all_points[mmsi_int] = []
+            ship_all_points[mmsi_int].append((ts_sec, lon, lat, sog, cog, vtype))
+
+    # 過濾：保留移動中的點 + 停泊錨點
+    ship_tracks = {}
+    anchored_dropped = 0
+    for mmsi_int, points in ship_all_points.items():
+        filtered = []
+        for i, pt in enumerate(points):
+            sog = pt[3]
+            if sog >= 0.5:
+                # 移動中 → 一律保留
+                filtered.append(pt)
+            else:
+                # 低速點：只保留「邊界」錨點
+                prev_moving = (i > 0 and points[i - 1][3] >= 0.5)
+                next_moving = (i < len(points) - 1 and points[i + 1][3] >= 0.5)
+                if prev_moving or next_moving:
+                    filtered.append(pt)
+                else:
+                    anchored_dropped += 1
+        if filtered:
+            ship_tracks[mmsi_int] = filtered
+
+    if anchored_dropped > 0:
+        print(f"已跳過連續停泊點: {anchored_dropped} 筆（保留錨點）")
 
     # 按 MMSI 排序，過濾跳點後展開
     outlier_count = 0

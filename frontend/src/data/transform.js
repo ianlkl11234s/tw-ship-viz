@@ -27,7 +27,7 @@ export function arrowToTrips(table) {
   const cogCol = table.getChild('cog');
   const vtypeCol = table.getChild('vessel_type');
 
-  const MAX_GAP = 7200;      // 2 小時：超過此間隔拆分為新航段
+  const MAX_GAP = 21600;     // 6 小時：超過此間隔才拆分（配合後端錨點策略）
   const MAX_SPEED_KT = 40;   // 速度閾值（節）：超過此值視為異常跳躍
   const DEG_PER_NM = 1 / 60; // 1 海浬 ≈ 1/60 度
   const MIN_POINTS = 3;      // 最少 3 個點（~20 分鐘）才保留，過濾單點閃現
