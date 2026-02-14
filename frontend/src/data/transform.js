@@ -27,10 +27,9 @@ export function arrowToTrips(table) {
   const cogCol = table.getChild('cog');
   const vtypeCol = table.getChild('vessel_type');
 
-  const MAX_GAP = 21600;     // 6 小時：超過此間隔才拆分（配合後端錨點策略）
   const MAX_SPEED_KT = 40;   // 速度閾值（節）：超過此值視為異常跳躍
   const DEG_PER_NM = 1 / 60; // 1 海浬 ≈ 1/60 度
-  const MIN_POINTS = 3;      // 最少 3 個點（~20 分鐘）才保留，過濾單點閃現
+  const MIN_POINTS = 3;      // 最少 3 個點才保留
 
   // trajectory.arrow 已按 MMSI 排序，直接線性掃描分組
   const trips = [];
@@ -50,11 +49,8 @@ export function arrowToTrips(table) {
       const lastPos = currentTrip.path[currentTrip.path.length - 1];
       const dt = ts - lastTs;
 
-      if (dt > MAX_GAP) {
-        // 時間斷裂 → 拆段
-        shouldSplit = true;
-      } else if (dt > 0) {
-        // 速度判斷：估算隱含速度，超過閾值才拆段
+      // 只用速度判斷異常跳躍（不再用時間切分）
+      if (dt > 0) {
         const dLon = Math.abs(lon - lastPos[0]);
         const dLat = Math.abs(lat - lastPos[1]);
         const distNm = Math.sqrt(dLon * dLon + dLat * dLat) / DEG_PER_NM;

@@ -29,7 +29,7 @@ LAT_MIN, LAT_MAX = 20.0, 28.0
 
 INTERVAL_MINUTES = 10
 MAX_SPEED_KNOTS = 40   # 隱含速度閾值（節）— 高速船可達 35 節，留餘量
-MAX_GAP_SECONDS = 21600 # 超過 6 小時才拆分（錨點已橋接短暫停泊，6hr 足以涵蓋大部分漁撈作業）
+MAX_GAP_SECONDS = None  # 不用時間拆分（船回港關 AIS 即自然斷裂）
 
 # 無效 MMSI 黑名單：AIS 設備未正確設定或多船共用
 MMSI_BLACKLIST = {
@@ -73,19 +73,10 @@ def is_jump(p1, p2):
 
 
 def split_by_gap(points):
-    """按時間間隔拆分為多段軌跡，降低 MMSI 共用的交叉汙染。"""
+    """不再按時間拆分（船回港關 AIS 即自然斷裂），直接返回整段。"""
     if not points:
         return []
-    segments = []
-    current = [points[0]]
-    for i in range(1, len(points)):
-        if points[i][0] - points[i - 1][0] > MAX_GAP_SECONDS:
-            segments.append(current)
-            current = []
-        current.append(points[i])
-    if current:
-        segments.append(current)
-    return segments
+    return [points]
 
 
 def filter_track_outliers(points):
