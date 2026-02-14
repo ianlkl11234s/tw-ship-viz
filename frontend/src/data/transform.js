@@ -10,9 +10,12 @@
  * [{
  *   mmsi: number,
  *   vesselType: number,
- *   path: [[lon, lat, timestamp], ...],  // 時間排序
+ *   path: [[lon, lat], ...],
  *   timestamps: [t0, t1, ...],
  * }, ...]
+ *
+ * 後端 generate_arrow.py 已完成地理感知切段（港口圍欄 + 陸地穿越 + 速度異常），
+ * 每段有唯一 segment_id，前端只需按 segment_id 分組。
  *
  * @param {import('apache-arrow').Table} table - trajectory.arrow Table
  * @returns {Array} trips data array
@@ -23,59 +26,31 @@ export function arrowToTrips(table) {
   const mmsiCol = table.getChild('mmsi');
   const lonCol = table.getChild('lon');
   const latCol = table.getChild('lat');
-  const sogCol = table.getChild('sog');
-  const cogCol = table.getChild('cog');
   const vtypeCol = table.getChild('vessel_type');
+  const segCol = table.getChild('segment_id');
 
-  const MAX_GAP = 21600;     // 6 小時：短暫停泊靠錨點橋接，長停泊才切斷
-  const MAX_SPEED_KT = 40;   // 速度閾值（節）：超過此值視為異常跳躍
-  const DEG_PER_NM = 1 / 60; // 1 海浬 ≈ 1/60 度
-  const MIN_POINTS = 3;      // 最少 3 個點才保留
+  const MIN_POINTS = 3;
 
-  // trajectory.arrow 已按 MMSI 排序，直接線性掃描分組
+  // 按 segment_id 分組（後端已排序，同 segment 連續排列）
   const trips = [];
-  let currentMmsi = null;
+  let currentSegId = null;
   let currentTrip = null;
 
   for (let i = 0; i < numRows; i++) {
-    const mmsi = mmsiCol.get(i);
-    const ts = tsCol.get(i);
-    const lon = lonCol.get(i);
-    const lat = latCol.get(i);
+    const segId = segCol.get(i);
 
-    let shouldSplit = mmsi !== currentMmsi;
-
-    if (!shouldSplit && currentTrip && currentTrip.path.length > 0) {
-      const lastTs = currentTrip.timestamps[currentTrip.timestamps.length - 1];
-      const lastPos = currentTrip.path[currentTrip.path.length - 1];
-      const dt = ts - lastTs;
-
-      if (dt > MAX_GAP) {
-        shouldSplit = true;
-      } else if (dt > 0) {
-        const dLon = Math.abs(lon - lastPos[0]);
-        const dLat = Math.abs(lat - lastPos[1]);
-        const distNm = Math.sqrt(dLon * dLon + dLat * dLat) / DEG_PER_NM;
-        const dtHours = dt / 3600;
-        const speedKt = distNm / dtHours;
-        if (speedKt > MAX_SPEED_KT) {
-          shouldSplit = true;
-        }
-      }
-    }
-
-    if (shouldSplit) {
+    if (segId !== currentSegId) {
       if (currentTrip && currentTrip.path.length >= MIN_POINTS) trips.push(currentTrip);
-      currentMmsi = mmsi;
+      currentSegId = segId;
       currentTrip = {
-        mmsi,
+        mmsi: mmsiCol.get(i),
         vesselType: vtypeCol.get(i),
         path: [],
         timestamps: [],
       };
     }
-    currentTrip.path.push([lon, lat]);
-    currentTrip.timestamps.push(ts);
+    currentTrip.path.push([lonCol.get(i), latCol.get(i)]);
+    currentTrip.timestamps.push(tsCol.get(i));
   }
   if (currentTrip && currentTrip.path.length >= MIN_POINTS) trips.push(currentTrip);
 

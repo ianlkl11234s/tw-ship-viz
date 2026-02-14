@@ -1,0 +1,1325 @@
+{
+  "type": "FeatureCollection",
+  "properties": {
+    "fetch_time": "2026-02-14T18:03:33.735207",
+    "ferry_count": 73,
+    "ship_count": 73,
+    "merged_unique_count": 73
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          118.263214,
+          24.425441
+        ]
+      },
+      "properties": {
+        "PortID": "TW012",
+        "PortName": "金門九宮港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 24.425441,
+        "lng": 118.263214
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.2697,
+          22.61408
+        ]
+      },
+      "properties": {
+        "PortID": "TW073",
+        "PortName": "高雄旗津輪渡站",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.61408,
+        "lng": 120.2697
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          118.286961,
+          24.415198
+        ]
+      },
+      "properties": {
+        "PortID": "TWSTO",
+        "PortName": "金門水頭港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 24.415198,
+        "lng": 118.286961
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.60916,
+          23.64888
+        ]
+      },
+      "properties": {
+        "PortID": "TW042",
+        "PortName": "澎湖岐頭漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.64888,
+        "lng": 119.60916
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.568134,
+          23.61706111
+        ]
+      },
+      "properties": {
+        "PortID": "TW045",
+        "PortName": "澎湖大倉漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.61706111,
+        "lng": 119.568134
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.15002,
+          28.08309
+        ]
+      },
+      "properties": {
+        "PortID": "CNDMY",
+        "PortName": "大麥嶼",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 28.08309,
+        "lng": 121.15002
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.27517,
+          22.61924
+        ]
+      },
+      "properties": {
+        "PortID": "TWKHH",
+        "PortName": "高雄港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.61924,
+        "lng": 120.27517
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.4228483,
+          25.1645979
+        ]
+      },
+      "properties": {
+        "PortID": "TW056",
+        "PortName": "八里客船碼頭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.1645979,
+        "lng": 121.4228483
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.4746899,
+          22.65874547
+        ]
+      },
+      "properties": {
+        "PortID": "TWGNI",
+        "PortName": "綠島南寮漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.65874547,
+        "lng": 121.4746899
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.6122963,
+          23.73880085
+        ]
+      },
+      "properties": {
+        "PortID": "TW027",
+        "PortName": "吉貝漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.73880085,
+        "lng": 119.6122963
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.3745876,
+          22.33470049
+        ]
+      },
+      "properties": {
+        "PortID": "TW015",
+        "PortName": "小琉球大福漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.33470049,
+        "lng": 120.3745876
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.087875,
+          23.21177636
+        ]
+      },
+      "properties": {
+        "PortID": "TWTNN",
+        "PortName": "將軍港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.21177636,
+        "lng": 120.087875
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.65666,
+          23.66
+        ]
+      },
+      "properties": {
+        "PortID": "TW043",
+        "PortName": "澎湖鳥嶼漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.66,
+        "lng": 119.65666
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.5208874,
+          23.36303792
+        ]
+      },
+      "properties": {
+        "PortID": "TW030",
+        "PortName": "澎湖將軍南漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.36303792,
+        "lng": 119.5208874
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.3844867,
+          22.35218789
+        ]
+      },
+      "properties": {
+        "PortID": "TW001",
+        "PortName": "小琉球白沙港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.35218789,
+        "lng": 120.3844867
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.572493,
+          23.566453
+        ]
+      },
+      "properties": {
+        "PortID": "TWMZG03",
+        "PortName": "馬公第三漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.566453,
+        "lng": 119.572493
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.267994,
+          22.617389
+        ]
+      },
+      "properties": {
+        "PortID": "TW070",
+        "PortName": "文化遊艇英領館站",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.617389,
+        "lng": 120.267994
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.864425744067,
+          24.587150136026
+        ]
+      },
+      "properties": {
+        "PortID": "TWSUO",
+        "PortName": "蘇澳港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 24.587150136026,
+        "lng": 121.864425744067
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.1393774,
+          23.3792647
+        ]
+      },
+      "properties": {
+        "PortID": "TWPUT",
+        "PortName": "布袋港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.3792647,
+        "lng": 120.1393774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.4382456,
+          25.170277
+        ]
+      },
+      "properties": {
+        "PortID": "TW054",
+        "PortName": "淡水客船碼頭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.170277,
+        "lng": 121.4382456
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.1929533,
+          22.79150654
+        ]
+      },
+      "properties": {
+        "PortID": "TWTTT",
+        "PortName": "台東富岡漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.79150654,
+        "lng": 121.1929533
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.51111,
+          23.25638
+        ]
+      },
+      "properties": {
+        "PortID": "TW047",
+        "PortName": "澎湖東嶼坪漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.25638,
+        "lng": 119.51111
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.94365,
+          26.1605
+        ]
+      },
+      "properties": {
+        "PortID": "TW007",
+        "PortName": "南竿福澳港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 26.1605,
+        "lng": 119.94365
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.4828049,
+          25.0321562
+        ]
+      },
+      "properties": {
+        "PortID": "TW052",
+        "PortName": "華江碼頭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.0321562,
+        "lng": 121.4828049
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.276645,
+          22.618904
+        ]
+      },
+      "properties": {
+        "PortID": "TW072",
+        "PortName": "小港文化遊艇棧貳庫站",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.618904,
+        "lng": 120.276645
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.3175,
+          23.39833
+        ]
+      },
+      "properties": {
+        "PortID": "TW062",
+        "PortName": "花嶼",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.39833,
+        "lng": 119.3175
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.55652,
+          25.07539
+        ]
+      },
+      "properties": {
+        "PortID": "TW050",
+        "PortName": "美堤碼頭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.07539,
+        "lng": 121.55652
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          118.4313557,
+          24.40919877
+        ]
+      },
+      "properties": {
+        "PortID": "TWLIL",
+        "PortName": "金門料羅港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 24.40919877,
+        "lng": 118.4313557
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.2989949,
+          22.57569993
+        ]
+      },
+      "properties": {
+        "PortID": "TW066",
+        "PortName": "中洲輪渡站",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.57569993,
+        "lng": 120.2989949
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.4094674,
+          25.1827119
+        ]
+      },
+      "properties": {
+        "PortID": "TW055",
+        "PortName": "漁人碼頭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.1827119,
+        "lng": 121.4094674
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.3190406,
+          22.55094143
+        ]
+      },
+      "properties": {
+        "PortID": "TW069",
+        "PortName": "文化遊艇紅毛港站",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.55094143,
+        "lng": 120.3190406
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.30582,
+          22.58698
+        ]
+      },
+      "properties": {
+        "PortID": "TW065",
+        "PortName": "前鎮輪渡站",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.58698,
+        "lng": 120.30582
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.53732,
+          25.07618
+        ]
+      },
+      "properties": {
+        "PortID": "TW051",
+        "PortName": "大佳碼頭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.07618,
+        "lng": 121.53732
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.83738,
+          25.46703
+        ]
+      },
+      "properties": {
+        "PortID": "CNFOC",
+        "PortName": "福州平潭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.46703,
+        "lng": 119.83738
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.66722,
+          23.254722
+        ]
+      },
+      "properties": {
+        "PortID": "TW021",
+        "PortName": "東吉港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.254722,
+        "lng": 119.66722
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.570366,
+          23.67129925
+        ]
+      },
+      "properties": {
+        "PortID": "TWHOU",
+        "PortName": "澎湖後寮漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.67129925,
+        "lng": 119.570366
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.4346059,
+          22.47120965
+        ]
+      },
+      "properties": {
+        "PortID": "TW199",
+        "PortName": "鹽埔漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.47120965,
+        "lng": 120.4346059
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.27642,
+          22.61896
+        ]
+      },
+      "properties": {
+        "PortID": "TW064",
+        "PortName": "棧貳庫輪渡站",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.61896,
+        "lng": 120.27642
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.88683,
+          26.31591
+        ]
+      },
+      "properties": {
+        "PortID": "CNHGQ",
+        "PortName": "福州黃岐港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 26.31591,
+        "lng": 119.88683
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.2701,
+          22.6198
+        ]
+      },
+      "properties": {
+        "PortID": "TW074",
+        "PortName": "高雄鼓山輪渡站",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.6198,
+        "lng": 120.2701
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.1744,
+          22.9729
+        ]
+      },
+      "properties": {
+        "PortID": "TWAPG",
+        "PortName": "安平港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.9729,
+        "lng": 120.1744
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.3916081,
+          25.1533643
+        ]
+      },
+      "properties": {
+        "PortID": "TWTPE",
+        "PortName": "臺北港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.1533643,
+        "lng": 121.3916081
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.418777,
+          23.195665
+        ]
+      },
+      "properties": {
+        "PortID": "TWCMJ",
+        "PortName": "澎湖七美漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.195665,
+        "lng": 119.418777
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.574931,
+          25.05139
+        ]
+      },
+      "properties": {
+        "PortID": "TW049",
+        "PortName": "錫口碼頭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.05139,
+        "lng": 121.574931
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          118.19129,
+          24.53138
+        ]
+      },
+      "properties": {
+        "PortID": "CNXMN",
+        "PortName": "廈門五通",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 24.53138,
+        "lng": 118.19129
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.964463,
+          25.958174
+        ]
+      },
+      "properties": {
+        "PortID": "TW010",
+        "PortName": "東莒猛澳港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.958174,
+        "lng": 119.964463
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.741177648686,
+          25.1348595906906
+        ]
+      },
+      "properties": {
+        "PortID": "TWKEL",
+        "PortName": "基隆港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.1348595906906,
+        "lng": 121.741177648686
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.51888,
+          23.51277
+        ]
+      },
+      "properties": {
+        "PortID": "TWTPN",
+        "PortName": "澎湖桶盤漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.51277,
+        "lng": 119.51888
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.7450058,
+          21.94684565
+        ]
+      },
+      "properties": {
+        "PortID": "TW013",
+        "PortName": "後壁湖漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 21.94684565,
+        "lng": 120.7450058
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.28997,
+          22.62486
+        ]
+      },
+      "properties": {
+        "PortID": "TW067",
+        "PortName": "愛之船國賓站",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.62486,
+        "lng": 120.28997
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.500046,
+          25.0561888
+        ]
+      },
+      "properties": {
+        "PortID": "TW053",
+        "PortName": "忠孝碼頭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.0561888,
+        "lng": 121.500046
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.6316176,
+          23.64677298
+        ]
+      },
+      "properties": {
+        "PortID": "TW044",
+        "PortName": "澎湖員貝漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.64677298,
+        "lng": 119.6316176
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.5177136,
+          23.48692452
+        ]
+      },
+      "properties": {
+        "PortID": "TWHJN",
+        "PortName": "虎井港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.48692452,
+        "lng": 119.5177136
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.6244257,
+          23.9788358393
+        ]
+      },
+      "properties": {
+        "PortID": "TWHUN",
+        "PortName": "花蓮港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.9788358393,
+        "lng": 121.6244257
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.44491,
+          22.468461
+        ]
+      },
+      "properties": {
+        "PortID": "TWDNK",
+        "PortName": "東港漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.468461,
+        "lng": 120.44491
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.5210644,
+          24.2605666
+        ]
+      },
+      "properties": {
+        "PortID": "TWTXG",
+        "PortName": "臺中港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 24.2605666,
+        "lng": 120.5210644
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.564422964545,
+          23.5631091150989
+        ]
+      },
+      "properties": {
+        "PortID": "TWMZG",
+        "PortName": "澎湖港馬公碼頭區",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.5631091150989,
+        "lng": 119.564422964545
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.57386,
+          26.11556
+        ]
+      },
+      "properties": {
+        "PortID": "CNLGQ",
+        "PortName": "福州琅岐港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 26.11556,
+        "lng": 119.57386
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.5071953,
+          25.05686137
+        ]
+      },
+      "properties": {
+        "PortID": "TW019",
+        "PortName": "大稻埕碼頭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.05686137,
+        "lng": 121.5071953
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.6034501,
+          23.6684931
+        ]
+      },
+      "properties": {
+        "PortID": "TW028",
+        "PortName": "赤崁漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.6684931,
+        "lng": 119.6034501
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.28819,
+          22.6261
+        ]
+      },
+      "properties": {
+        "PortID": "TW068",
+        "PortName": "愛之船仁愛站",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.6261,
+        "lng": 120.28819
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.5100679,
+          23.26684652
+        ]
+      },
+      "properties": {
+        "PortID": "TW048",
+        "PortName": "澎湖西嶼坪碼頭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.26684652,
+        "lng": 119.5100679
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.9336903,
+          25.96930124
+        ]
+      },
+      "properties": {
+        "PortID": "TW009",
+        "PortName": "西莒青帆港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.96930124,
+        "lng": 119.9336903
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          118.43487,
+          24.62974
+        ]
+      },
+      "properties": {
+        "PortID": "CNSIJ",
+        "PortName": "泉州石井",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 24.62974,
+        "lng": 118.43487
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.4605815,
+          25.12072438
+        ]
+      },
+      "properties": {
+        "PortID": "TW020",
+        "PortName": "關渡碼頭",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 25.12072438,
+        "lng": 121.4605815
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.5646066,
+          23.56312688
+        ]
+      },
+      "properties": {
+        "PortID": "TWPNH",
+        "PortName": "澎湖港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.56312688,
+        "lng": 119.5646066
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.9689774,
+          26.20572337
+        ]
+      },
+      "properties": {
+        "PortID": "TW008",
+        "PortName": "北竿白沙港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 26.20572337,
+        "lng": 119.9689774
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.674513902784,
+          23.5601349833647
+        ]
+      },
+      "properties": {
+        "PortID": "TWLGM",
+        "PortName": "澎湖港龍門尖山碼頭區",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.5601349833647,
+        "lng": 119.674513902784
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.3579281,
+          22.50863027
+        ]
+      },
+      "properties": {
+        "PortID": "TW023",
+        "PortName": "鳳鼻頭漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.50863027,
+        "lng": 120.3579281
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.5710198,
+          23.58500833
+        ]
+      },
+      "properties": {
+        "PortID": "TW046",
+        "PortName": "澎湖重光漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.58500833,
+        "lng": 119.5710198
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.4842967,
+          26.36367178
+        ]
+      },
+      "properties": {
+        "PortID": "TW011",
+        "PortName": "東引中柱港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 26.36367178,
+        "lng": 120.4842967
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.5087776,
+          22.05758258
+        ]
+      },
+      "properties": {
+        "PortID": "TWKYD",
+        "PortName": "蘭嶼開元漁港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 22.05758258,
+        "lng": 121.5087776
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.50824,
+          23.36188
+        ]
+      },
+      "properties": {
+        "PortID": "TWWOT",
+        "PortName": "望安港",
+        "PortName_En": "",
+        "Source": "ferry_port",
+        "lat": 23.36188,
+        "lng": 119.50824
+      }
+    }
+  ]
+}
