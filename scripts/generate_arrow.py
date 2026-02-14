@@ -22,6 +22,7 @@ import argparse
 import json
 import math
 import os
+import shutil
 import sqlite3
 from datetime import datetime, timedelta
 
@@ -576,6 +577,13 @@ def generate_arrow_files(args):
         writer.write_table(traj_table)
     traj_size = os.path.getsize(traj_path) / 1024 / 1024
     print(f"trajectory.arrow: {traj_size:.1f} MB")
+
+    # 複製 ports.geojson 到輸出目錄（前端需要）
+    ports_src = os.path.join(DATA_DIR, 'ports.geojson')
+    ports_dst = os.path.join(output_dir, 'ports.geojson')
+    if os.path.exists(ports_src):
+        shutil.copy2(ports_src, ports_dst)
+        print(f"ports.geojson → {ports_dst}")
 
 
 def main():

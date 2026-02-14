@@ -7,6 +7,7 @@ import { createGridLayers } from './layers/grid.js';
 import { createHexagonLayers } from './layers/hexagon.js';
 import { updateNativeHeatmap, hideNativeHeatmap } from './layers/heatmap.js';
 import { createQueryLayers, createQueryShipDots } from './layers/path.js';
+import { createPortLayers } from './layers/ports.js';
 import { initTimeline, getCurrentTime } from './controls/timeline.js';
 import { initQueryControls, enableQueryMode, disableQueryMode, handlePick } from './controls/query.js';
 import { updateLegend } from './ui/legends.js';
@@ -23,6 +24,8 @@ let activeCategories = null; // null = 全部，否則 Set<category key>
 let metadata = null;         // Arrow metadata
 let queryResults = [];       // 查詢模式軌跡結果
 let queryShips = [];         // 查詢模式船舶散點
+let portFeatures = null;     // 港口 GeoJSON features
+let showPorts = true;        // 港口圖層顯示開關
 
 // === 幀快取（避免 60fps 下每幀都重建資料和 Layer）===
 let _cachedFrameIdx = -1;
@@ -67,6 +70,7 @@ async function init() {
     // 設置 UI
     setupTabs();
     setupFilters();
+    setupPortToggle();
     setupThemeToggle();
     initQueryControls({
       map,
@@ -84,10 +88,17 @@ async function loadData() {
   if (loadingText) loadingText.textContent = '載入船舶資料中...';
 
   // 平行載入
-  const [trajResult, posResult] = await Promise.all([
+  const [trajResult, posResult, portsResult] = await Promise.all([
     loadTrajectoryData(),
     loadPositionsData(),
+    fetch('/data/ports.geojson').then(r => r.json()).catch(() => null),
   ]);
+
+  // 港口資料
+  if (portsResult && portsResult.features) {
+    portFeatures = portsResult.features;
+    console.log(`[ship-gis] 載入 ${portFeatures.length} 座港口`);
+  }
 
   if (loadingText) loadingText.textContent = '處理資料中...';
 
@@ -176,6 +187,11 @@ function updateLayers(currentTime) {
       if (queryResults.length > 0) layers = createQueryLayers(queryResults, theme);
       if (queryShips.length > 0) layers.push(createQueryShipDots(queryShips));
       break;
+  }
+
+  // 港口圖層疊加（所有模式共用）
+  if (showPorts && portFeatures) {
+    layers = layers.concat(createPortLayers(portFeatures, theme));
   }
 
   deckOverlay.setProps({ layers });
@@ -321,6 +337,16 @@ function onFilterChange() {
     : new Set(checked);
   updateLayers(getCurrentTime());
   updateStats(getCurrentTime());
+}
+
+// === 港口圖層切換 ===
+function setupPortToggle() {
+  const cb = document.getElementById('portToggle');
+  if (!cb) return;
+  cb.addEventListener('change', () => {
+    showPorts = cb.checked;
+    updateLayers(getCurrentTime());
+  });
 }
 
 // === 主題切換 ===

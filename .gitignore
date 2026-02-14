@@ -45,11 +45,9 @@ Thumbs.db
 node_modules/
 frontend/dist/
 
-# Arrow data files (generated, too large for git)
+# Generated data files (copied by generate_arrow.py)
 frontend/public/data/*.arrow
-
-# Arrow data files (generated, large binary)
-frontend/public/data/*.arrow
+frontend/public/data/ports.geojson
 
 # SQLite database
 data/*.db
