@@ -27,6 +27,7 @@ export function arrowToTrips(table) {
   const cogCol = table.getChild('cog');
   const vtypeCol = table.getChild('vessel_type');
 
+  const MAX_GAP = 21600;     // 6 小時：短暫停泊靠錨點橋接，長停泊才切斷
   const MAX_SPEED_KT = 40;   // 速度閾值（節）：超過此值視為異常跳躍
   const DEG_PER_NM = 1 / 60; // 1 海浬 ≈ 1/60 度
   const MIN_POINTS = 3;      // 最少 3 個點才保留
@@ -49,8 +50,9 @@ export function arrowToTrips(table) {
       const lastPos = currentTrip.path[currentTrip.path.length - 1];
       const dt = ts - lastTs;
 
-      // 只用速度判斷異常跳躍（不再用時間切分）
-      if (dt > 0) {
+      if (dt > MAX_GAP) {
+        shouldSplit = true;
+      } else if (dt > 0) {
         const dLon = Math.abs(lon - lastPos[0]);
         const dLat = Math.abs(lat - lastPos[1]);
         const distNm = Math.sqrt(dLon * dLon + dLat * dLat) / DEG_PER_NM;
