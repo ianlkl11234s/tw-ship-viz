@@ -29,8 +29,7 @@ LAT_MIN, LAT_MAX = 20.0, 28.0
 
 INTERVAL_MINUTES = 10
 MAX_SPEED_KNOTS = 40   # 隱含速度閾值（節）— 高速船可達 35 節，留餘量
-MAX_JUMP_NM = 15       # 單次跳躍距離上限（海浬）— 40 節 × 10 分鐘 ≈ 6.7 nm，留彈性
-MAX_GAP_SECONDS = 3600 # 超過 1 小時斷點拆分為新航段（降低共用 MMSI 混合風險）
+MAX_GAP_SECONDS = 7200 # 超過 2 小時斷點拆分為新航段（AIS 長間隔正常航行不中斷）
 
 # 無效 MMSI 黑名單：AIS 設備未正確設定或多船共用
 MMSI_BLACKLIST = {
@@ -64,14 +63,13 @@ def haversine_nm(lon1, lat1, lon2, lat2):
 
 
 def is_jump(p1, p2):
-    """判斷兩點之間是否為異常跳躍。"""
+    """判斷兩點之間是否為異常跳躍（純速度判斷）。"""
     dt_hours = (p2[0] - p1[0]) / 3600.0
     if dt_hours <= 0:
         return False
     dist = haversine_nm(p1[1], p1[2], p2[1], p2[2])
     speed = dist / dt_hours
-    # 雙重條件：速度異常 OR 單次跳太遠（即便速度因長時間差而被稀釋）
-    return speed > MAX_SPEED_KNOTS or dist > MAX_JUMP_NM
+    return speed > MAX_SPEED_KNOTS
 
 
 def split_by_gap(points):

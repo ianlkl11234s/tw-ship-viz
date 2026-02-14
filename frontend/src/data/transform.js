@@ -27,8 +27,9 @@ export function arrowToTrips(table) {
   const cogCol = table.getChild('cog');
   const vtypeCol = table.getChild('vessel_type');
 
-  const MAX_GAP = 3600;      // 1 小時：超過此間隔拆分為新航段
-  const MAX_JUMP_DEG = 0.25; // 約 15 海浬：單步跳躍超過此值視為異常
+  const MAX_GAP = 7200;      // 2 小時：超過此間隔拆分為新航段
+  const MAX_SPEED_KT = 40;   // 速度閾值（節）：超過此值視為異常跳躍
+  const DEG_PER_NM = 1 / 60; // 1 海浬 ≈ 1/60 度
 
   // trajectory.arrow 已按 MMSI 排序，直接線性掃描分組
   const trips = [];
@@ -47,12 +48,20 @@ export function arrowToTrips(table) {
       const lastTs = currentTrip.timestamps[currentTrip.timestamps.length - 1];
       const lastPos = currentTrip.path[currentTrip.path.length - 1];
       const dt = ts - lastTs;
-      const dLon = Math.abs(lon - lastPos[0]);
-      const dLat = Math.abs(lat - lastPos[1]);
 
-      // 時間斷裂 或 距離跳躍過大 → 拆段
-      if (dt > MAX_GAP || dLon > MAX_JUMP_DEG || dLat > MAX_JUMP_DEG) {
+      if (dt > MAX_GAP) {
+        // 時間斷裂 → 拆段
         shouldSplit = true;
+      } else if (dt > 0) {
+        // 速度判斷：估算隱含速度，超過閾值才拆段
+        const dLon = Math.abs(lon - lastPos[0]);
+        const dLat = Math.abs(lat - lastPos[1]);
+        const distNm = Math.sqrt(dLon * dLon + dLat * dLat) / DEG_PER_NM;
+        const dtHours = dt / 3600;
+        const speedKt = distNm / dtHours;
+        if (speedKt > MAX_SPEED_KT) {
+          shouldSplit = true;
+        }
       }
     }
 
