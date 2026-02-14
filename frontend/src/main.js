@@ -55,9 +55,14 @@ async function init() {
     // 載入資料
     await loadData();
 
-    // 隱藏 loading
+    // 載入完成：淡出 loading，淡入 UI
     const loading = document.getElementById('loading');
-    if (loading) loading.style.display = 'none';
+    const appUi = document.getElementById('app-ui');
+    if (loading) {
+      loading.classList.add('fade-out');
+      setTimeout(() => { loading.style.display = 'none'; }, 500);
+    }
+    if (appUi) appUi.classList.remove('hidden');
 
     // 設置 UI
     setupTabs();
