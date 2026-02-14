@@ -44,10 +44,10 @@ function layerPaint(theme) {
   return {
     'heatmap-radius': [
       'interpolate', ['linear'], ['zoom'],
-      5, 25,
-      7, 40,
-      9, 60,
-      11, 80,
+      5, 15,
+      7, 25,
+      9, 40,
+      11, 55,
     ],
     'heatmap-intensity': [
       'interpolate', ['linear'], ['zoom'],
