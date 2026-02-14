@@ -30,7 +30,7 @@ export function arrowToTrips(table) {
   const MAX_GAP = 7200;      // 2 小時：超過此間隔拆分為新航段
   const MAX_SPEED_KT = 40;   // 速度閾值（節）：超過此值視為異常跳躍
   const DEG_PER_NM = 1 / 60; // 1 海浬 ≈ 1/60 度
-  const MIN_POINTS = 6;      // 最少 6 個點（~50 分鐘）才保留，過濾閃現雜訊
+  const MIN_POINTS = 3;      // 最少 3 個點（~20 分鐘）才保留，過濾單點閃現
 
   // trajectory.arrow 已按 MMSI 排序，直接線性掃描分組
   const trips = [];

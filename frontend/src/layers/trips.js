@@ -30,11 +30,10 @@ export function createTrajectoryLayers(tripsData, currentTime, theme = 'day', ve
     getPath: d => d.path,
     getTimestamps: d => d.timestamps,
     getColor: d => {
-      // 用該船最後已知的速度決定顏色
-      const lastIdx = d.timestamps.findIndex(t => t > currentTime) - 1;
-      const idx = lastIdx >= 0 ? lastIdx : d.timestamps.length - 1;
-      // 粗略用 path 點間距離估算速度，但直接用固定色也可以
-      return getSpeedColor(d.avgSog || 5, theme);
+      const rgb = getSpeedColor(d.avgSog || 5, theme);
+      // 短軌跡（<6 點）降低透明度，減少「突然冒出」的視覺衝擊
+      const alpha = d.path.length < 6 ? 120 : 200;
+      return [...rgb, alpha];
     },
     getWidth: 2,
     widthMinPixels: 2,
