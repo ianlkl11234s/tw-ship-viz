@@ -55,7 +55,7 @@ MMSI_BLACKLIST = {
 
 
 def is_invalid_mmsi(mmsi_str):
-    """判斷 MMSI 是否無效。"""
+    """判斷 MMSI 是否無效（含航標 AtoN）。"""
     try:
         m = int(mmsi_str)
     except (ValueError, TypeError):
@@ -65,6 +65,9 @@ def is_invalid_mmsi(mmsi_str):
     if m < 100000000 or m > 799999999:
         return True
     if m % 1000000 == 0:
+        return True
+    # 99xxxx 開頭 = 航標 (Aid to Navigation)，不是船舶
+    if 990000000 <= m <= 999999999:
         return True
     return False
 
@@ -196,21 +199,54 @@ def is_in_port(lon, lat, ports):
     return False
 
 
+def point_on_land(lon, lat, land_polygons):
+    """判斷點是否落在任一陸地多邊形內。"""
+    for poly in land_polygons:
+        # 快速 bounding box 篩選
+        if not _bbox_contains(poly, lon, lat):
+            continue
+        if point_in_polygon(lon, lat, poly):
+            return True
+    return False
+
+
 def crosses_land(lon1, lat1, lon2, lat2, land_polygons):
-    """判斷兩點之間的直線是否穿越任一陸地多邊形。
-    只檢測台灣本島（第一個多邊形，最大的那個），離島太小不太會被穿越。"""
+    """判斷兩點之間的直線是否穿越任一陸地多邊形。"""
     if not land_polygons:
         return False
-    # 快速篩選：兩點距離很近就跳過（< 0.05 度 ≈ 5km）
-    if abs(lon2 - lon1) < 0.05 and abs(lat2 - lat1) < 0.05:
-        return False
-    # 只檢查前幾個最大的多邊形（台灣本島 + 澎湖主島）
-    for poly in land_polygons[:5]:
-        if len(poly) < 10:
-            continue  # 跳過太小的島
+    # 線段 bounding box
+    min_lon = min(lon1, lon2)
+    max_lon = max(lon1, lon2)
+    min_lat = min(lat1, lat2)
+    max_lat = max(lat1, lat2)
+    for poly in land_polygons:
+        # 快速 bounding box 篩選：線段 bbox 與多邊形 bbox 不重疊就跳過
+        bbox = _get_bbox(poly)
+        if max_lon < bbox[0] or min_lon > bbox[1] or max_lat < bbox[2] or min_lat > bbox[3]:
+            continue
         if line_crosses_polygon(lon1, lat1, lon2, lat2, poly):
             return True
     return False
+
+
+# 多邊形 bounding box 快取
+_bbox_cache = {}
+
+
+def _get_bbox(poly):
+    """取得多邊形的 bounding box (min_lon, max_lon, min_lat, max_lat)。"""
+    pid = id(poly)
+    if pid not in _bbox_cache:
+        lons = [p[0] for p in poly]
+        lats = [p[1] for p in poly]
+        _bbox_cache[pid] = (min(lons), max(lons), min(lats), max(lats))
+    return _bbox_cache[pid]
+
+
+def _bbox_contains(poly, lon, lat):
+    """快速判斷點是否在多邊形 bounding box 內。"""
+    bbox = _get_bbox(poly)
+    return bbox[0] <= lon <= bbox[1] and bbox[2] <= lat <= bbox[3]
 
 
 # ============================================================
@@ -455,10 +491,15 @@ def generate_arrow_files(args):
     pos_cog = []
     pos_vtype = []
 
+    pos_land_removed = 0
     for ts_key in sorted_times:
         ts_sec = datetime.fromisoformat(ts_key).timestamp() - base_ts
         ships = time_slots[ts_key]
         for mmsi, (lon, lat, sog, cog, vtype) in ships.items():
+            # 過濾陸地上的點
+            if land_polygons and point_on_land(lon, lat, land_polygons):
+                pos_land_removed += 1
+                continue
             pos_timestamps.append(ts_sec)
             pos_mmsi.append(int(mmsi) if isinstance(mmsi, str) else mmsi)
             pos_lon.append(lon)
@@ -466,6 +507,9 @@ def generate_arrow_files(args):
             pos_sog.append(sog)
             pos_cog.append(cog)
             pos_vtype.append(vtype)
+
+    if pos_land_removed:
+        print(f"positions.arrow: 移除陸地上的點 {pos_land_removed} 筆")
 
     pos_table = pa.table({
         'timestamp': pa.array(pos_timestamps, type=pa.float32()),
@@ -517,12 +561,10 @@ def generate_arrow_files(args):
                 ship_all_points[mmsi_int] = []
             ship_all_points[mmsi_int].append((ts_sec, lon, lat, sog, cog, vtype))
 
-    # 處理流程：錨點策略 → 地理切段 → GPS 跳點過濾
+    # 處理流程：錨點策略 → 陸地點過濾 → 地理切段 → GPS 跳點過濾
     total_anchored_dropped = 0
+    total_land_points_removed = 0
     total_outliers = 0
-    total_land_cuts = 0
-    total_port_cuts = 0
-    total_speed_cuts = 0
     total_segments = 0
 
     for mmsi_int in sorted(ship_all_points.keys()):
@@ -532,11 +574,17 @@ def generate_arrow_files(args):
         anchored, dropped = apply_anchor_strategy(raw_points)
         total_anchored_dropped += dropped
 
-        # 2. 地理感知切段
+        # 2. 移除落在陸地上的點（GPS 飄移）
+        if land_polygons:
+            sea_points = [p for p in anchored if not point_on_land(p[1], p[2], land_polygons)]
+            total_land_points_removed += len(anchored) - len(sea_points)
+            anchored = sea_points
+
+        # 3. 地理感知切段
         geo_segments = split_trajectory_geo(anchored, ports, land_polygons)
 
         for seg in geo_segments:
-            # 3. GPS 跳點過濾
+            # 4. GPS 跳點過濾
             clean = filter_track_outliers(seg)
             total_outliers += len(seg) - len(clean)
 
@@ -556,6 +604,7 @@ def generate_arrow_files(args):
 
     # 統計
     print(f"已跳過連續停泊點: {total_anchored_dropped} 筆")
+    print(f"已移除陸地上的點: {total_land_points_removed} 筆")
     print(f"已過濾 GPS 跳點: {total_outliers} 筆")
     print(f"trajectory.arrow: {len(traj_timestamps)} 筆 ({len(ship_all_points)} 艘船, {total_segments} 段)")
 
