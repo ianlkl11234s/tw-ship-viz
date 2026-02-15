@@ -4,7 +4,7 @@
  */
 import { TripsLayer } from '@deck.gl/geo-layers';
 import { ScatterplotLayer } from '@deck.gl/layers';
-import { getSpeedColor } from '../utils/constants.js';
+import { getSpeedColorByPalette } from '../utils/constants.js';
 
 /**
  * 建立軌跡動畫的 deck.gl layers。
@@ -115,7 +115,7 @@ export function preprocessTrips(tripsData, arrowTable) {
     // 無 Arrow 表時用預設顏色
     for (const trip of tripsData) {
       trip.avgSog = 5;
-      _bakeColors(trip, 'day');
+      _bakeColors(trip, 'day', 'speed');
     }
     return tripsData;
   }
@@ -142,22 +142,22 @@ export function preprocessTrips(tripsData, arrowTable) {
   }
 
   // 預烘焙顏色（初始用 day 主題，切換時會重新烘焙）
-  bakeAllColors(tripsData, 'day');
+  bakeAllColors(tripsData, 'day', 'speed');
 
   return tripsData;
 }
 
 /**
- * 為所有 trips 預烘焙顏色。主題切換時呼叫。
+ * 為所有 trips 預烘焙顏色。主題或配色切換時呼叫。
  */
-export function bakeAllColors(tripsData, theme) {
+export function bakeAllColors(tripsData, theme, palette = 'speed') {
   for (const trip of tripsData) {
-    _bakeColors(trip, theme);
+    _bakeColors(trip, theme, palette);
   }
 }
 
-function _bakeColors(trip, theme) {
-  const rgb = getSpeedColor(trip.avgSog || 5, theme);
+function _bakeColors(trip, theme, palette) {
+  const rgb = getSpeedColorByPalette(trip.avgSog || 5, theme, palette);
   const alpha = trip.path.length < 6 ? 120 : 200;
   trip._color = [rgb[0], rgb[1], rgb[2], alpha];
   trip._dotColor = [rgb[0], rgb[1], rgb[2], 240];

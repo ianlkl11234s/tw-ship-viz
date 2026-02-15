@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣海域船舶動態 GIS</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='white'/><circle cx='50' cy='50' r='30' fill='%230077b6'/></svg>" />
+  <title>Mini Taiwan - Waters</title>
 </head>
 <body>
   <!-- 載入動畫 -->
   <div id="loading">
-    <div class="loading-title">台灣海域船舶動態</div>
+    <div class="loading-title">Mini Taiwan - Waters</div>
     <div class="loading-spinner"></div>
     <div class="loading-text">載入地圖資料中...</div>
   </div>
@@ -18,22 +19,73 @@
 
   <!-- 應用 UI（載入完成前隱藏）-->
   <div id="app-ui" class="app-ui hidden">
-    <!-- 主題切換 -->
-    <button id="theme-toggle" class="theme-toggle" title="切換日間/夜間模式">&#9789;</button>
 
-    <!-- 模式切換 tabs -->
-    <div class="tab-container">
-      <button class="tab-btn active" data-mode="trajectory">軌跡動畫</button>
-      <button class="tab-btn" data-mode="density">密度熱區</button>
-      <button class="tab-btn" data-mode="hexbin">六角網格</button>
-      <button class="tab-btn" data-mode="heatmap">熱力圖</button>
-      <button class="tab-btn" data-mode="query" id="query-tab" style="display:none;">軌跡查詢</button>
+    <!-- 左上標題 -->
+    <div class="title-panel">
+      <h1>Mini Taiwan - Waters</h1>
+      <p class="subtitle">台灣海域船舶動態監測</p>
+    </div>
+
+    <!-- 頂部列：Tabs 居中 + 右側控制 -->
+    <div class="top-bar">
+      <!-- 模式切換 tabs -->
+      <div class="tab-container">
+        <button class="tab-btn active" data-mode="trajectory">軌跡動畫</button>
+        <button class="tab-btn" data-mode="density">密度熱區</button>
+        <button class="tab-btn" data-mode="hexbin">六角網格</button>
+        <button class="tab-btn" data-mode="heatmap">熱力圖</button>
+        <button class="tab-btn" data-mode="query" id="query-tab" style="display:none;">軌跡查詢</button>
+      </div>
+
+      <!-- 右側控制列 -->
+      <div class="top-right-bar">
+        <a class="icon-link" href="https://github.com/ianlkl11234s/tw-ship-viz" target="_blank" rel="noopener" title="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+        <a class="icon-link" href="https://www.threads.com/@ianlkl1314" target="_blank" rel="noopener" title="Threads">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.773.696c-1.055-3.794-3.678-5.647-7.563-5.647-2.728.019-4.744.94-5.99 2.737-1.076 1.553-1.635 3.83-1.66 6.768.025 2.942.585 5.22 1.662 6.77 1.245 1.794 3.261 2.714 5.988 2.73 2.197-.012 3.826-.548 5.14-1.69 1.482-1.29 1.636-2.944 1.636-3.678 0-.093 0-.186-.005-.275-.122 2.568-2.194 4.083-5.573 4.083-2.04 0-3.6-.585-4.633-1.74-.896-1.002-1.37-2.395-1.37-4.033 0-3.363 2.274-5.688 5.532-5.688 1.635 0 2.98.574 3.892 1.662.835.998 1.29 2.35 1.315 3.91.023.142.03.282.03.425 0 .05 0 .1-.003.15-.14 3.612-1.702 5.834-4.59 6.538-.417.102-.855.165-1.31.188zm1.203-8.094c-.338-.954-1.147-1.52-2.38-1.52-1.985 0-3.094 1.382-3.094 3.362 0 2.05 1.06 3.33 3.094 3.33 2.108 0 3.262-1.463 3.262-3.405 0-.102-.003-.205-.01-.305-.058-.553-.33-1.048-.872-1.462z"/></svg>
+        </a>
+        <a class="icon-link" href="https://mini-taiwan-learning-project.zeabur.app/" target="_blank" rel="noopener" title="Mini Taiwan">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        </a>
+        <button class="icon-link" id="infoBtn" title="關於本站">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        </button>
+        <!-- 軌跡配色下拉 -->
+        <div class="text-dropdown" id="paletteDropdown">
+          <button class="text-dropdown-btn" id="paletteDropdownBtn">
+            <span id="paletteLabel">預設配色</span>
+            <span class="dropdown-arrow">&#9650;</span>
+          </button>
+          <div class="dropdown-menu" id="paletteMenu">
+            <button class="dropdown-item active" data-palette="speed">預設配色</button>
+            <button class="dropdown-item" data-palette="blue">藍色漸層</button>
+            <button class="dropdown-item" data-palette="warm">暖色調</button>
+            <button class="dropdown-item" data-palette="neon">霓虹配色</button>
+          </div>
+        </div>
+        <!-- 主題下拉 -->
+        <div class="text-dropdown" id="themeDropdown">
+          <button class="text-dropdown-btn" id="themeDropdownBtn">
+            <span id="themeLabel">動態</span>
+            <span class="dropdown-arrow">&#9650;</span>
+          </button>
+          <div class="dropdown-menu" id="themeMenu">
+            <button class="dropdown-item active" data-theme="auto">動態</button>
+            <button class="dropdown-item" data-theme="day">日間</button>
+            <button class="dropdown-item" data-theme="night">夜間</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 狀態面板 -->
     <div class="status-panel">
       <div class="status-title" id="modeTitle">軌跡動畫</div>
-      <div class="time-display" id="timeDisplay">--</div>
+      <div class="time-display">
+        <span id="timeIcon">☀</span>
+        <span id="timeText">--</span>
+      </div>
       <div class="stats-row" id="statsRow">
         <div class="stat-item"><span>船舶數</span><span class="stats-value" id="statShips">--</span></div>
       </div>
@@ -70,6 +122,46 @@
 
     <!-- 資料來源 -->
     <div class="info-panel">資料來源：航港局 AIS</div>
+  </div>
+
+  <!-- Info Modal -->
+  <div class="modal-overlay" id="infoModal">
+    <div class="modal-content">
+      <button class="modal-close" id="modalClose">&times;</button>
+      <h2>Mini Taiwan - Waters</h2>
+      <p class="modal-subtitle">台灣海域船舶動態監測平台</p>
+
+      <div class="modal-section">
+        <h3>關於本站</h3>
+        <p>本平台以視覺化方式呈現台灣周邊海域船舶的即時動態軌跡，資料來源為交通部航港局的 AIS（船舶自動辨識系統）。透過不同的檢視模式，可以觀察船舶的航行軌跡、密度分佈與聚集熱區。</p>
+      </div>
+
+      <div class="modal-section">
+        <h3>使用說明</h3>
+        <ul>
+          <li><strong>軌跡動畫</strong> — 播放船舶航行軌跡動畫</li>
+          <li><strong>密度熱區</strong> — 網格化顯示船舶密度</li>
+          <li><strong>六角網格</strong> — 六角形聚合分析</li>
+          <li><strong>熱力圖</strong> — 連續熱力分佈</li>
+          <li><strong>時間軸</strong> — 拖曳或播放控制時間</li>
+          <li><strong>篩選</strong> — 依船舶類型篩選顯示</li>
+        </ul>
+      </div>
+
+      <div class="modal-section">
+        <h3>資料來源</h3>
+        <ul>
+          <li>船舶 AIS 資料 — 交通部航港局（AWS S3）</li>
+          <li>港口資料 — TDX 客運港 + 農業部漁港（277 座）</li>
+          <li>底圖 — CARTO Basemaps</li>
+        </ul>
+      </div>
+
+      <div class="modal-section">
+        <h3>技術堆疊</h3>
+        <p>MapLibre GL JS · deck.gl · Apache Arrow · Vite · FastAPI</p>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="/src/main.js"></script>

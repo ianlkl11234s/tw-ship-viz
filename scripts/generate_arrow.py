@@ -156,11 +156,22 @@ def load_ports():
         if geom['type'] != 'Point':
             continue
         lon, lat = geom['coordinates']
-        name = feat['properties'].get('PortName', '')
-        radius = LARGE_PORT_RADIUS_KM if name in LARGE_PORTS else PORT_RADIUS_KM
+        props = feat['properties']
+        name = props.get('name', '')
+        port_class = props.get('port_class', '')
+        source = props.get('source', '')
+        # 依 port_class 決定半徑
+        if name in LARGE_PORTS:
+            radius = LARGE_PORT_RADIUS_KM
+        elif source == 'TDX' or port_class == '客運港':
+            radius = PORT_RADIUS_KM
+        elif port_class == '第一類漁港':
+            radius = 1.0
+        else:
+            radius = 0.5
         ports.append((lon, lat, radius, name))
 
-    print(f"載入 {len(ports)} 個港口（大港 {LARGE_PORT_RADIUS_KM}km / 小港 {PORT_RADIUS_KM}km）")
+    print(f"載入 {len(ports)} 個港口")
     return ports
 
 

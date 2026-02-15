@@ -1,5 +1,5 @@
 import { MapboxOverlay } from '@deck.gl/mapbox';
-import { initMap, toggleTheme, getCurrentTheme } from './map.js';
+import { initMap, setTheme, getCurrentTheme } from './map.js';
 import { loadTrajectoryData, loadPositionsData } from './data/loader.js';
 import { arrowToTrips, buildFrameIndex, jsonToTrips, jsonToFrameIndex } from './data/transform.js';
 import { createTrajectoryLayers, preprocessTrips, bakeAllColors } from './layers/trips.js';
@@ -26,6 +26,10 @@ let queryResults = [];       // 查詢模式軌跡結果
 let queryShips = [];         // 查詢模式船舶散點
 let portFeatures = null;     // 港口 GeoJSON features
 let showPorts = true;        // 港口圖層顯示開關
+
+// === 主題與配色 ===
+let themeMode = 'auto';           // 'day' | 'night' | 'auto'
+let currentColorPalette = 'speed'; // 'speed' | 'blue' | 'warm' | 'neon'
 
 // === 軌跡篩選快取（只在篩選條件變化時重建，不再每幀 .filter()）===
 let _filteredTrips = null;
@@ -86,7 +90,9 @@ async function init() {
     setupTabs();
     setupFilters();
     setupPortToggle();
-    setupThemeToggle();
+    setupThemeDropdown();
+    setupColorPaletteSelector();
+    setupInfoModal();
     initQueryControls({
       map,
       onQueryResult: (results) => { queryResults = results; updateLayers(getCurrentTime()); },
@@ -94,6 +100,9 @@ async function init() {
     });
     checkQueryApi();
     updateLegend(currentMode, getCurrentTheme());
+
+    // zoom 改變時重繪港口圖層（控制標籤顯示密度）
+    map.on('zoomend', () => { updateLayers(getCurrentTime()); });
   });
 }
 
@@ -159,6 +168,55 @@ async function loadData() {
 function handleTimeChange(currentTime) {
   updateLayers(currentTime);
   updateStats(currentTime);
+  updateTimeDisplay(currentTime);
+  updateThemeFromTime(currentTime);
+}
+
+// === 時間顯示更新 ===
+const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
+
+function updateTimeDisplay(currentTime) {
+  if (!metadata) return;
+  const timeIcon = document.getElementById('timeIcon');
+  const timeText = document.getElementById('timeText');
+  if (!timeText) return;
+
+  const ts = (metadata.baseTimestamp + currentTime) * 1000;
+  const date = new Date(ts);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const w = WEEKDAYS[date.getDay()];
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  const hour = date.getHours();
+
+  timeText.textContent = `${y}/${m}/${d} (${w}) ${hh}:${mm}`;
+  if (timeIcon) timeIcon.textContent = (hour >= 6 && hour < 18) ? '\u2600' : '\u263D';
+}
+
+// === 主題自動切換 ===
+function updateThemeFromTime(currentTime) {
+  if (themeMode !== 'auto' || !metadata) return;
+  const ts = (metadata.baseTimestamp + currentTime) * 1000;
+  const hour = new Date(ts).getHours();
+  const targetTheme = (hour >= 6 && hour < 18) ? 'day' : 'night';
+  applyTheme(targetTheme);
+}
+
+function applyTheme(theme) {
+  const current = getCurrentTheme();
+  if (theme === current) return;
+  setTheme(theme);
+  invalidateFrameCache();
+  if (tripsData) bakeAllColors(tripsData, theme, currentColorPalette);
+  updateLegend(currentMode, theme);
+  map.once('style.load', () => {
+    if (deckOverlay) {
+      map.addControl(deckOverlay);
+    }
+    updateLayers(getCurrentTime());
+  });
 }
 
 // === 圖層更新（核心）===
@@ -207,7 +265,8 @@ function updateLayers(currentTime) {
 
   // 港口圖層疊加（所有模式共用）
   if (showPorts && portFeatures) {
-    layers = layers.concat(createPortLayers(portFeatures, theme));
+    const zoom = map ? map.getZoom() : 7;
+    layers = layers.concat(createPortLayers(portFeatures, theme, zoom));
   }
 
   deckOverlay.setProps({ layers });
@@ -355,23 +414,92 @@ function setupPortToggle() {
   });
 }
 
-// === 主題切換 ===
-function setupThemeToggle() {
-  const themeBtn = document.getElementById('theme-toggle');
-  if (!themeBtn) return;
+// === 通用下拉選單工具 ===
+function setupDropdown(btnId, menuId, onSelect) {
+  const btn = document.getElementById(btnId);
+  const menu = document.getElementById(menuId);
+  if (!btn || !menu) return;
 
-  themeBtn.addEventListener('click', () => {
-    const theme = toggleTheme();
-    themeBtn.textContent = theme === 'day' ? '\u263D' : '\u2600';
-    invalidateFrameCache();
-    if (tripsData) bakeAllColors(tripsData, theme); // 重新烘焙所有軌跡顏色
-    updateLegend(currentMode, theme);
-    map.once('style.load', () => {
-      if (deckOverlay) {
-        map.addControl(deckOverlay);
-      }
-      updateLayers(getCurrentTime());
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // 關閉其他開啟的下拉
+    document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+      if (m !== menu) m.classList.remove('show');
     });
+    menu.classList.toggle('show');
+  });
+
+  menu.addEventListener('click', (e) => e.stopPropagation());
+
+  const items = menu.querySelectorAll('.dropdown-item');
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      menu.classList.remove('show');
+      onSelect(item);
+    });
+  });
+}
+
+// === 主題下拉選單 ===
+function setupThemeDropdown() {
+  setupDropdown('themeDropdownBtn', 'themeMenu', (item) => {
+    const mode = item.dataset.theme;
+    const label = document.getElementById('themeLabel');
+    if (label) label.textContent = item.textContent;
+    setThemeMode(mode);
+  });
+
+  // 點擊外部關閉所有下拉
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+  });
+}
+
+function setThemeMode(mode) {
+  themeMode = mode;
+  if (mode === 'auto') {
+    updateThemeFromTime(getCurrentTime());
+  } else {
+    applyTheme(mode);
+  }
+}
+
+// === 軌跡配色選擇器（下拉）===
+function setupColorPaletteSelector() {
+  setupDropdown('paletteDropdownBtn', 'paletteMenu', (item) => {
+    currentColorPalette = item.dataset.palette;
+    const label = document.getElementById('paletteLabel');
+    if (label) label.textContent = item.textContent;
+    const theme = getCurrentTheme();
+    if (tripsData) {
+      bakeAllColors(tripsData, theme, currentColorPalette);
+      updateLayers(getCurrentTime());
+    }
+  });
+}
+
+// === Info Modal ===
+function setupInfoModal() {
+  const modal = document.getElementById('infoModal');
+  const openBtn = document.getElementById('infoBtn');
+  const closeBtn = document.getElementById('modalClose');
+  if (!modal) return;
+
+  if (openBtn) {
+    openBtn.addEventListener('click', () => modal.classList.add('show'));
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => modal.classList.remove('show'));
+  }
+  // overlay click 關閉
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('show');
+  });
+  // ESC 關閉
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') modal.classList.remove('show');
   });
 }
 

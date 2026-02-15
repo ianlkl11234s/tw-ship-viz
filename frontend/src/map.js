@@ -16,7 +16,7 @@ export function initMap(containerId = 'map') {
     attributionControl: true,
   });
 
-  map.addControl(new maplibregl.NavigationControl(), 'top-right');
+  map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
 
   return map;
 }
@@ -34,4 +34,11 @@ export function toggleTheme() {
   map.setStyle(THEMES[currentTheme].mapStyle);
   document.body.classList.toggle('dark-theme', currentTheme === 'night');
   return currentTheme;
+}
+
+export function setTheme(theme) {
+  if (theme === currentTheme) return;
+  currentTheme = theme;
+  map.setStyle(THEMES[currentTheme].mapStyle);
+  document.body.classList.toggle('dark-theme', currentTheme === 'night');
 }

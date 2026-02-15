@@ -75,6 +75,14 @@ export const THEMES = {
   },
 };
 
+// === 速度配色方案（全部基於 sog 分級）===
+export const SPEED_PALETTES = {
+  speed: null,  // 使用 THEMES[theme].speed
+  blue:  ['#dbeafe', '#93c5fd', '#3b82f6', '#1e40af'],
+  warm:  ['#fef08a', '#fcd34d', '#fb923c', '#ef4444'],
+  neon:  ['#67e8f9', '#a78bfa', '#f472b6', '#fb7185'],
+};
+
 // === 色彩工具函式 ===
 
 /** hex 色碼轉 [r, g, b] 陣列（deck.gl 用 0-255） */
@@ -88,6 +96,17 @@ export function hexToRgb(hex) {
 /** 根據速度取得 RGB 色彩陣列 */
 export function getSpeedColor(sog, theme = 'day') {
   const s = THEMES[theme].speed.map(hexToRgb);
+  if (sog > 15) return s[3];
+  if (sog > 10) return s[2];
+  if (sog > 5)  return s[1];
+  return s[0];
+}
+
+/** 根據速度 + 配色方案取得 RGB 色彩陣列 */
+export function getSpeedColorByPalette(sog, theme = 'day', palette = 'speed') {
+  const paletteHexes = SPEED_PALETTES[palette];
+  const hexes = paletteHexes || THEMES[theme].speed;
+  const s = hexes.map(hexToRgb);
   if (sog > 15) return s[3];
   if (sog > 10) return s[2];
   if (sog > 5)  return s[1];

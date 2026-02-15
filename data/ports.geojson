@@ -1,12 +1,5135 @@
 {
   "type": "FeatureCollection",
   "properties": {
-    "fetch_time": "2026-02-14T18:03:33.735207",
-    "ferry_count": 73,
-    "ship_count": 73,
-    "merged_unique_count": 73
+    "fetch_time": "2026-02-15T10:08:56.770735",
+    "description": "台灣港口完整合併資料 (農業部漁港 + TDX 客運港)",
+    "total_count": 277
   },
   "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.870622,
+          24.58178
+        ]
+      },
+      "properties": {
+        "name": "南方澳漁港",
+        "name_en": "",
+        "port_class": "第一類漁港",
+        "county": "宜蘭縣",
+        "source": "農業部",
+        "source_id": "1",
+        "phone": "(03)9777873",
+        "lat": 24.58178,
+        "lng": 121.870622
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.922373,
+          24.847664
+        ]
+      },
+      "properties": {
+        "name": "新竹漁港",
+        "name_en": "",
+        "port_class": "第一類漁港",
+        "county": "新竹市",
+        "source": "農業部",
+        "source_id": "2",
+        "phone": "(03)5216121252",
+        "lat": 24.847664,
+        "lng": 120.922373
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.085915,
+          23.211784
+        ]
+      },
+      "properties": {
+        "name": "將軍漁港",
+        "name_en": "Tainan",
+        "port_class": "第二類漁港",
+        "county": "臺南市",
+        "source": "農業部+TDX",
+        "source_id": "3",
+        "phone": "(06)2982845",
+        "lat": 23.211784,
+        "lng": 120.085915,
+        "city_code": "TNN",
+        "tdx_port_id": "TWTNN",
+        "tdx_port_class": "客運港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.313641,
+          22.56964
+        ]
+      },
+      "properties": {
+        "name": "前鎮漁港",
+        "name_en": "",
+        "port_class": "第一類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "4",
+        "phone": "(07)8214258",
+        "lat": 22.56964,
+        "lng": 120.313641
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.299836,
+          22.574016
+        ]
+      },
+      "properties": {
+        "name": "中洲漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "5",
+        "phone": "(07)79956781841",
+        "lat": 22.574016,
+        "lng": 120.299836
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.270877,
+          22.612936
+        ]
+      },
+      "properties": {
+        "name": "旗后漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "6",
+        "phone": "(07)79956781841",
+        "lat": 22.612936,
+        "lng": 120.270877
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.269672,
+          22.619812
+        ]
+      },
+      "properties": {
+        "name": "鼓山漁港",
+        "name_en": "Gushan Ferry Station",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部+TDX",
+        "source_id": "7",
+        "phone": "(07)79956781841",
+        "lat": 22.619812,
+        "lng": 120.269672,
+        "city_code": "KHH",
+        "tdx_port_id": "TW074",
+        "tdx_port_class": "渡輪/觀光碼頭"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.441104,
+          22.469842
+        ]
+      },
+      "properties": {
+        "name": "東港鹽埔漁港",
+        "name_en": "Donggang",
+        "port_class": "第一類漁港",
+        "county": "屏東縣",
+        "source": "農業部+TDX",
+        "source_id": "8",
+        "phone": "(08)8334595",
+        "lat": 22.469842,
+        "lng": 120.441104,
+        "city_code": "PIF",
+        "tdx_port_id": "TWDNK",
+        "tdx_port_class": "客運港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.330937,
+          22.539353
+        ]
+      },
+      "properties": {
+        "name": "小港漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "9",
+        "phone": "",
+        "lat": 22.539353,
+        "lng": 120.330937
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.343706,
+          22.54465
+        ]
+      },
+      "properties": {
+        "name": "小港臨海新村漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "10",
+        "phone": "(07)79956781841",
+        "lat": 22.54465,
+        "lng": 120.343706
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.319907,
+          22.550853
+        ]
+      },
+      "properties": {
+        "name": "小港第十漁港",
+        "name_en": "Hongmaogang",
+        "port_class": "廢止漁港",
+        "county": "高雄市",
+        "source": "農業部+TDX",
+        "source_id": "11",
+        "phone": "",
+        "lat": 22.550853,
+        "lng": 120.319907,
+        "city_code": "KHH",
+        "tdx_port_id": "TW069",
+        "tdx_port_class": "渡輪/觀光碼頭"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.298695,
+          22.576519
+        ]
+      },
+      "properties": {
+        "name": "上竹里漁港",
+        "name_en": "Zhongzhen Ferry Station",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部+TDX",
+        "source_id": "12",
+        "phone": "(07)79956781841",
+        "lat": 22.576519,
+        "lng": 120.298695,
+        "city_code": "KHH",
+        "tdx_port_id": "TW066",
+        "tdx_port_class": "渡輪/觀光碼頭"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.290902,
+          22.586467
+        ]
+      },
+      "properties": {
+        "name": "大汕頭漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "13",
+        "phone": "",
+        "lat": 22.586467,
+        "lng": 120.290902
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.28902,
+          22.589377
+        ]
+      },
+      "properties": {
+        "name": "旗津漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "14",
+        "phone": "(07)79956781841",
+        "lat": 22.589377,
+        "lng": 120.28902
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.357695,
+          22.508219
+        ]
+      },
+      "properties": {
+        "name": "鳳鼻頭漁港",
+        "name_en": "Fengbitou port",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部+TDX",
+        "source_id": "15",
+        "phone": "(07)79956781841",
+        "lat": 22.508219,
+        "lng": 120.357695,
+        "city_code": "KHH",
+        "tdx_port_id": "TW023",
+        "tdx_port_class": "客運港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.650643,
+          25.226222
+        ]
+      },
+      "properties": {
+        "name": "水尾漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "16",
+        "phone": "(02)89526055",
+        "lat": 25.226222,
+        "lng": 121.650643
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.567161,
+          25.29493
+        ]
+      },
+      "properties": {
+        "name": "石門漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "17",
+        "phone": "(02)89526055",
+        "lat": 25.29493,
+        "lng": 121.567161
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.696272,
+          25.203774
+        ]
+      },
+      "properties": {
+        "name": "東澳漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "18",
+        "phone": "(02)89526055",
+        "lat": 25.203774,
+        "lng": 121.696272
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.003046,
+          25.014087
+        ]
+      },
+      "properties": {
+        "name": "馬崗漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "19",
+        "phone": "(02)89526055",
+        "lat": 25.014087,
+        "lng": 122.003046
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.820265,
+          25.130565
+        ]
+      },
+      "properties": {
+        "name": "深澳漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "20",
+        "phone": "(02)89526055",
+        "lat": 25.130565,
+        "lng": 121.820265
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.68855,
+          25.207931
+        ]
+      },
+      "properties": {
+        "name": "野柳漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "21",
+        "phone": "(02)89526055",
+        "lat": 25.207931,
+        "lng": 121.68855
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.534194,
+          25.292461
+        ]
+      },
+      "properties": {
+        "name": "富基漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "22",
+        "phone": "(02)89526055",
+        "lat": 25.292461,
+        "lng": 121.534194
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.695293,
+          25.181745
+        ]
+      },
+      "properties": {
+        "name": "萬里漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "23",
+        "phone": "(02)89526055",
+        "lat": 25.181745,
+        "lng": 121.695293
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.915206,
+          25.124326
+        ]
+      },
+      "properties": {
+        "name": "鼻頭漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "24",
+        "phone": "(02)89526055",
+        "lat": 25.124326,
+        "lng": 121.915206
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.926918,
+          25.058113
+        ]
+      },
+      "properties": {
+        "name": "澳底漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "25",
+        "phone": "(02)89526055",
+        "lat": 25.058113,
+        "lng": 121.926918
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.915834,
+          25.111954
+        ]
+      },
+      "properties": {
+        "name": "龍洞漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "26",
+        "phone": "(02)89526055",
+        "lat": 25.111954,
+        "lng": 121.915834
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.647713,
+          25.23104
+        ]
+      },
+      "properties": {
+        "name": "磺港漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "27",
+        "phone": "(02)89526055",
+        "lat": 25.23104,
+        "lng": 121.647713
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.921492,
+          24.962165
+        ]
+      },
+      "properties": {
+        "name": "大里漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "宜蘭縣",
+        "source": "農業部",
+        "source_id": "28",
+        "phone": "(03)9252257",
+        "lat": 24.962165,
+        "lng": 121.921492
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.898177,
+          24.941403
+        ]
+      },
+      "properties": {
+        "name": "大溪第一漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "宜蘭縣",
+        "source": "農業部",
+        "source_id": "29",
+        "phone": "(03)9252257",
+        "lat": 24.941403,
+        "lng": 121.898177
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.951156,
+          24.979891
+        ]
+      },
+      "properties": {
+        "name": "石城漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "宜蘭縣",
+        "source": "農業部",
+        "source_id": "30",
+        "phone": "(03)9252257",
+        "lat": 24.979891,
+        "lng": 121.951156
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.843764,
+          24.495641
+        ]
+      },
+      "properties": {
+        "name": "粉鳥林漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "宜蘭縣",
+        "source": "農業部",
+        "source_id": "31",
+        "phone": "(03)9252257",
+        "lat": 24.495641,
+        "lng": 121.843764
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.870712,
+          24.903093
+        ]
+      },
+      "properties": {
+        "name": "梗枋漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "宜蘭縣",
+        "source": "農業部",
+        "source_id": "32",
+        "phone": "(03)9252257",
+        "lat": 24.903093,
+        "lng": 121.870712
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.01137,
+          24.989539
+        ]
+      },
+      "properties": {
+        "name": "永安漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "桃園市",
+        "source": "農業部",
+        "source_id": "33",
+        "phone": "(03)33221015454",
+        "lat": 24.989539,
+        "lng": 121.01137
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.241362,
+          25.117125
+        ]
+      },
+      "properties": {
+        "name": "竹圍漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "桃園市",
+        "source": "農業部",
+        "source_id": "34",
+        "phone": "(03)33221015454",
+        "lat": 25.117125,
+        "lng": 121.241362
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.790236,
+          25.147326
+        ]
+      },
+      "properties": {
+        "name": "八斗子漁港",
+        "name_en": "",
+        "port_class": "第一類漁港",
+        "county": "基隆市",
+        "source": "農業部",
+        "source_id": "35",
+        "phone": "(02)24238660",
+        "lat": 25.147326,
+        "lng": 121.790236
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.707784,
+          25.166831
+        ]
+      },
+      "properties": {
+        "name": "大武崙漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "基隆市",
+        "source": "農業部",
+        "source_id": "36",
+        "phone": "(02)24238660",
+        "lat": 25.166831,
+        "lng": 121.707784
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.734512,
+          25.159644
+        ]
+      },
+      "properties": {
+        "name": "外木山漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "基隆市",
+        "source": "農業部",
+        "source_id": "37",
+        "phone": "(02)24238660",
+        "lat": 25.159644,
+        "lng": 121.734512
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.801199,
+          25.140544
+        ]
+      },
+      "properties": {
+        "name": "長潭里漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "基隆市",
+        "source": "農業部",
+        "source_id": "38",
+        "phone": "(02)24238660",
+        "lat": 25.140544,
+        "lng": 121.801199
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.802454,
+          25.137672
+        ]
+      },
+      "properties": {
+        "name": "望海巷漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "基隆市",
+        "source": "農業部",
+        "source_id": "39",
+        "phone": "(02)24238660",
+        "lat": 25.137672,
+        "lng": 121.802454
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.765332,
+          25.153059
+        ]
+      },
+      "properties": {
+        "name": "正濱漁港",
+        "name_en": "",
+        "port_class": "第一類漁港",
+        "county": "基隆市",
+        "source": "農業部",
+        "source_id": "40",
+        "phone": "(02)24632045",
+        "lat": 25.153059,
+        "lng": 121.765332
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.688493,
+          25.195704
+        ]
+      },
+      "properties": {
+        "name": "龜吼漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "41",
+        "phone": "(02)89526055",
+        "lat": 25.195704,
+        "lng": 121.688493
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.867714,
+          25.122994
+        ]
+      },
+      "properties": {
+        "name": "水湳洞漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "42",
+        "phone": "(02)89526055",
+        "lat": 25.122994,
+        "lng": 121.867714
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.887386,
+          25.121934
+        ]
+      },
+      "properties": {
+        "name": "南雅漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "43",
+        "phone": "(02)89526055",
+        "lat": 25.121934,
+        "lng": 121.887386
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.950819,
+          25.021444
+        ]
+      },
+      "properties": {
+        "name": "福隆漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "44",
+        "phone": "(02)89526055",
+        "lat": 25.021444,
+        "lng": 121.950819
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.991334,
+          25.012448
+        ]
+      },
+      "properties": {
+        "name": "卯澳漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "45",
+        "phone": "(02)89526055",
+        "lat": 25.012448,
+        "lng": 121.991334
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.934657,
+          25.023359
+        ]
+      },
+      "properties": {
+        "name": "龍門漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "46",
+        "phone": "(02)89526055",
+        "lat": 25.023359,
+        "lng": 121.934657
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.929738,
+          25.052807
+        ]
+      },
+      "properties": {
+        "name": "澳仔漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "47",
+        "phone": "(02)89526055",
+        "lat": 25.052807,
+        "lng": 121.929738
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.923581,
+          25.069187
+        ]
+      },
+      "properties": {
+        "name": "美豔山漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "48",
+        "phone": "(02)89526055",
+        "lat": 25.069187,
+        "lng": 121.923581
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.916073,
+          25.079202
+        ]
+      },
+      "properties": {
+        "name": "和美漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "49",
+        "phone": "(02)89526055",
+        "lat": 25.079202,
+        "lng": 121.916073
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.634465,
+          25.242207
+        ]
+      },
+      "properties": {
+        "name": "中角漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "50",
+        "phone": "",
+        "lat": 25.242207,
+        "lng": 121.634465
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.630092,
+          25.265008
+        ]
+      },
+      "properties": {
+        "name": "永興漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "51",
+        "phone": "",
+        "lat": 25.265008,
+        "lng": 121.630092
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.606096,
+          25.282858
+        ]
+      },
+      "properties": {
+        "name": "草里漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "52",
+        "phone": "(02)89526055",
+        "lat": 25.282858,
+        "lng": 121.606096
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.545536,
+          25.29159
+        ]
+      },
+      "properties": {
+        "name": "老梅漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "53",
+        "phone": "",
+        "lat": 25.29159,
+        "lng": 121.545536
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.473987,
+          25.256887
+        ]
+      },
+      "properties": {
+        "name": "後厝漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "54",
+        "phone": "(02)89526055",
+        "lat": 25.256887,
+        "lng": 121.473987
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.448892,
+          25.242128
+        ]
+      },
+      "properties": {
+        "name": "六塊厝漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "55",
+        "phone": "(02)89526055",
+        "lat": 25.242128,
+        "lng": 121.448892
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.409301,
+          25.183296
+        ]
+      },
+      "properties": {
+        "name": "淡水第二漁港",
+        "name_en": "Yu ren",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部+TDX",
+        "source_id": "56",
+        "phone": "(02)89526055",
+        "lat": 25.183296,
+        "lng": 121.409301,
+        "city_code": "NWT",
+        "tdx_port_id": "TW055",
+        "tdx_port_class": "渡輪/觀光碼頭"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.427216,
+          25.175579
+        ]
+      },
+      "properties": {
+        "name": "淡水第一漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "57",
+        "phone": "(02)89526055",
+        "lat": 25.175579,
+        "lng": 121.427216
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.510094,
+          25.284006
+        ]
+      },
+      "properties": {
+        "name": "麟山鼻漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "58",
+        "phone": "(02)89526055",
+        "lat": 25.284006,
+        "lng": 121.510094
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.380903,
+          25.142848
+        ]
+      },
+      "properties": {
+        "name": "下罟子漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "59",
+        "phone": "(02)89526055",
+        "lat": 25.142848,
+        "lng": 121.380903
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.936138,
+          24.973724
+        ]
+      },
+      "properties": {
+        "name": "桶盤堀漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "宜蘭縣",
+        "source": "農業部",
+        "source_id": "60",
+        "phone": "(03)9252257",
+        "lat": 24.973724,
+        "lng": 121.936138
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.914777,
+          24.95219
+        ]
+      },
+      "properties": {
+        "name": "蕃薯寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "宜蘭縣",
+        "source": "農業部",
+        "source_id": "61",
+        "phone": "(03)9252257",
+        "lat": 24.95219,
+        "lng": 121.914777
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.899968,
+          24.940588
+        ]
+      },
+      "properties": {
+        "name": "大溪第二漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "宜蘭縣",
+        "source": "農業部",
+        "source_id": "62",
+        "phone": "(03)9252257",
+        "lat": 24.940588,
+        "lng": 121.899968
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.820162,
+          24.461689
+        ]
+      },
+      "properties": {
+        "name": "南澳漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "宜蘭縣",
+        "source": "農業部",
+        "source_id": "63",
+        "phone": "(03)9252257",
+        "lat": 24.461689,
+        "lng": 121.820162
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.836081,
+          24.867994
+        ]
+      },
+      "properties": {
+        "name": "烏石漁港",
+        "name_en": "",
+        "port_class": "第一類漁港",
+        "county": "宜蘭縣",
+        "source": "農業部",
+        "source_id": "64",
+        "phone": "(03)9968511",
+        "lat": 24.867994,
+        "lng": 121.836081
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.971663,
+          24.927033
+        ]
+      },
+      "properties": {
+        "name": "坡頭漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新竹縣",
+        "source": "農業部",
+        "source_id": "65",
+        "phone": "(03)5518101",
+        "lat": 24.927033,
+        "lng": 120.971663
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.902547,
+          24.764739
+        ]
+      },
+      "properties": {
+        "name": "海山漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "新竹市",
+        "source": "農業部",
+        "source_id": "66",
+        "phone": "(03)5216121252",
+        "lat": 24.764739,
+        "lng": 120.902547
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.771257,
+          24.650743
+        ]
+      },
+      "properties": {
+        "name": "外埔漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "67",
+        "phone": "(03)33221015454",
+        "lat": 24.650743,
+        "lng": 120.771257
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.757508,
+          24.613201
+        ]
+      },
+      "properties": {
+        "name": "公司寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "68",
+        "phone": "(03)33221015454",
+        "lat": 24.613201,
+        "lng": 120.757508
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.588291,
+          24.390655
+        ]
+      },
+      "properties": {
+        "name": "五甲漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺中市",
+        "source": "農業部",
+        "source_id": "69",
+        "phone": "(04)26581940",
+        "lat": 24.390655,
+        "lng": 120.588291
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.616654,
+          24.427818
+        ]
+      },
+      "properties": {
+        "name": "松柏漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺中市",
+        "source": "農業部",
+        "source_id": "70",
+        "phone": "(04)26581940",
+        "lat": 24.427818,
+        "lng": 120.616654
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.518868,
+          24.291861
+        ]
+      },
+      "properties": {
+        "name": "梧棲漁港",
+        "name_en": "",
+        "port_class": "第一類漁港",
+        "county": "臺中市",
+        "source": "農業部",
+        "source_id": "71",
+        "phone": "(04)26581940",
+        "lat": 24.291861,
+        "lng": 120.518868
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.609025,
+          23.648699
+        ]
+      },
+      "properties": {
+        "name": "岐頭漁港",
+        "name_en": "Penghu Citou Port",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "142",
+        "phone": "(06)9264048",
+        "lat": 23.648699,
+        "lng": 119.609025,
+        "city_code": "PEN",
+        "tdx_port_id": "TW042",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.595844,
+          23.623924
+        ]
+      },
+      "properties": {
+        "name": "講美漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "143",
+        "phone": "(06)9264048",
+        "lat": 23.623924,
+        "lng": 119.595844
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.61448,
+          23.603513
+        ]
+      },
+      "properties": {
+        "name": "沙港西漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "144",
+        "phone": "(06)9264048",
+        "lat": 23.603513,
+        "lng": 119.61448
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.571264,
+          23.585538
+        ]
+      },
+      "properties": {
+        "name": "重光漁港",
+        "name_en": "Penghu Chongguang Port",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "145",
+        "phone": "(06)9264048",
+        "lat": 23.585538,
+        "lng": 119.571264,
+        "city_code": "PEN",
+        "tdx_port_id": "TW046",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.600129,
+          23.510686
+        ]
+      },
+      "properties": {
+        "name": "山水漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "146",
+        "phone": "(06)9264048",
+        "lat": 23.510686,
+        "lng": 119.600129
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.51653,
+          23.594043
+        ]
+      },
+      "properties": {
+        "name": "大果葉漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "147",
+        "phone": "(06)9264048",
+        "lat": 23.594043,
+        "lng": 119.51653
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.522039,
+          23.606872
+        ]
+      },
+      "properties": {
+        "name": "二崁漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "148",
+        "phone": "(06)9264048",
+        "lat": 23.606872,
+        "lng": 119.522039
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.169205,
+          23.491917
+        ]
+      },
+      "properties": {
+        "name": "鰲鼓漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "嘉義縣",
+        "source": "農業部",
+        "source_id": "149",
+        "phone": "(05)3620123",
+        "lat": 23.491917,
+        "lng": 120.169205
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.169016,
+          23.490334
+        ]
+      },
+      "properties": {
+        "name": "副瀨漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "嘉義縣",
+        "source": "農業部",
+        "source_id": "150",
+        "phone": "(05)3620123",
+        "lat": 23.490334,
+        "lng": 120.169016
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.143194,
+          23.467964
+        ]
+      },
+      "properties": {
+        "name": "塭港漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "嘉義縣",
+        "source": "農業部",
+        "source_id": "151",
+        "phone": "(05)3620123",
+        "lat": 23.467964,
+        "lng": 120.143194
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.146191,
+          23.46499
+        ]
+      },
+      "properties": {
+        "name": "下庄漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "嘉義縣",
+        "source": "農業部",
+        "source_id": "152",
+        "phone": "(05)3620123",
+        "lat": 23.46499,
+        "lng": 120.146191
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.13761,
+          23.450379
+        ]
+      },
+      "properties": {
+        "name": "東石漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "嘉義縣",
+        "source": "農業部",
+        "source_id": "153",
+        "phone": "(05)3620123",
+        "lat": 23.450379,
+        "lng": 120.13761
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.14734,
+          23.437935
+        ]
+      },
+      "properties": {
+        "name": "網寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "嘉義縣",
+        "source": "農業部",
+        "source_id": "154",
+        "phone": "(05)3620123",
+        "lat": 23.437935,
+        "lng": 120.14734
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.152845,
+          23.425501
+        ]
+      },
+      "properties": {
+        "name": "白水湖漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "嘉義縣",
+        "source": "農業部",
+        "source_id": "155",
+        "phone": "(05)3620123",
+        "lat": 23.425501,
+        "lng": 120.152845
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.133431,
+          23.285505
+        ]
+      },
+      "properties": {
+        "name": "蚵寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺南市",
+        "source": "農業部",
+        "source_id": "156",
+        "phone": "(06)3901458",
+        "lat": 23.285505,
+        "lng": 120.133431
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.113115,
+          23.137448
+        ]
+      },
+      "properties": {
+        "name": "下山漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺南市",
+        "source": "農業部",
+        "source_id": "157",
+        "phone": "(06)3901458",
+        "lat": 23.137448,
+        "lng": 120.113115
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.112956,
+          23.023196
+        ]
+      },
+      "properties": {
+        "name": "四草漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺南市",
+        "source": "農業部",
+        "source_id": "158",
+        "phone": "(06)29911118273",
+        "lat": 23.023196,
+        "lng": 120.112956
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.153544,
+          22.990203
+        ]
+      },
+      "properties": {
+        "name": "安平漁港",
+        "name_en": "",
+        "port_class": "第一類漁港",
+        "county": "臺南市",
+        "source": "農業部",
+        "source_id": "159",
+        "phone": "(06)3915937",
+        "lat": 22.990203,
+        "lng": 120.153544
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.206812,
+          22.820503
+        ]
+      },
+      "properties": {
+        "name": "永新漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "160",
+        "phone": "(07)79956781841",
+        "lat": 22.820503,
+        "lng": 120.206812
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.23358,
+          22.761505
+        ]
+      },
+      "properties": {
+        "name": "彌陀漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "161",
+        "phone": "(07)79956781841",
+        "lat": 22.761505,
+        "lng": 120.23358
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.254131,
+          22.725752
+        ]
+      },
+      "properties": {
+        "name": "蚵子寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "162",
+        "phone": "(07)79956781841",
+        "lat": 22.725752,
+        "lng": 120.254131
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.380582,
+          22.492922
+        ]
+      },
+      "properties": {
+        "name": "港埔漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "163",
+        "phone": "(07)79956781841",
+        "lat": 22.492922,
+        "lng": 120.380582
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.413536,
+          22.478878
+        ]
+      },
+      "properties": {
+        "name": "汕尾漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "164",
+        "phone": "(07)79956781841",
+        "lat": 22.478878,
+        "lng": 120.413536
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.388904,
+          22.347561
+        ]
+      },
+      "properties": {
+        "name": "漁福漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "165",
+        "phone": "(08)73204157215",
+        "lat": 22.347561,
+        "lng": 120.388904
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.375064,
+          22.334889
+        ]
+      },
+      "properties": {
+        "name": "琉球新漁港",
+        "name_en": "Dafu Fishing port",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部+TDX",
+        "source_id": "166",
+        "phone": "(08)73204157215",
+        "lat": 22.334889,
+        "lng": 120.375064,
+        "city_code": "PIF",
+        "tdx_port_id": "TW015",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.37088,
+          22.33102
+        ]
+      },
+      "properties": {
+        "name": "大福漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "167",
+        "phone": "",
+        "lat": 22.33102,
+        "lng": 120.37088
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.357503,
+          22.322815
+        ]
+      },
+      "properties": {
+        "name": "天福漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "168",
+        "phone": "(08)73204157215",
+        "lat": 22.322815,
+        "lng": 120.357503
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.513134,
+          22.417658
+        ]
+      },
+      "properties": {
+        "name": "水利村漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "169",
+        "phone": "(08)73204157215",
+        "lat": 22.417658,
+        "lng": 120.513134
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.518946,
+          22.415223
+        ]
+      },
+      "properties": {
+        "name": "塭豐漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "170",
+        "phone": "(08)73204157215",
+        "lat": 22.415223,
+        "lng": 120.518946
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.698874,
+          22.144308
+        ]
+      },
+      "properties": {
+        "name": "楓港漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "171",
+        "phone": "(08)73204157215",
+        "lat": 22.144308,
+        "lng": 120.698874
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.714629,
+          22.091025
+        ]
+      },
+      "properties": {
+        "name": "海口漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "172",
+        "phone": "(08)73204157215",
+        "lat": 22.091025,
+        "lng": 120.714629
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.703488,
+          22.055118
+        ]
+      },
+      "properties": {
+        "name": "射寮漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "173",
+        "phone": "",
+        "lat": 22.055118,
+        "lng": 120.703488
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.696004,
+          22.041678
+        ]
+      },
+      "properties": {
+        "name": "後灣漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "174",
+        "phone": "(08)73204157215",
+        "lat": 22.041678,
+        "lng": 120.696004
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.706465,
+          21.995492
+        ]
+      },
+      "properties": {
+        "name": "萬里桐漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "175",
+        "phone": "",
+        "lat": 21.995492,
+        "lng": 120.706465
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.711745,
+          21.985933
+        ]
+      },
+      "properties": {
+        "name": "山海漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "176",
+        "phone": "(08)73204157215",
+        "lat": 21.985933,
+        "lng": 120.711745
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.715953,
+          21.971901
+        ]
+      },
+      "properties": {
+        "name": "紅柴坑漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "177",
+        "phone": "(08)73204157215",
+        "lat": 21.971901,
+        "lng": 120.715953
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.777413,
+          21.950111
+        ]
+      },
+      "properties": {
+        "name": "潭仔漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "178",
+        "phone": "(08)73204157215",
+        "lat": 21.950111,
+        "lng": 120.777413
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.831725,
+          21.924599
+        ]
+      },
+      "properties": {
+        "name": "香蕉灣漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "179",
+        "phone": "(08)73204157215",
+        "lat": 21.924599,
+        "lng": 120.831725
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.848227,
+          21.904912
+        ]
+      },
+      "properties": {
+        "name": "鼻頭漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "180",
+        "phone": "(08)73204157215",
+        "lat": 21.904912,
+        "lng": 120.848227
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.844607,
+          21.974328
+        ]
+      },
+      "properties": {
+        "name": "興海漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "181",
+        "phone": "(08)73204157215",
+        "lat": 21.974328,
+        "lng": 120.844607
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.890949,
+          22.087076
+        ]
+      },
+      "properties": {
+        "name": "南仁漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "182",
+        "phone": "(08)73204157215",
+        "lat": 22.087076,
+        "lng": 120.890949
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.8879,
+          22.119468
+        ]
+      },
+      "properties": {
+        "name": "中山漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "183",
+        "phone": "(08)73204157215",
+        "lat": 22.119468,
+        "lng": 120.8879
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.892274,
+          22.197871
+        ]
+      },
+      "properties": {
+        "name": "旭海漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "184",
+        "phone": "(08)73204157215",
+        "lat": 22.197871,
+        "lng": 120.892274
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.19626,
+          22.862835
+        ]
+      },
+      "properties": {
+        "name": "興達漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "185",
+        "phone": "(07)79956781841",
+        "lat": 22.862835,
+        "lng": 120.19626
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.861775,
+          24.71659
+        ]
+      },
+      "properties": {
+        "name": "青草漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "186",
+        "phone": "",
+        "lat": 24.71659,
+        "lng": 120.861775
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.857368,
+          24.699459
+        ]
+      },
+      "properties": {
+        "name": "龍鳳漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "187",
+        "phone": "(03)33221015454",
+        "lat": 24.699459,
+        "lng": 120.857368
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.747921,
+          24.607095
+        ]
+      },
+      "properties": {
+        "name": "福寧漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "188",
+        "phone": "(03)33221015454",
+        "lat": 24.607095,
+        "lng": 120.747921
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.70645,
+          24.570791
+        ]
+      },
+      "properties": {
+        "name": "白沙屯漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "189",
+        "phone": "(03)33221015454",
+        "lat": 24.570791,
+        "lng": 120.70645
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.647855,
+          24.461073
+        ]
+      },
+      "properties": {
+        "name": "苑港漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "190",
+        "phone": "(03)33221015454",
+        "lat": 24.461073,
+        "lng": 120.647855
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.581271,
+          24.372137
+        ]
+      },
+      "properties": {
+        "name": "塭寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺中市",
+        "source": "農業部",
+        "source_id": "191",
+        "phone": "(04)26581940",
+        "lat": 24.372137,
+        "lng": 120.581271
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.69491,
+          24.545319
+        ]
+      },
+      "properties": {
+        "name": "新埔漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "192",
+        "phone": "(03)33221015454",
+        "lat": 24.545319,
+        "lng": 120.69491
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.713135,
+          24.588567
+        ]
+      },
+      "properties": {
+        "name": "南港漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "193",
+        "phone": "(03)33221015454",
+        "lat": 24.588567,
+        "lng": 120.713135
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.585674,
+          24.382939
+        ]
+      },
+      "properties": {
+        "name": "北汕漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺中市",
+        "source": "農業部",
+        "source_id": "194",
+        "phone": "(04)26581940",
+        "lat": 24.382939,
+        "lng": 120.585674
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.843476,
+          24.666901
+        ]
+      },
+      "properties": {
+        "name": "塭仔頭漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "195",
+        "phone": "(03)33221015454",
+        "lat": 24.666901,
+        "lng": 120.843476
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.420488,
+          24.080749
+        ]
+      },
+      "properties": {
+        "name": "崙尾灣漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "彰化縣",
+        "source": "農業部",
+        "source_id": "196",
+        "phone": "(04)7531682",
+        "lat": 24.080749,
+        "lng": 120.420488
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.170825,
+          23.721665
+        ]
+      },
+      "properties": {
+        "name": "五條港漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "雲林縣",
+        "source": "農業部",
+        "source_id": "197",
+        "phone": "(05)5522262",
+        "lat": 23.721665,
+        "lng": 120.170825
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.172624,
+          23.704218
+        ]
+      },
+      "properties": {
+        "name": "台西漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "雲林縣",
+        "source": "農業部",
+        "source_id": "198",
+        "phone": "(05)5522262",
+        "lat": 23.704218,
+        "lng": 120.172624
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.141755,
+          23.572008
+        ]
+      },
+      "properties": {
+        "name": "金湖漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "雲林縣",
+        "source": "農業部",
+        "source_id": "199",
+        "phone": "(05)5522262",
+        "lat": 23.572008,
+        "lng": 120.141755
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.138656,
+          23.560825
+        ]
+      },
+      "properties": {
+        "name": "台子村漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "雲林縣",
+        "source": "農業部",
+        "source_id": "200",
+        "phone": "(05)5522262",
+        "lat": 23.560825,
+        "lng": 120.138656
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.096335,
+          23.223039
+        ]
+      },
+      "properties": {
+        "name": "馬沙溝漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "臺南市",
+        "source": "農業部",
+        "source_id": "201",
+        "phone": "",
+        "lat": 23.223039,
+        "lng": 120.096335
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.085764,
+          23.18902
+        ]
+      },
+      "properties": {
+        "name": "青山漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺南市",
+        "source": "農業部",
+        "source_id": "202",
+        "phone": "(06)3901458",
+        "lat": 23.18902,
+        "lng": 120.085764
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.569761,
+          23.781088
+        ]
+      },
+      "properties": {
+        "name": "鹽寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "花蓮縣",
+        "source": "農業部",
+        "source_id": "203",
+        "phone": "(03)8230243",
+        "lat": 23.781088,
+        "lng": 121.569761
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.456804,
+          23.313087
+        ]
+      },
+      "properties": {
+        "name": "長濱漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "204",
+        "phone": "(089)343209",
+        "lat": 23.313087,
+        "lng": 121.456804
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.40262,
+          23.176485
+        ]
+      },
+      "properties": {
+        "name": "石雨傘漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "205",
+        "phone": "",
+        "lat": 23.176485,
+        "lng": 121.40262
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.209694,
+          22.864497
+        ]
+      },
+      "properties": {
+        "name": "新蘭漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "206",
+        "phone": "(089)343209",
+        "lat": 22.864497,
+        "lng": 121.209694
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.542661,
+          22.025456
+        ]
+      },
+      "properties": {
+        "name": "漁人漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "207",
+        "phone": "",
+        "lat": 22.025456,
+        "lng": 121.542661
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.530561,
+          22.079168
+        ]
+      },
+      "properties": {
+        "name": "朗島漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "208",
+        "phone": "(089)343209",
+        "lat": 22.079168,
+        "lng": 121.530561
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.475538,
+          22.659189
+        ]
+      },
+      "properties": {
+        "name": "綠島漁港",
+        "name_en": "Green Island Nanlao",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部+TDX",
+        "source_id": "209",
+        "phone": "(089)343209",
+        "lat": 22.659189,
+        "lng": 121.475538,
+        "city_code": "TTT",
+        "tdx_port_id": "TWGNI",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.473367,
+          22.676756
+        ]
+      },
+      "properties": {
+        "name": "中寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "210",
+        "phone": "(089)343209",
+        "lat": 22.676756,
+        "lng": 121.473367
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.493654,
+          22.67612
+        ]
+      },
+      "properties": {
+        "name": "公館漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "211",
+        "phone": "(089)343209",
+        "lat": 22.67612,
+        "lng": 121.493654
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.500329,
+          22.645752
+        ]
+      },
+      "properties": {
+        "name": "溫泉漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "212",
+        "phone": "(089)343209",
+        "lat": 22.645752,
+        "lng": 121.500329
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.362672,
+          22.341094
+        ]
+      },
+      "properties": {
+        "name": "杉福漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "213",
+        "phone": "(08)73204157215",
+        "lat": 22.341094,
+        "lng": 120.362672
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.383357,
+          22.353152
+        ]
+      },
+      "properties": {
+        "name": "小琉球漁港",
+        "name_en": "Baisha Port",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部+TDX",
+        "source_id": "214",
+        "phone": "(08)73204157215",
+        "lat": 22.353152,
+        "lng": 120.383357,
+        "city_code": "PIF",
+        "tdx_port_id": "TW001",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.181339,
+          22.914538
+        ]
+      },
+      "properties": {
+        "name": "白砂崙漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "215",
+        "phone": "(07)79956781841",
+        "lat": 22.914538,
+        "lng": 120.181339
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.640682,
+          23.598091
+        ]
+      },
+      "properties": {
+        "name": "紅羅漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "216",
+        "phone": "(06)9264048",
+        "lat": 23.598091,
+        "lng": 119.640682
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.632689,
+          23.593439
+        ]
+      },
+      "properties": {
+        "name": "西溪漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "217",
+        "phone": "(06)9264048",
+        "lat": 23.593439,
+        "lng": 119.632689
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.626279,
+          23.583362
+        ]
+      },
+      "properties": {
+        "name": "成功漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "218",
+        "phone": "(06)9264048",
+        "lat": 23.583362,
+        "lng": 119.626279
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.598212,
+          23.577345
+        ]
+      },
+      "properties": {
+        "name": "安宅漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "219",
+        "phone": "(06)9264048",
+        "lat": 23.577345,
+        "lng": 119.598212
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.596699,
+          23.533033
+        ]
+      },
+      "properties": {
+        "name": "鐵線漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "220",
+        "phone": "(06)9264048",
+        "lat": 23.533033,
+        "lng": 119.596699
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.587922,
+          23.530966
+        ]
+      },
+      "properties": {
+        "name": "五德漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "221",
+        "phone": "(06)9264048",
+        "lat": 23.530966,
+        "lng": 119.587922
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.579117,
+          23.523609
+        ]
+      },
+      "properties": {
+        "name": "井垵漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "222",
+        "phone": "(06)9264048",
+        "lat": 23.523609,
+        "lng": 119.579117
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.503281,
+          23.600048
+        ]
+      },
+      "properties": {
+        "name": "池西漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "223",
+        "phone": "(06)9264048",
+        "lat": 23.600048,
+        "lng": 119.503281
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.60121,
+          23.636491
+        ]
+      },
+      "properties": {
+        "name": "鎮海漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "224",
+        "phone": "(06)9264048",
+        "lat": 23.636491,
+        "lng": 119.60121
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.495909,
+          23.387453
+        ]
+      },
+      "properties": {
+        "name": "水垵漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "225",
+        "phone": "(06)9264048",
+        "lat": 23.387453,
+        "lng": 119.495909
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.527011,
+          23.368956
+        ]
+      },
+      "properties": {
+        "name": "將軍北漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "226",
+        "phone": "(06)9264048",
+        "lat": 23.368956,
+        "lng": 119.527011
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.637547,
+          23.999778
+        ]
+      },
+      "properties": {
+        "name": "花蓮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "花蓮縣",
+        "source": "農業部",
+        "source_id": "227",
+        "phone": "(03)8230243",
+        "lat": 23.999778,
+        "lng": 121.637547
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          118.259636,
+          24.423677
+        ]
+      },
+      "properties": {
+        "name": "羅厝漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "金門縣",
+        "source": "農業部",
+        "source_id": "228",
+        "phone": "(082)325099",
+        "lat": 24.423677,
+        "lng": 118.259636
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          118.409668,
+          24.43174
+        ]
+      },
+      "properties": {
+        "name": "新湖漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "金門縣",
+        "source": "農業部",
+        "source_id": "229",
+        "phone": "(082)325099",
+        "lat": 24.43174,
+        "lng": 118.409668
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          118.471809,
+          24.445417
+        ]
+      },
+      "properties": {
+        "name": "復國墩漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "金門縣",
+        "source": "農業部",
+        "source_id": "230",
+        "phone": "(082)325099",
+        "lat": 24.445417,
+        "lng": 118.471809
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.940628,
+          26.158163
+        ]
+      },
+      "properties": {
+        "name": "福澳漁港",
+        "name_en": "Nankan Fuao",
+        "port_class": "第二類漁港",
+        "county": "連江縣",
+        "source": "農業部+TDX",
+        "source_id": "231",
+        "phone": "(0836)22347",
+        "lat": 26.158163,
+        "lng": 119.940628,
+        "city_code": "LIE",
+        "tdx_port_id": "TW007",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.968987,
+          26.205717
+        ]
+      },
+      "properties": {
+        "name": "白沙漁港",
+        "name_en": "Baisha Port",
+        "port_class": "第二類漁港",
+        "county": "連江縣",
+        "source": "農業部+TDX",
+        "source_id": "232",
+        "phone": "(0836)22347",
+        "lat": 26.205717,
+        "lng": 119.968987,
+        "city_code": "LIE",
+        "tdx_port_id": "TW008",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.933762,
+          25.969549
+        ]
+      },
+      "properties": {
+        "name": "青蕃漁港",
+        "name_en": "Qingfan Port",
+        "port_class": "第二類漁港",
+        "county": "連江縣",
+        "source": "農業部+TDX",
+        "source_id": "233",
+        "phone": "(0836)22347",
+        "lat": 25.969549,
+        "lng": 119.933762,
+        "city_code": "LIE",
+        "tdx_port_id": "TW009",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.964302,
+          25.958191
+        ]
+      },
+      "properties": {
+        "name": "猛澳漁港",
+        "name_en": "Mengao Port",
+        "port_class": "第二類漁港",
+        "county": "連江縣",
+        "source": "農業部+TDX",
+        "source_id": "234",
+        "phone": "(0836)22347",
+        "lat": 25.958191,
+        "lng": 119.964302,
+        "city_code": "LIE",
+        "tdx_port_id": "TW010",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.486382,
+          26.365314
+        ]
+      },
+      "properties": {
+        "name": "中柱漁港",
+        "name_en": "Tungyeng Chungchu",
+        "port_class": "第二類漁港",
+        "county": "連江縣",
+        "source": "農業部+TDX",
+        "source_id": "235",
+        "phone": "(0836)22347",
+        "lat": 26.365314,
+        "lng": 120.486382,
+        "city_code": "LIE",
+        "tdx_port_id": "TW011",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.005266,
+          25.008189
+        ]
+      },
+      "properties": {
+        "name": "桂安漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "236",
+        "phone": "",
+        "lat": 25.008189,
+        "lng": 122.005266
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.962107,
+          25.021884
+        ]
+      },
+      "properties": {
+        "name": "鶯歌石漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "237",
+        "phone": "",
+        "lat": 25.021884,
+        "lng": 121.962107
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.509496,
+          23.266959
+        ]
+      },
+      "properties": {
+        "name": "西嶼坪漁港",
+        "name_en": "Penghu Xiyuping Port",
+        "port_class": "廢止漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "238",
+        "phone": "",
+        "lat": 23.266959,
+        "lng": 119.509496,
+        "city_code": "PEN",
+        "tdx_port_id": "TW048",
+        "tdx_port_class": "渡輪/觀光碼頭"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.972211,
+          25.025489
+        ]
+      },
+      "properties": {
+        "name": "香蘭漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "新北市",
+        "source": "農業部",
+        "source_id": "239",
+        "phone": "",
+        "lat": 25.025489,
+        "lng": 121.972211
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.324515,
+          23.968832
+        ]
+      },
+      "properties": {
+        "name": "王功漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "彰化縣",
+        "source": "農業部",
+        "source_id": "72",
+        "phone": "(04)7531682",
+        "lat": 23.968832,
+        "lng": 120.324515
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.149299,
+          23.657056
+        ]
+      },
+      "properties": {
+        "name": "三條崙漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "雲林縣",
+        "source": "農業部",
+        "source_id": "73",
+        "phone": "(05)5522262",
+        "lat": 23.657056,
+        "lng": 120.149299
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.136345,
+          23.618991
+        ]
+      },
+      "properties": {
+        "name": "箔子寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "雲林縣",
+        "source": "農業部",
+        "source_id": "74",
+        "phone": "(05)5522262",
+        "lat": 23.618991,
+        "lng": 120.136345
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.496458,
+          24.199332
+        ]
+      },
+      "properties": {
+        "name": "麗水漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺中市",
+        "source": "農業部",
+        "source_id": "75",
+        "phone": "(04)26581940",
+        "lat": 24.199332,
+        "lng": 120.496458
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.673345,
+          24.49695
+        ]
+      },
+      "properties": {
+        "name": "通霄漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "76",
+        "phone": "(03)33221015454",
+        "lat": 24.49695,
+        "lng": 120.673345
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.6327,
+          24.446326
+        ]
+      },
+      "properties": {
+        "name": "苑裡漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "苗栗縣",
+        "source": "農業部",
+        "source_id": "77",
+        "phone": "(03)33221015454",
+        "lat": 24.446326,
+        "lng": 120.6327
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.894355,
+          22.339337
+        ]
+      },
+      "properties": {
+        "name": "大武漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "78",
+        "phone": "(089)343209",
+        "lat": 22.339337,
+        "lng": 120.894355
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.40372,
+          23.157765
+        ]
+      },
+      "properties": {
+        "name": "小港漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "79",
+        "phone": "(089)343209",
+        "lat": 23.157765,
+        "lng": 121.40372
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.292342,
+          22.954391
+        ]
+      },
+      "properties": {
+        "name": "金樽漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "80",
+        "phone": "(089)343209",
+        "lat": 22.954391,
+        "lng": 121.292342
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.417625,
+          23.227895
+        ]
+      },
+      "properties": {
+        "name": "烏石鼻漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "81",
+        "phone": "(089)343209",
+        "lat": 23.227895,
+        "lng": 121.417625
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.508058,
+          22.058285
+        ]
+      },
+      "properties": {
+        "name": "開元漁港",
+        "name_en": "Orchid Island Kaiyuang",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部+TDX",
+        "source_id": "82",
+        "phone": "(089)343209",
+        "lat": 22.058285,
+        "lng": 121.508058,
+        "city_code": "TTT",
+        "tdx_port_id": "TWKYD",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.378945,
+          23.096712
+        ]
+      },
+      "properties": {
+        "name": "新港漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部",
+        "source_id": "83",
+        "phone": "(089)343209",
+        "lat": 23.096712,
+        "lng": 121.378945
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.193279,
+          22.791279
+        ]
+      },
+      "properties": {
+        "name": "伽藍漁港",
+        "name_en": "Taitung Fugang",
+        "port_class": "第二類漁港",
+        "county": "臺東縣",
+        "source": "農業部+TDX",
+        "source_id": "84",
+        "phone": "(089)343209",
+        "lat": 22.791279,
+        "lng": 121.193279,
+        "city_code": "TTT",
+        "tdx_port_id": "TWTTT",
+        "tdx_port_class": "客運港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.505695,
+          23.495225
+        ]
+      },
+      "properties": {
+        "name": "石梯漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "花蓮縣",
+        "source": "農業部",
+        "source_id": "85",
+        "phone": "(03)8230243",
+        "lat": 23.495225,
+        "lng": 121.505695
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.15713,
+          23.387616
+        ]
+      },
+      "properties": {
+        "name": "布袋漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "嘉義縣",
+        "source": "農業部",
+        "source_id": "86",
+        "phone": "(05)3620123",
+        "lat": 23.387616,
+        "lng": 120.15713
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.125414,
+          23.341429
+        ]
+      },
+      "properties": {
+        "name": "好美里漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "嘉義縣",
+        "source": "農業部",
+        "source_id": "87",
+        "phone": "(05)3620123",
+        "lat": 23.341429,
+        "lng": 120.125414
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.095367,
+          23.234198
+        ]
+      },
+      "properties": {
+        "name": "北門漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "臺南市",
+        "source": "農業部",
+        "source_id": "88",
+        "phone": "(06)3901458",
+        "lat": 23.234198,
+        "lng": 120.095367
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.400163,
+          22.483477
+        ]
+      },
+      "properties": {
+        "name": "中芸漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "高雄市",
+        "source": "農業部",
+        "source_id": "89",
+        "phone": "(07)79956781841",
+        "lat": 22.483477,
+        "lng": 120.400163
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.592597,
+          22.362801
+        ]
+      },
+      "properties": {
+        "name": "枋寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部",
+        "source_id": "90",
+        "phone": "(08)73204157215",
+        "lat": 22.362801,
+        "lng": 120.592597
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.74449,
+          21.944761
+        ]
+      },
+      "properties": {
+        "name": "後壁湖漁港",
+        "name_en": "Hopihu",
+        "port_class": "第二類漁港",
+        "county": "屏東縣",
+        "source": "農業部+TDX",
+        "source_id": "91",
+        "phone": "(08)73204157215",
+        "lat": 21.944761,
+        "lng": 120.74449,
+        "city_code": "PIF",
+        "tdx_port_id": "TW013",
+        "tdx_port_class": "客運港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.489604,
+          23.359531
+        ]
+      },
+      "properties": {
+        "name": "土地公漁港",
+        "name_en": "",
+        "port_class": "廢止漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "92",
+        "phone": "",
+        "lat": 23.359531,
+        "lng": 119.489604
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.504358,
+          23.616686
+        ]
+      },
+      "properties": {
+        "name": "大池漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "93",
+        "phone": "(06)9264048",
+        "lat": 23.616686,
+        "lng": 119.504358
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.568843,
+          23.617054
+        ]
+      },
+      "properties": {
+        "name": "大倉漁港",
+        "name_en": "Penghu Dachan Port",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "94",
+        "phone": "(06)9264048",
+        "lat": 23.617054,
+        "lng": 119.568843,
+        "city_code": "PEN",
+        "tdx_port_id": "TW045",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.518733,
+          23.649426
+        ]
+      },
+      "properties": {
+        "name": "小門漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "95",
+        "phone": "(06)9264048",
+        "lat": 23.649426,
+        "lng": 119.518733
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.494523,
+          23.373126
+        ]
+      },
+      "properties": {
+        "name": "中社漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "96",
+        "phone": "(06)9264048",
+        "lat": 23.373126,
+        "lng": 119.494523
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.500207,
+          23.575188
+        ]
+      },
+      "properties": {
+        "name": "內垵北漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "97",
+        "phone": "(06)9264048",
+        "lat": 23.575188,
+        "lng": 119.500207
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.500749,
+          23.566303
+        ]
+      },
+      "properties": {
+        "name": "內垵南漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "98",
+        "phone": "(06)9264048",
+        "lat": 23.566303,
+        "lng": 119.500749
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.501506,
+          23.389664
+        ]
+      },
+      "properties": {
+        "name": "水垵北漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "99",
+        "phone": "(06)9264048",
+        "lat": 23.389664,
+        "lng": 119.501506
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.480151,
+          23.563358
+        ]
+      },
+      "properties": {
+        "name": "外垵漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "100",
+        "phone": "(06)9264048",
+        "lat": 23.563358,
+        "lng": 119.480151
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.580272,
+          23.65709
+        ]
+      },
+      "properties": {
+        "name": "瓦峒漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "101",
+        "phone": "(06)9264048",
+        "lat": 23.65709,
+        "lng": 119.580272
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.590444,
+          23.551508
+        ]
+      },
+      "properties": {
+        "name": "石泉漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "102",
+        "phone": "(06)9264048",
+        "lat": 23.551508,
+        "lng": 119.590444
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.613159,
+          23.739588
+        ]
+      },
+      "properties": {
+        "name": "吉貝漁港",
+        "name_en": "Ceiba",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "103",
+        "phone": "(06)9264048",
+        "lat": 23.739588,
+        "lng": 119.613159,
+        "city_code": "PEN",
+        "tdx_port_id": "TW027",
+        "tdx_port_class": "客運港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.531352,
+          23.639473
+        ]
+      },
+      "properties": {
+        "name": "合界漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "104",
+        "phone": "(06)9264048",
+        "lat": 23.639473,
+        "lng": 119.531352
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.667916,
+          23.561649
+        ]
+      },
+      "properties": {
+        "name": "尖山漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "105",
+        "phone": "(06)9264048",
+        "lat": 23.561649,
+        "lng": 119.667916
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.523512,
+          23.62988
+        ]
+      },
+      "properties": {
+        "name": "竹灣漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "106",
+        "phone": "(06)9264048",
+        "lat": 23.62988,
+        "lng": 119.523512
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.584241,
+          23.580735
+        ]
+      },
+      "properties": {
+        "name": "西衛漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "107",
+        "phone": "(06)9264048",
+        "lat": 23.580735,
+        "lng": 119.584241
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.62593,
+          23.607689
+        ]
+      },
+      "properties": {
+        "name": "沙港中漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "108",
+        "phone": "(06)9264048",
+        "lat": 23.607689,
+        "lng": 119.62593
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.631023,
+          23.60413
+        ]
+      },
+      "properties": {
+        "name": "沙港東漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "109",
+        "phone": "(06)9264048",
+        "lat": 23.60413,
+        "lng": 119.631023
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.603589,
+          23.665415
+        ]
+      },
+      "properties": {
+        "name": "赤崁漁港",
+        "name_en": "Chihkan",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "110",
+        "phone": "(06)9264048",
+        "lat": 23.665415,
+        "lng": 119.603589,
+        "city_code": "PEN",
+        "tdx_port_id": "TW028",
+        "tdx_port_class": "客運港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.512599,
+          23.58131
+        ]
+      },
+      "properties": {
+        "name": "赤馬漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "111",
+        "phone": "(06)9264048",
+        "lat": 23.58131,
+        "lng": 119.512599
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.666465,
+          23.255777
+        ]
+      },
+      "properties": {
+        "name": "東吉漁港",
+        "name_en": "Dongji Island",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "112",
+        "phone": "(06)9264048",
+        "lat": 23.255777,
+        "lng": 119.666465,
+        "city_code": "PEN",
+        "tdx_port_id": "TW021",
+        "tdx_port_class": "客運港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.50982,
+          23.256355
+        ]
+      },
+      "properties": {
+        "name": "東嶼漁港",
+        "name_en": "Penghu Dongyuping Port",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "113",
+        "phone": "(06)9264048",
+        "lat": 23.256355,
+        "lng": 119.50982,
+        "city_code": "PEN",
+        "tdx_port_id": "TW047",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.681398,
+          23.577371
+        ]
+      },
+      "properties": {
+        "name": "果葉漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "114",
+        "phone": "(06)9264048",
+        "lat": 23.577371,
+        "lng": 119.681398
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.324444,
+          23.396778
+        ]
+      },
+      "properties": {
+        "name": "花嶼漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "115",
+        "phone": "(06)9264048",
+        "lat": 23.396778,
+        "lng": 119.324444
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.516888,
+          23.487246
+        ]
+      },
+      "properties": {
+        "name": "虎井漁港",
+        "name_en": "Hu Jing",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "116",
+        "phone": "(06)9264048",
+        "lat": 23.487246,
+        "lng": 119.516888,
+        "city_code": "PEN",
+        "tdx_port_id": "TWHJN",
+        "tdx_port_class": "客運港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.647399,
+          23.602476
+        ]
+      },
+      "properties": {
+        "name": "青螺漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "117",
+        "phone": "(06)9264048",
+        "lat": 23.602476,
+        "lng": 119.647399
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.5879,
+          23.551205
+        ]
+      },
+      "properties": {
+        "name": "前寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "118",
+        "phone": "(06)9264048",
+        "lat": 23.551205,
+        "lng": 119.5879
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.669005,
+          23.597357
+        ]
+      },
+      "properties": {
+        "name": "南北寮漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "119",
+        "phone": "(06)9264048",
+        "lat": 23.597357,
+        "lng": 119.669005
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.420167,
+          23.194359
+        ]
+      },
+      "properties": {
+        "name": "七美漁港",
+        "name_en": "Chi Mei",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "120",
+        "phone": "(06)9264048",
+        "lat": 23.194359,
+        "lng": 119.420167,
+        "city_code": "PEN",
+        "tdx_port_id": "TWCMJ",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.569177,
+          23.671717
+        ]
+      },
+      "properties": {
+        "name": "後寮漁港",
+        "name_en": "Penghu Houliao Port",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "121",
+        "phone": "(06)9264048",
+        "lat": 23.671717,
+        "lng": 119.569177,
+        "city_code": "PEN",
+        "tdx_port_id": "TWHOU",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.540893,
+          23.543826
+        ]
+      },
+      "properties": {
+        "name": "風櫃西漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "122",
+        "phone": "(06)9264048",
+        "lat": 23.543826,
+        "lng": 119.540893
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.550755,
+          23.542526
+        ]
+      },
+      "properties": {
+        "name": "風櫃東漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "123",
+        "phone": "(06)9264048",
+        "lat": 23.542526,
+        "lng": 119.550755
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.629544,
+          23.64658
+        ]
+      },
+      "properties": {
+        "name": "員貝漁港",
+        "name_en": "Penghu Yuanbei Port",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "124",
+        "phone": "(06)9264048",
+        "lat": 23.64658,
+        "lng": 119.629544,
+        "city_code": "PEN",
+        "tdx_port_id": "TW044",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.572043,
+          23.528688
+        ]
+      },
+      "properties": {
+        "name": "蒔裡漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "125",
+        "phone": "(06)9264048",
+        "lat": 23.528688,
+        "lng": 119.572043
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.572814,
+          23.558793
+        ]
+      },
+      "properties": {
+        "name": "案山漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "126",
+        "phone": "(06)9264048",
+        "lat": 23.558793,
+        "lng": 119.572814
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.574287,
+          23.565948
+        ]
+      },
+      "properties": {
+        "name": "馬公漁港",
+        "name_en": "Makung 3rd Port",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "127",
+        "phone": "(06)9264048",
+        "lat": 23.565948,
+        "lng": 119.574287,
+        "city_code": "PEN",
+        "tdx_port_id": "TWMZG03",
+        "tdx_port_class": "客運港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.520673,
+          23.362476
+        ]
+      },
+      "properties": {
+        "name": "將軍南漁港",
+        "name_en": "Penghu Jiang Jiyuen Port",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "128",
+        "phone": "(06)9264048",
+        "lat": 23.362476,
+        "lng": 119.520673,
+        "city_code": "PEN",
+        "tdx_port_id": "TW030",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.518984,
+          23.513479
+        ]
+      },
+      "properties": {
+        "name": "桶盤漁港",
+        "name_en": "Penghu Tongpan Port",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "129",
+        "phone": "(06)9264048",
+        "lat": 23.513479,
+        "lng": 119.518984,
+        "city_code": "PEN",
+        "tdx_port_id": "TWTPN",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.555885,
+          23.655964
+        ]
+      },
+      "properties": {
+        "name": "通樑漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "130",
+        "phone": "(06)9264048",
+        "lat": 23.655964,
+        "lng": 119.555885
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.624457,
+          23.543812
+        ]
+      },
+      "properties": {
+        "name": "烏崁漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "131",
+        "phone": "(06)9264048",
+        "lat": 23.543812,
+        "lng": 119.624457
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.659081,
+          23.658662
+        ]
+      },
+      "properties": {
+        "name": "鳥嶼漁港",
+        "name_en": "Penghu Niaoyu Port",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "132",
+        "phone": "(06)9264048",
+        "lat": 23.658662,
+        "lng": 119.659081,
+        "city_code": "PEN",
+        "tdx_port_id": "TW043",
+        "tdx_port_class": "離島渡輪港"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.60188,
+          23.648217
+        ]
+      },
+      "properties": {
+        "name": "港子漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "133",
+        "phone": "(06)9264048",
+        "lat": 23.648217,
+        "lng": 119.60188
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.661572,
+          23.594788
+        ]
+      },
+      "properties": {
+        "name": "白坑漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "134",
+        "phone": "(06)9264048",
+        "lat": 23.594788,
+        "lng": 119.661572
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.595075,
+          23.548723
+        ]
+      },
+      "properties": {
+        "name": "菜園漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "135",
+        "phone": "(06)9264048",
+        "lat": 23.548723,
+        "lng": 119.595075
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.412704,
+          23.216262
+        ]
+      },
+      "properties": {
+        "name": "潭子漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "136",
+        "phone": "(06)9264048",
+        "lat": 23.216262,
+        "lng": 119.412704
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.507842,
+          23.362989
+        ]
+      },
+      "properties": {
+        "name": "潭門漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "137",
+        "phone": "(06)9264048",
+        "lat": 23.362989,
+        "lng": 119.507842
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.5378,
+          23.633591
+        ]
+      },
+      "properties": {
+        "name": "橫礁漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "138",
+        "phone": "(06)9264048",
+        "lat": 23.633591,
+        "lng": 119.5378
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.673555,
+          23.559399
+        ]
+      },
+      "properties": {
+        "name": "龍門漁港",
+        "name_en": "Lung-men",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部+TDX",
+        "source_id": "139",
+        "phone": "(06)9264048",
+        "lat": 23.559399,
+        "lng": 119.673555,
+        "city_code": "PEN",
+        "tdx_port_id": "TWLGM",
+        "tdx_port_class": "渡輪/觀光碼頭"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.6082,
+          23.525153
+        ]
+      },
+      "properties": {
+        "name": "鎖港漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "140",
+        "phone": "(06)9264048",
+        "lat": 23.525153,
+        "lng": 119.6082
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          119.508516,
+          23.267171
+        ]
+      },
+      "properties": {
+        "name": "西嶼漁港",
+        "name_en": "",
+        "port_class": "第二類漁港",
+        "county": "澎湖縣",
+        "source": "農業部",
+        "source_id": "141",
+        "phone": "(06)9264048",
+        "lat": 23.267171,
+        "lng": 119.508516
+      }
+    },
     {
       "type": "Feature",
       "geometry": {
@@ -17,10 +5140,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW012",
-        "PortName": "金門九宮港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "金門九宮港",
+        "name_en": "Kinmen Jiugong harbor",
+        "port_class": "離島渡輪港",
+        "county": "金門縣",
+        "source": "TDX",
+        "source_id": "TW012",
+        "city_code": "KIN",
         "lat": 24.425441,
         "lng": 118.263214
       }
@@ -35,10 +5161,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW073",
-        "PortName": "高雄旗津輪渡站",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "高雄旗津輪渡站",
+        "name_en": "Cijin Ferry Station",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "高雄市",
+        "source": "TDX",
+        "source_id": "TW073",
+        "city_code": "KHH",
         "lat": 22.61408,
         "lng": 120.2697
       }
@@ -53,48 +5182,15 @@
         ]
       },
       "properties": {
-        "PortID": "TWSTO",
-        "PortName": "金門水頭港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "金門水頭港",
+        "name_en": "kinmen Shuitou harbor",
+        "port_class": "國內商港",
+        "county": "金門縣",
+        "source": "TDX",
+        "source_id": "TWSTO",
+        "city_code": "KIN",
         "lat": 24.415198,
         "lng": 118.286961
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.60916,
-          23.64888
-        ]
-      },
-      "properties": {
-        "PortID": "TW042",
-        "PortName": "澎湖岐頭漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.64888,
-        "lng": 119.60916
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.568134,
-          23.61706111
-        ]
-      },
-      "properties": {
-        "PortID": "TW045",
-        "PortName": "澎湖大倉漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.61706111,
-        "lng": 119.568134
       }
     },
     {
@@ -107,10 +5203,13 @@
         ]
       },
       "properties": {
-        "PortID": "CNDMY",
-        "PortName": "大麥嶼",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "大麥嶼",
+        "name_en": "Damaiyu",
+        "port_class": "對岸港口",
+        "county": "浙江省",
+        "source": "TDX",
+        "source_id": "CNDMY",
+        "city_code": "ZJ",
         "lat": 28.08309,
         "lng": 121.15002
       }
@@ -125,10 +5224,13 @@
         ]
       },
       "properties": {
-        "PortID": "TWKHH",
-        "PortName": "高雄港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "高雄港",
+        "name_en": "Kaohsiung",
+        "port_class": "國際商港",
+        "county": "高雄市",
+        "source": "TDX",
+        "source_id": "TWKHH",
+        "city_code": "KHH",
         "lat": 22.61924,
         "lng": 120.27517
       }
@@ -143,156 +5245,15 @@
         ]
       },
       "properties": {
-        "PortID": "TW056",
-        "PortName": "八里客船碼頭",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "八里客船碼頭",
+        "name_en": "Bali",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "新北市",
+        "source": "TDX",
+        "source_id": "TW056",
+        "city_code": "NWT",
         "lat": 25.1645979,
         "lng": 121.4228483
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          121.4746899,
-          22.65874547
-        ]
-      },
-      "properties": {
-        "PortID": "TWGNI",
-        "PortName": "綠島南寮漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 22.65874547,
-        "lng": 121.4746899
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.6122963,
-          23.73880085
-        ]
-      },
-      "properties": {
-        "PortID": "TW027",
-        "PortName": "吉貝漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.73880085,
-        "lng": 119.6122963
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          120.3745876,
-          22.33470049
-        ]
-      },
-      "properties": {
-        "PortID": "TW015",
-        "PortName": "小琉球大福漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 22.33470049,
-        "lng": 120.3745876
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          120.087875,
-          23.21177636
-        ]
-      },
-      "properties": {
-        "PortID": "TWTNN",
-        "PortName": "將軍港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.21177636,
-        "lng": 120.087875
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.65666,
-          23.66
-        ]
-      },
-      "properties": {
-        "PortID": "TW043",
-        "PortName": "澎湖鳥嶼漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.66,
-        "lng": 119.65666
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.5208874,
-          23.36303792
-        ]
-      },
-      "properties": {
-        "PortID": "TW030",
-        "PortName": "澎湖將軍南漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.36303792,
-        "lng": 119.5208874
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          120.3844867,
-          22.35218789
-        ]
-      },
-      "properties": {
-        "PortID": "TW001",
-        "PortName": "小琉球白沙港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 22.35218789,
-        "lng": 120.3844867
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.572493,
-          23.566453
-        ]
-      },
-      "properties": {
-        "PortID": "TWMZG03",
-        "PortName": "馬公第三漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.566453,
-        "lng": 119.572493
       }
     },
     {
@@ -305,10 +5266,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW070",
-        "PortName": "文化遊艇英領館站",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "文化遊艇英領館站",
+        "name_en": "The British Consulate at Takow",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "高雄市",
+        "source": "TDX",
+        "source_id": "TW070",
+        "city_code": "KHH",
         "lat": 22.617389,
         "lng": 120.267994
       }
@@ -323,10 +5287,13 @@
         ]
       },
       "properties": {
-        "PortID": "TWSUO",
-        "PortName": "蘇澳港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "蘇澳港",
+        "name_en": "Suao",
+        "port_class": "國際商港",
+        "county": "宜蘭縣",
+        "source": "TDX",
+        "source_id": "TWSUO",
+        "city_code": "ILA",
         "lat": 24.587150136026,
         "lng": 121.864425744067
       }
@@ -341,10 +5308,13 @@
         ]
       },
       "properties": {
-        "PortID": "TWPUT",
-        "PortName": "布袋港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "布袋港",
+        "name_en": "Budai,Chiayi",
+        "port_class": "國內商港",
+        "county": "嘉義縣",
+        "source": "TDX",
+        "source_id": "TWPUT",
+        "city_code": "CYQ",
         "lat": 23.3792647,
         "lng": 120.1393774
       }
@@ -359,66 +5329,15 @@
         ]
       },
       "properties": {
-        "PortID": "TW054",
-        "PortName": "淡水客船碼頭",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "淡水客船碼頭",
+        "name_en": "Danshu",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "新北市",
+        "source": "TDX",
+        "source_id": "TW054",
+        "city_code": "NWT",
         "lat": 25.170277,
         "lng": 121.4382456
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          121.1929533,
-          22.79150654
-        ]
-      },
-      "properties": {
-        "PortID": "TWTTT",
-        "PortName": "台東富岡漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 22.79150654,
-        "lng": 121.1929533
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.51111,
-          23.25638
-        ]
-      },
-      "properties": {
-        "PortID": "TW047",
-        "PortName": "澎湖東嶼坪漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.25638,
-        "lng": 119.51111
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.94365,
-          26.1605
-        ]
-      },
-      "properties": {
-        "PortID": "TW007",
-        "PortName": "南竿福澳港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 26.1605,
-        "lng": 119.94365
       }
     },
     {
@@ -431,10 +5350,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW052",
-        "PortName": "華江碼頭",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "華江碼頭",
+        "name_en": "Huajiang",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "新北市",
+        "source": "TDX",
+        "source_id": "TW052",
+        "city_code": "NWT",
         "lat": 25.0321562,
         "lng": 121.4828049
       }
@@ -449,10 +5371,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW072",
-        "PortName": "小港文化遊艇棧貳庫站",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "小港文化遊艇棧貳庫站",
+        "name_en": "Kaohiung Port Warehouse No.2",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "高雄市",
+        "source": "TDX",
+        "source_id": "TW072",
+        "city_code": "KHH",
         "lat": 22.618904,
         "lng": 120.276645
       }
@@ -467,10 +5392,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW062",
-        "PortName": "花嶼",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "花嶼",
+        "name_en": "Hua Islet",
+        "port_class": "客運港",
+        "county": "澎湖縣",
+        "source": "TDX",
+        "source_id": "TW062",
+        "city_code": "PEN",
         "lat": 23.39833,
         "lng": 119.3175
       }
@@ -485,10 +5413,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW050",
-        "PortName": "美堤碼頭",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "美堤碼頭",
+        "name_en": "Meiti Wharf",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "臺北市",
+        "source": "TDX",
+        "source_id": "TW050",
+        "city_code": "TPE",
         "lat": 25.07539,
         "lng": 121.55652
       }
@@ -503,66 +5434,15 @@
         ]
       },
       "properties": {
-        "PortID": "TWLIL",
-        "PortName": "金門料羅港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "金門料羅港",
+        "name_en": "Kinmen Liaoluo harbor",
+        "port_class": "離島渡輪港",
+        "county": "金門縣",
+        "source": "TDX",
+        "source_id": "TWLIL",
+        "city_code": "KIN",
         "lat": 24.40919877,
         "lng": 118.4313557
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          120.2989949,
-          22.57569993
-        ]
-      },
-      "properties": {
-        "PortID": "TW066",
-        "PortName": "中洲輪渡站",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 22.57569993,
-        "lng": 120.2989949
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          121.4094674,
-          25.1827119
-        ]
-      },
-      "properties": {
-        "PortID": "TW055",
-        "PortName": "漁人碼頭",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 25.1827119,
-        "lng": 121.4094674
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          120.3190406,
-          22.55094143
-        ]
-      },
-      "properties": {
-        "PortID": "TW069",
-        "PortName": "文化遊艇紅毛港站",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 22.55094143,
-        "lng": 120.3190406
       }
     },
     {
@@ -575,10 +5455,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW065",
-        "PortName": "前鎮輪渡站",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "前鎮輪渡站",
+        "name_en": "Qianzhen Ferry Station",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "高雄市",
+        "source": "TDX",
+        "source_id": "TW065",
+        "city_code": "KHH",
         "lat": 22.58698,
         "lng": 120.30582
       }
@@ -593,10 +5476,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW051",
-        "PortName": "大佳碼頭",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "大佳碼頭",
+        "name_en": "Dajia Wharf",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "臺北市",
+        "source": "TDX",
+        "source_id": "TW051",
+        "city_code": "TPE",
         "lat": 25.07618,
         "lng": 121.53732
       }
@@ -611,48 +5497,15 @@
         ]
       },
       "properties": {
-        "PortID": "CNFOC",
-        "PortName": "福州平潭",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "福州平潭",
+        "name_en": "Pingtan",
+        "port_class": "對岸港口",
+        "county": "福建省",
+        "source": "TDX",
+        "source_id": "CNFOC",
+        "city_code": "FJ",
         "lat": 25.46703,
         "lng": 119.83738
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.66722,
-          23.254722
-        ]
-      },
-      "properties": {
-        "PortID": "TW021",
-        "PortName": "東吉港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.254722,
-        "lng": 119.66722
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.570366,
-          23.67129925
-        ]
-      },
-      "properties": {
-        "PortID": "TWHOU",
-        "PortName": "澎湖後寮漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.67129925,
-        "lng": 119.570366
       }
     },
     {
@@ -665,10 +5518,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW199",
-        "PortName": "鹽埔漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "鹽埔漁港",
+        "name_en": "Yanpu",
+        "port_class": "客運港",
+        "county": "屏東縣",
+        "source": "TDX",
+        "source_id": "TW199",
+        "city_code": "PIF",
         "lat": 22.47120965,
         "lng": 120.4346059
       }
@@ -683,10 +5539,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW064",
-        "PortName": "棧貳庫輪渡站",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "棧貳庫輪渡站",
+        "name_en": "Kaohiung Port Warehouse No.2",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "高雄市",
+        "source": "TDX",
+        "source_id": "TW064",
+        "city_code": "KHH",
         "lat": 22.61896,
         "lng": 120.27642
       }
@@ -701,30 +5560,15 @@
         ]
       },
       "properties": {
-        "PortID": "CNHGQ",
-        "PortName": "福州黃岐港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "福州黃岐港",
+        "name_en": "Huangqi Port",
+        "port_class": "對岸港口",
+        "county": "福建省",
+        "source": "TDX",
+        "source_id": "CNHGQ",
+        "city_code": "FJ",
         "lat": 26.31591,
         "lng": 119.88683
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          120.2701,
-          22.6198
-        ]
-      },
-      "properties": {
-        "PortID": "TW074",
-        "PortName": "高雄鼓山輪渡站",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 22.6198,
-        "lng": 120.2701
       }
     },
     {
@@ -737,10 +5581,13 @@
         ]
       },
       "properties": {
-        "PortID": "TWAPG",
-        "PortName": "安平港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "安平港",
+        "name_en": "An Ping",
+        "port_class": "國際商港",
+        "county": "臺南市",
+        "source": "TDX",
+        "source_id": "TWAPG",
+        "city_code": "TNN",
         "lat": 22.9729,
         "lng": 120.1744
       }
@@ -755,30 +5602,15 @@
         ]
       },
       "properties": {
-        "PortID": "TWTPE",
-        "PortName": "臺北港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "臺北港",
+        "name_en": "Taipei",
+        "port_class": "國際商港",
+        "county": "臺北市",
+        "source": "TDX",
+        "source_id": "TWTPE",
+        "city_code": "TPE",
         "lat": 25.1533643,
         "lng": 121.3916081
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.418777,
-          23.195665
-        ]
-      },
-      "properties": {
-        "PortID": "TWCMJ",
-        "PortName": "澎湖七美漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.195665,
-        "lng": 119.418777
       }
     },
     {
@@ -791,10 +5623,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW049",
-        "PortName": "錫口碼頭",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "錫口碼頭",
+        "name_en": "Xikou Wharf",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "臺北市",
+        "source": "TDX",
+        "source_id": "TW049",
+        "city_code": "TPE",
         "lat": 25.05139,
         "lng": 121.574931
       }
@@ -809,30 +5644,15 @@
         ]
       },
       "properties": {
-        "PortID": "CNXMN",
-        "PortName": "廈門五通",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "廈門五通",
+        "name_en": "WuTong",
+        "port_class": "對岸港口",
+        "county": "福建省",
+        "source": "TDX",
+        "source_id": "CNXMN",
+        "city_code": "FJ",
         "lat": 24.53138,
         "lng": 118.19129
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.964463,
-          25.958174
-        ]
-      },
-      "properties": {
-        "PortID": "TW010",
-        "PortName": "東莒猛澳港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 25.958174,
-        "lng": 119.964463
       }
     },
     {
@@ -845,48 +5665,15 @@
         ]
       },
       "properties": {
-        "PortID": "TWKEL",
-        "PortName": "基隆港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "基隆港",
+        "name_en": "Keelung",
+        "port_class": "國際商港",
+        "county": "基隆市",
+        "source": "TDX",
+        "source_id": "TWKEL",
+        "city_code": "KEE",
         "lat": 25.1348595906906,
         "lng": 121.741177648686
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.51888,
-          23.51277
-        ]
-      },
-      "properties": {
-        "PortID": "TWTPN",
-        "PortName": "澎湖桶盤漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.51277,
-        "lng": 119.51888
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          120.7450058,
-          21.94684565
-        ]
-      },
-      "properties": {
-        "PortID": "TW013",
-        "PortName": "後壁湖漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 21.94684565,
-        "lng": 120.7450058
       }
     },
     {
@@ -899,10 +5686,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW067",
-        "PortName": "愛之船國賓站",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "愛之船國賓站",
+        "name_en": "Love Boat Guobin Port Station",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "高雄市",
+        "source": "TDX",
+        "source_id": "TW067",
+        "city_code": "KHH",
         "lat": 22.62486,
         "lng": 120.28997
       }
@@ -917,48 +5707,15 @@
         ]
       },
       "properties": {
-        "PortID": "TW053",
-        "PortName": "忠孝碼頭",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "忠孝碼頭",
+        "name_en": "Zhongxiao",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "新北市",
+        "source": "TDX",
+        "source_id": "TW053",
+        "city_code": "NWT",
         "lat": 25.0561888,
         "lng": 121.500046
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.6316176,
-          23.64677298
-        ]
-      },
-      "properties": {
-        "PortID": "TW044",
-        "PortName": "澎湖員貝漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.64677298,
-        "lng": 119.6316176
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.5177136,
-          23.48692452
-        ]
-      },
-      "properties": {
-        "PortID": "TWHJN",
-        "PortName": "虎井港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.48692452,
-        "lng": 119.5177136
       }
     },
     {
@@ -971,30 +5728,15 @@
         ]
       },
       "properties": {
-        "PortID": "TWHUN",
-        "PortName": "花蓮港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "花蓮港",
+        "name_en": "HUALIEN PORT",
+        "port_class": "國際商港",
+        "county": "花蓮縣",
+        "source": "TDX",
+        "source_id": "TWHUN",
+        "city_code": "HUA",
         "lat": 23.9788358393,
         "lng": 121.6244257
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          120.44491,
-          22.468461
-        ]
-      },
-      "properties": {
-        "PortID": "TWDNK",
-        "PortName": "東港漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 22.468461,
-        "lng": 120.44491
       }
     },
     {
@@ -1007,10 +5749,13 @@
         ]
       },
       "properties": {
-        "PortID": "TWTXG",
-        "PortName": "臺中港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "臺中港",
+        "name_en": "Taichung",
+        "port_class": "國際商港",
+        "county": "臺中市",
+        "source": "TDX",
+        "source_id": "TWTXG",
+        "city_code": "TXG",
         "lat": 24.2605666,
         "lng": 120.5210644
       }
@@ -1025,10 +5770,13 @@
         ]
       },
       "properties": {
-        "PortID": "TWMZG",
-        "PortName": "澎湖港馬公碼頭區",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "澎湖港馬公碼頭區",
+        "name_en": "Magong, Penghu(1)",
+        "port_class": "國內商港",
+        "county": "澎湖縣",
+        "source": "TDX",
+        "source_id": "TWMZG",
+        "city_code": "PEN",
         "lat": 23.5631091150989,
         "lng": 119.564422964545
       }
@@ -1043,10 +5791,13 @@
         ]
       },
       "properties": {
-        "PortID": "CNLGQ",
-        "PortName": "福州琅岐港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "福州琅岐港",
+        "name_en": "LGQ",
+        "port_class": "對岸港口",
+        "county": "福建省",
+        "source": "TDX",
+        "source_id": "CNLGQ",
+        "city_code": "FJ",
         "lat": 26.11556,
         "lng": 119.57386
       }
@@ -1061,30 +5812,15 @@
         ]
       },
       "properties": {
-        "PortID": "TW019",
-        "PortName": "大稻埕碼頭",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "大稻埕碼頭",
+        "name_en": "Dadaocheng Wharf",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "臺北市",
+        "source": "TDX",
+        "source_id": "TW019",
+        "city_code": "TPE",
         "lat": 25.05686137,
         "lng": 121.5071953
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.6034501,
-          23.6684931
-        ]
-      },
-      "properties": {
-        "PortID": "TW028",
-        "PortName": "赤崁漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.6684931,
-        "lng": 119.6034501
       }
     },
     {
@@ -1097,48 +5833,15 @@
         ]
       },
       "properties": {
-        "PortID": "TW068",
-        "PortName": "愛之船仁愛站",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "愛之船仁愛站",
+        "name_en": "Love Boat Renai Port Station",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "高雄市",
+        "source": "TDX",
+        "source_id": "TW068",
+        "city_code": "KHH",
         "lat": 22.6261,
         "lng": 120.28819
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.5100679,
-          23.26684652
-        ]
-      },
-      "properties": {
-        "PortID": "TW048",
-        "PortName": "澎湖西嶼坪碼頭",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.26684652,
-        "lng": 119.5100679
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.9336903,
-          25.96930124
-        ]
-      },
-      "properties": {
-        "PortID": "TW009",
-        "PortName": "西莒青帆港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 25.96930124,
-        "lng": 119.9336903
       }
     },
     {
@@ -1151,10 +5854,13 @@
         ]
       },
       "properties": {
-        "PortID": "CNSIJ",
-        "PortName": "泉州石井",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "泉州石井",
+        "name_en": "ShinJing",
+        "port_class": "對岸港口",
+        "county": "福建省",
+        "source": "TDX",
+        "source_id": "CNSIJ",
+        "city_code": "FJ",
         "lat": 24.62974,
         "lng": 118.43487
       }
@@ -1169,10 +5875,13 @@
         ]
       },
       "properties": {
-        "PortID": "TW020",
-        "PortName": "關渡碼頭",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "關渡碼頭",
+        "name_en": "Guandu Wharf",
+        "port_class": "渡輪/觀光碼頭",
+        "county": "臺北市",
+        "source": "TDX",
+        "source_id": "TW020",
+        "city_code": "TPE",
         "lat": 25.12072438,
         "lng": 121.4605815
       }
@@ -1187,120 +5896,15 @@
         ]
       },
       "properties": {
-        "PortID": "TWPNH",
-        "PortName": "澎湖港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "澎湖港",
+        "name_en": "Penghu",
+        "port_class": "國內商港",
+        "county": "澎湖縣",
+        "source": "TDX",
+        "source_id": "TWPNH",
+        "city_code": "PEN",
         "lat": 23.56312688,
         "lng": 119.5646066
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.9689774,
-          26.20572337
-        ]
-      },
-      "properties": {
-        "PortID": "TW008",
-        "PortName": "北竿白沙港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 26.20572337,
-        "lng": 119.9689774
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.674513902784,
-          23.5601349833647
-        ]
-      },
-      "properties": {
-        "PortID": "TWLGM",
-        "PortName": "澎湖港龍門尖山碼頭區",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.5601349833647,
-        "lng": 119.674513902784
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          120.3579281,
-          22.50863027
-        ]
-      },
-      "properties": {
-        "PortID": "TW023",
-        "PortName": "鳳鼻頭漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 22.50863027,
-        "lng": 120.3579281
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          119.5710198,
-          23.58500833
-        ]
-      },
-      "properties": {
-        "PortID": "TW046",
-        "PortName": "澎湖重光漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 23.58500833,
-        "lng": 119.5710198
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          120.4842967,
-          26.36367178
-        ]
-      },
-      "properties": {
-        "PortID": "TW011",
-        "PortName": "東引中柱港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 26.36367178,
-        "lng": 120.4842967
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          121.5087776,
-          22.05758258
-        ]
-      },
-      "properties": {
-        "PortID": "TWKYD",
-        "PortName": "蘭嶼開元漁港",
-        "PortName_En": "",
-        "Source": "ferry_port",
-        "lat": 22.05758258,
-        "lng": 121.5087776
       }
     },
     {
@@ -1313,10 +5917,13 @@
         ]
       },
       "properties": {
-        "PortID": "TWWOT",
-        "PortName": "望安港",
-        "PortName_En": "",
-        "Source": "ferry_port",
+        "name": "望安港",
+        "name_en": "Wonan",
+        "port_class": "客運港",
+        "county": "澎湖縣",
+        "source": "TDX",
+        "source_id": "TWWOT",
+        "city_code": "PEN",
         "lat": 23.36188,
         "lng": 119.50824
       }
