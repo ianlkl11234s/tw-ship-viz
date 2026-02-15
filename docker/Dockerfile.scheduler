@@ -2,21 +2,22 @@
 FROM python:3.12-slim
 WORKDIR /app
 
-# 安裝 cron
-RUN apt-get update && apt-get install -y --no-install-recommends cron && rm -rf /var/lib/apt/lists/*
+# 時區 + cron
+ENV TZ=Asia/Taipei
+RUN apt-get update && apt-get install -y --no-install-recommends cron tzdata \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY scripts/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY scripts/ ./scripts/
 
-# 建立 cron 任務：每 10 分鐘同步 S3 + 產出 Arrow
-RUN echo "*/10 * * * * cd /app && python3 scripts/import_to_db.py --incremental >> /var/log/cron.log 2>&1 && python3 scripts/generate_arrow.py --days 7 >> /var/log/cron.log 2>&1" > /etc/cron.d/ship-update \
-    && chmod 0644 /etc/cron.d/ship-update \
-    && crontab /etc/cron.d/ship-update \
-    && touch /var/log/cron.log
-
 # data + arrow-data volumes
 VOLUME ["/app/data", "/app/arrow-data"]
 
-CMD ["cron", "-f"]
+# cron 由 start script 動態建立（繼承環境變數）
+COPY docker/scheduler-start.sh ./start.sh
+RUN chmod +x start.sh
+
+CMD ["./start.sh"]
