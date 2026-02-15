@@ -162,18 +162,30 @@ class FrameIndex {
    * @param {number} frameIdx
    * @returns {{ positions: Float32Array, count: number } | null}
    */
-  getFramePositionsFlat(frameIdx) {
+  getFramePositionsFlat(frameIdx, vesselFilter = null) {
     if (frameIdx < 0 || frameIdx >= this._frameTimes.length) return null;
     const start = this._starts[frameIdx];
     const end = this._starts[frameIdx + 1];
-    const count = end - start;
-    const positions = new Float32Array(count * 2);
-    for (let i = start; i < end; i++) {
-      const j = (i - start) * 2;
-      positions[j] = this._lonCol.get(i);
-      positions[j + 1] = this._latCol.get(i);
+
+    if (!vesselFilter) {
+      const count = end - start;
+      const positions = new Float32Array(count * 2);
+      for (let i = start; i < end; i++) {
+        const j = (i - start) * 2;
+        positions[j] = this._lonCol.get(i);
+        positions[j + 1] = this._latCol.get(i);
+      }
+      return { positions, count };
     }
-    return { positions, count };
+
+    // 有篩選：先收集再建 TypedArray
+    const buf = [];
+    for (let i = start; i < end; i++) {
+      if (!vesselFilter.has(this._vtypeCol.get(i))) continue;
+      buf.push(this._lonCol.get(i), this._latCol.get(i));
+    }
+    const count = buf.length / 2;
+    return { positions: new Float32Array(buf), count };
   }
 
   /**

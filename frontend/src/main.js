@@ -2,7 +2,7 @@ import { MapboxOverlay } from '@deck.gl/mapbox';
 import { initMap, setTheme, getCurrentTheme } from './map.js';
 import { loadTrajectoryData, loadPositionsData } from './data/loader.js';
 import { arrowToTrips, buildFrameIndex, jsonToTrips, jsonToFrameIndex } from './data/transform.js';
-import { createTrajectoryLayers, preprocessTrips, bakeAllColors } from './layers/trips.js';
+import { createTrajectoryLayers, preprocessTrips, bakeAllColors, createShipHighlightLayer, createSelectedShipTrajectoryLayers, getShipPositionByMmsi } from './layers/trips.js';
 import { createGridLayers } from './layers/grid.js';
 import { createHexagonLayers } from './layers/hexagon.js';
 import { updateNativeHeatmap, hideNativeHeatmap } from './layers/heatmap.js';
@@ -11,7 +11,7 @@ import { createPortLayers } from './layers/ports.js';
 import { initTimeline, getCurrentTime } from './controls/timeline.js';
 import { initQueryControls, enableQueryMode, disableQueryMode, handlePick } from './controls/query.js';
 import { updateLegend } from './ui/legends.js';
-import { VESSEL_CATEGORIES, VESSEL_CODE_TO_CATEGORY } from './utils/constants.js';
+import { VESSEL_CATEGORIES, VESSEL_CODE_TO_CATEGORY, VESSEL_TYPE_NAMES } from './utils/constants.js';
 import './style.css';
 
 // === 全域狀態 ===
@@ -27,12 +27,19 @@ let queryShips = [];         // 查詢模式船舶散點
 let portFeatures = null;     // 港口 GeoJSON features
 let showPorts = true;        // 港口圖層顯示開關
 
+// === 船舶選擇與追蹤 ===
+let selectedShip = null;      // { mmsi, vesselType, avgSog, trackPoints }
+let selectedPort = null;      // { name, portClass, county, radius }
+let showTrajectory = false;
+let followShip = false;
+
 // === 主題與配色 ===
 let themeMode = 'auto';           // 'day' | 'night' | 'auto'
 let currentColorPalette = 'speed'; // 'speed' | 'blue' | 'warm' | 'neon'
 
 // === 軌跡篩選快取（只在篩選條件變化時重建，不再每幀 .filter()）===
 let _filteredTrips = null;
+let _activeVesselTypes = null; // Set<number> — 密度/六角/熱力圖用
 
 function rebuildFilteredTrips() {
   if (!tripsData) { _filteredTrips = null; return; }
@@ -41,8 +48,16 @@ function rebuildFilteredTrips() {
       const cat = VESSEL_CODE_TO_CATEGORY[d.vesselType];
       return cat && activeCategories.has(cat);
     });
+    // 建立 vessel type code Set（供 frameIndex 篩選用）
+    const codes = new Set();
+    for (const cat of activeCategories) {
+      const entry = VESSEL_CATEGORIES[cat];
+      if (entry) for (const c of entry.codes) codes.add(c);
+    }
+    _activeVesselTypes = codes;
   } else {
     _filteredTrips = tripsData;
+    _activeVesselTypes = null;
   }
 }
 
@@ -69,7 +84,14 @@ async function init() {
       interleaved: false,
       layers: [],
       onClick: (info) => {
-        if (currentMode === 'query') handlePick(info);
+        if (currentMode === 'query') { handlePick(info); return; }
+        handleMapClick(info);
+      },
+      onHover: (info) => {
+        const canvas = map.getCanvas();
+        const id = info.layer?.id || '';
+        const clickable = ['ship-positions-layer', 'port-dots', 'port-labels'].includes(id);
+        canvas.style.cursor = info.object && clickable ? 'pointer' : '';
       },
     });
     map.addControl(deckOverlay);
@@ -103,6 +125,11 @@ async function init() {
 
     // zoom 改變時重繪港口圖層（控制標籤顯示密度）
     map.on('zoomend', () => { updateLayers(getCurrentTime()); });
+
+    // 地圖拖曳取消追蹤
+    map.on('dragstart', () => {
+      if (followShip) { followShip = false; updateShipDetailCard(); }
+    });
   });
 }
 
@@ -232,12 +259,23 @@ function updateLayers(currentTime) {
       if (_filteredTrips) {
         layers = createTrajectoryLayers(_filteredTrips, currentTime, theme);
       }
+      // 選中船舶高亮 + 軌跡
+      if (selectedShip && tripsData) {
+        if (showTrajectory) {
+          layers = layers.concat(createSelectedShipTrajectoryLayers(selectedShip.mmsi, tripsData, theme));
+        }
+        const hlLayer = createShipHighlightLayer(selectedShip, tripsData, currentTime, theme);
+        if (hlLayer) layers.push(hlLayer);
+        // 相機追蹤
+        if (followShip) followSelectedShip(currentTime);
+      }
       break;
     case 'density':
     case 'hexbin': {
-      // 幀快取：資料每 10 分鐘才變一次，同一幀 + 同模式/主題 → 跳過
+      // 幀快取：資料每 10 分鐘才變一次，同一幀 + 同模式/主題/篩選 → 跳過
       const frameIdx = getFrameIdx(currentTime);
-      const key = `${currentMode}|${theme}|${frameIdx}`;
+      const filterKey = _activeVesselTypes ? [..._activeVesselTypes].sort().join(',') : 'all';
+      const key = `${currentMode}|${theme}|${frameIdx}|${filterKey}`;
       if (key === _cachedLayerKey) return;
       _cachedLayerKey = key;
       const positions = getFramePositions(currentTime);
@@ -250,11 +288,12 @@ function updateLayers(currentTime) {
     }
     case 'heatmap': {
       const frameIdx = getFrameIdx(currentTime);
-      const key = `heatmap|${theme}|${frameIdx}`;
+      const filterKey = _activeVesselTypes ? [..._activeVesselTypes].sort().join(',') : 'all';
+      const key = `heatmap|${theme}|${frameIdx}|${filterKey}`;
       if (key === _cachedLayerKey) return;
       _cachedLayerKey = key;
       // MapLibre 原生 heatmap — 不走 deck.gl，layers 保持空
-      updateNativeHeatmap(map, frameIndex, frameIdx, theme);
+      updateNativeHeatmap(map, frameIndex, frameIdx, theme, _activeVesselTypes);
       break;
     }
     case 'query':
@@ -296,7 +335,7 @@ function getFramePositions(currentTime) {
   if (idx < 0) return [];
   if (idx === _cachedFrameIdx) return _cachedPositions;
   _cachedFrameIdx = idx;
-  _cachedPositions = frameIndex.getFrame(idx);
+  _cachedPositions = frameIndex.getFrame(idx, _activeVesselTypes);
   return _cachedPositions;
 }
 
@@ -347,6 +386,9 @@ function setupTabs() {
       if (prevMode === 'heatmap' && mode !== 'heatmap') {
         hideNativeHeatmap(map);
       }
+
+      // 切換模式時清除選擇
+      deselectShip();
 
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
@@ -400,6 +442,12 @@ function onFilterChange() {
     ? null
     : new Set(checked);
   rebuildFilteredTrips(); // 只在篩選條件變化時重建，後續每幀用同一引用
+  invalidateFrameCache(); // 清除密度/六角/熱力圖的幀快取
+  // 若選中的船舶被篩掉，清除選擇
+  if (selectedShip && activeCategories) {
+    const cat = VESSEL_CODE_TO_CATEGORY[selectedShip.vesselType];
+    if (!cat || !activeCategories.has(cat)) deselectShip();
+  }
   updateLayers(getCurrentTime());
   updateStats(getCurrentTime());
 }
@@ -497,10 +545,131 @@ function setupInfoModal() {
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.classList.remove('show');
   });
-  // ESC 關閉
+  // ESC 關閉 modal + 船舶卡片
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') modal.classList.remove('show');
+    if (e.key === 'Escape') {
+      modal.classList.remove('show');
+      deselectShip();
+    }
   });
+}
+
+// === 地圖點選處理 ===
+function handleMapClick(info) {
+  if (currentMode !== 'trajectory') return;
+
+  const layerId = info.layer?.id || '';
+
+  if (info.object && layerId === 'ship-positions-layer') {
+    selectShip(info.object);
+  } else if (info.object && (layerId === 'port-dots' || layerId === 'port-labels')) {
+    selectPort(info.object);
+  } else {
+    deselectShip();
+  }
+}
+
+// === 船舶選擇 ===
+function selectShip(shipData) {
+  if (!tripsData) return;
+  const { mmsi, vesselType, avgSog } = shipData;
+
+  // 計算總軌跡點數
+  let trackPoints = 0;
+  for (const trip of tripsData) {
+    if (trip.mmsi === mmsi) trackPoints += trip.path.length;
+  }
+
+  selectedShip = { mmsi, vesselType, avgSog, trackPoints };
+  selectedPort = null;
+  showTrajectory = false;
+  followShip = false;
+  updateShipDetailCard();
+  updateLayers(getCurrentTime());
+}
+
+function selectPort(portData) {
+  selectedShip = null;
+  selectedPort = {
+    name: portData.name || '--',
+    portClass: portData.portClass || '--',
+    county: portData.county || '--',
+    radius: portData.radius || 0,
+  };
+  showTrajectory = false;
+  followShip = false;
+  updateShipDetailCard();
+  updateLayers(getCurrentTime());
+}
+
+function deselectShip() {
+  if (!selectedShip && !selectedPort) return;
+  selectedShip = null;
+  selectedPort = null;
+  showTrajectory = false;
+  followShip = false;
+  const card = document.getElementById('shipDetailCard');
+  if (card) card.classList.remove('show');
+  updateLayers(getCurrentTime());
+}
+
+// === 資訊卡片更新 ===
+function updateShipDetailCard() {
+  const card = document.getElementById('shipDetailCard');
+  if (!card) return;
+
+  if (selectedShip) {
+    const typeName = VESSEL_TYPE_NAMES[selectedShip.vesselType] || `類型 ${selectedShip.vesselType}`;
+    const sog = selectedShip.avgSog != null ? selectedShip.avgSog.toFixed(1) : '--';
+    const trajBtnClass = showTrajectory ? 'ship-card-btn active' : 'ship-card-btn';
+    const followBtnClass = followShip ? 'ship-card-btn active' : 'ship-card-btn';
+    card.innerHTML = `
+      <button class="ship-card-close" onclick="window._deselectShip()">&times;</button>
+      <div class="ship-card-title">${typeName}</div>
+      <div class="ship-card-row"><span class="ship-card-label">MMSI</span><span class="ship-card-value">${selectedShip.mmsi}</span></div>
+      <div class="ship-card-row"><span class="ship-card-label">平均速度</span><span class="ship-card-value">${sog} kn</span></div>
+      <div class="ship-card-row"><span class="ship-card-label">軌跡點數</span><span class="ship-card-value">${selectedShip.trackPoints.toLocaleString()}</span></div>
+      <div class="ship-card-actions">
+        <button class="${trajBtnClass}" onclick="window._toggleTrajectory()">顯示軌跡</button>
+        <button class="${followBtnClass}" onclick="window._toggleFollow()">追蹤</button>
+      </div>
+    `;
+    card.classList.add('show');
+  } else if (selectedPort) {
+    const radius = selectedPort.radius ? `${(selectedPort.radius / 1000).toFixed(1)} km` : '--';
+    card.innerHTML = `
+      <button class="ship-card-close" onclick="window._deselectShip()">&times;</button>
+      <div class="ship-card-title">${selectedPort.name}</div>
+      <div class="ship-card-row"><span class="ship-card-label">類型</span><span class="ship-card-value">${selectedPort.portClass}</span></div>
+      <div class="ship-card-row"><span class="ship-card-label">縣市</span><span class="ship-card-value">${selectedPort.county}</span></div>
+      <div class="ship-card-row"><span class="ship-card-label">圍欄半徑</span><span class="ship-card-value">${radius}</span></div>
+    `;
+    card.classList.add('show');
+  } else {
+    card.classList.remove('show');
+  }
+}
+
+// 全域函式（供卡片按鈕使用）
+window._deselectShip = () => deselectShip();
+window._toggleTrajectory = () => {
+  showTrajectory = !showTrajectory;
+  updateShipDetailCard();
+  updateLayers(getCurrentTime());
+};
+window._toggleFollow = () => {
+  followShip = !followShip;
+  updateShipDetailCard();
+  if (followShip) followSelectedShip(getCurrentTime());
+};
+
+// === 相機追蹤 ===
+function followSelectedShip(currentTime) {
+  if (!selectedShip || !followShip || !tripsData) return;
+  const result = getShipPositionByMmsi(selectedShip.mmsi, tripsData, currentTime);
+  if (result) {
+    map.jumpTo({ center: result.position });
+  }
 }
 
 // === 查詢 API 檢測 ===

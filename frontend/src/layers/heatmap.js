@@ -80,8 +80,8 @@ function ensureLayers(map, theme) {
 
 // === GeoJSON 建構 ===
 
-function buildGeoJSON(frameIndex, frameIdx) {
-  const flatData = frameIndex.getFramePositionsFlat(frameIdx);
+function buildGeoJSON(frameIndex, frameIdx, vesselFilter) {
+  const flatData = frameIndex.getFramePositionsFlat(frameIdx, vesselFilter);
   if (!flatData) return null;
 
   const { positions, count } = flatData;
@@ -104,10 +104,10 @@ function buildGeoJSON(frameIndex, frameIdx) {
  * 更新熱力圖（幀變化時呼叫）。
  * 雙 layer 交替 + MapLibre paint transition → 平滑 cross-fade。
  */
-export function updateNativeHeatmap(map, frameIndex, frameIdx, theme) {
+export function updateNativeHeatmap(map, frameIndex, frameIdx, theme, vesselFilter = null) {
   ensureLayers(map, theme);
 
-  const geojson = buildGeoJSON(frameIndex, frameIdx);
+  const geojson = buildGeoJSON(frameIndex, frameIdx, vesselFilter);
   if (!geojson) return;
 
   // 載入新資料到「非活躍」slot
