@@ -4,103 +4,85 @@
  */
 import { TripsLayer } from '@deck.gl/geo-layers';
 import { ScatterplotLayer } from '@deck.gl/layers';
-import { getSpeedColor, VESSEL_CODE_TO_CATEGORY } from '../utils/constants.js';
+import { getSpeedColor } from '../utils/constants.js';
 
 /**
  * 建立軌跡動畫的 deck.gl layers。
  *
- * @param {Array} tripsData - arrowToTrips() 的輸出
+ * data 應由呼叫端預先篩選並快取，確保同一篩選條件下引用不變，
+ * 讓 deck.gl 只更新 currentTime uniform 而不重建 GPU buffer。
+ *
+ * @param {Array} data - 已篩選的 trips 資料（引用穩定）
  * @param {number} currentTime - 當前時間（秒，相對 base_timestamp）
  * @param {string} theme - 'day' | 'night'
- * @param {Set|null} vesselFilter - 允許的 category key 集合，null = 全部
  * @returns {Array} deck.gl Layer 陣列
  */
-export function createTrajectoryLayers(tripsData, currentTime, theme = 'day', vesselFilter = null) {
-  // 篩選船舶類型
-  const filteredData = vesselFilter
-    ? tripsData.filter(d => {
-        const cat = VESSEL_CODE_TO_CATEGORY[d.vesselType];
-        return cat && vesselFilter.has(cat);
-      })
-    : tripsData;
-
+export function createTrajectoryLayers(data, currentTime, theme = 'day') {
   const tripsLayer = new TripsLayer({
     id: 'trips-layer',
-    data: filteredData,
+    data,
     getPath: d => d.path,
     getTimestamps: d => d.timestamps,
-    getColor: d => {
-      const rgb = getSpeedColor(d.avgSog || 5, theme);
-      // 短軌跡（<6 點）降低透明度，減少「突然冒出」的視覺衝擊
-      const alpha = d.path.length < 6 ? 120 : 200;
-      return [...rgb, alpha];
-    },
+    getColor: d => d._color,
     getWidth: 2,
     widthMinPixels: 2,
     widthMaxPixels: 4,
-    trailLength: 1800, // 尾跡 30 分鐘（秒）
+    trailLength: 1800,
     currentTime,
     opacity: 0.8,
     rounded: true,
-    updateTriggers: {
-      getColor: [theme],
-    },
   });
 
   // 船頭位置（ScatterplotLayer）：顯示在 currentTime 時刻活躍的船舶
-  const shipPositions = getShipPositionsAtTime(filteredData, currentTime);
+  const shipPositions = getShipPositionsAtTime(data, currentTime);
 
   const scatterLayer = new ScatterplotLayer({
     id: 'ship-positions-layer',
     data: shipPositions,
     getPosition: d => d.position,
-    getFillColor: d => [...getSpeedColor(d.sog, theme), 240],
+    getFillColor: d => d.color,
     getRadius: 3,
     radiusMinPixels: 3,
     radiusMaxPixels: 6,
     radiusUnits: 'pixels',
     opacity: 0.95,
-    updateTriggers: {
-      getFillColor: [theme],
-    },
   });
 
   return [tripsLayer, scatterLayer];
 }
 
 /**
- * 根據 currentTime 計算每艘船的插值位置。
+ * 根據 currentTime 用二分搜尋計算每艘船的插值位置。
  */
 function getShipPositionsAtTime(tripsData, currentTime) {
   const positions = [];
 
   for (const trip of tripsData) {
-    const { timestamps, path, mmsi, vesselType } = trip;
-    if (timestamps.length === 0) continue;
+    const { timestamps, path, mmsi, vesselType, _dotColor } = trip;
+    const len = timestamps.length;
+    if (len === 0) continue;
 
-    // 找到 currentTime 落在哪兩個時間點之間
-    if (currentTime < timestamps[0] || currentTime > timestamps[timestamps.length - 1]) {
-      continue; // 不在這艘船的時間範圍內
+    if (currentTime < timestamps[0] || currentTime > timestamps[len - 1] + 600) {
+      continue;
     }
 
-    let idx = -1;
-    for (let i = 0; i < timestamps.length - 1; i++) {
-      if (timestamps[i] <= currentTime && currentTime <= timestamps[i + 1]) {
-        idx = i;
-        break;
-      }
+    // 二分搜尋：找最後一個 <= currentTime 的索引
+    let lo = 0, hi = len - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >>> 1;
+      if (timestamps[mid] <= currentTime) lo = mid;
+      else hi = mid - 1;
     }
+    const idx = lo;
 
-    if (idx === -1) {
-      // 剛好在最後一個時間點
-      if (currentTime >= timestamps[timestamps.length - 1] &&
-          currentTime - timestamps[timestamps.length - 1] < 600) { // 10 分鐘內
-        const last = path[path.length - 1];
+    if (idx >= len - 1) {
+      // 在最後一個點附近（10 分鐘內）
+      if (currentTime - timestamps[len - 1] < 600) {
         positions.push({
-          position: last,
+          position: path[len - 1],
           mmsi,
           vesselType,
-          sog: trip.avgSog || 5,
+          color: _dotColor,
         });
       }
       continue;
@@ -110,17 +92,14 @@ function getShipPositionsAtTime(tripsData, currentTime) {
     const t0 = timestamps[idx];
     const t1 = timestamps[idx + 1];
     const ratio = (t1 > t0) ? (currentTime - t0) / (t1 - t0) : 0;
-
     const p0 = path[idx];
     const p1 = path[idx + 1];
-    const lon = p0[0] + (p1[0] - p0[0]) * ratio;
-    const lat = p0[1] + (p1[1] - p0[1]) * ratio;
 
     positions.push({
-      position: [lon, lat],
+      position: [p0[0] + (p1[0] - p0[0]) * ratio, p0[1] + (p1[1] - p0[1]) * ratio],
       mmsi,
       vesselType,
-      sog: trip.avgSog || 5,
+      color: _dotColor,
     });
   }
 
@@ -128,11 +107,18 @@ function getShipPositionsAtTime(tripsData, currentTime) {
 }
 
 /**
- * 預處理 trips 資料：計算每艘船的平均速度（用於著色）。
- * 在資料載入後呼叫一次。
+ * 預處理 trips 資料：計算平均速度 + 預烘焙顏色。
+ * 在資料載入後呼叫一次，避免每幀重複計算。
  */
 export function preprocessTrips(tripsData, arrowTable) {
-  if (!arrowTable) return tripsData;
+  if (!arrowTable) {
+    // 無 Arrow 表時用預設顏色
+    for (const trip of tripsData) {
+      trip.avgSog = 5;
+      _bakeColors(trip, 'day');
+    }
+    return tripsData;
+  }
 
   const sogCol = arrowTable.getChild('sog');
   const mmsiCol = arrowTable.getChild('mmsi');
@@ -155,5 +141,24 @@ export function preprocessTrips(tripsData, arrowTable) {
     trip.avgSog = sum / count;
   }
 
+  // 預烘焙顏色（初始用 day 主題，切換時會重新烘焙）
+  bakeAllColors(tripsData, 'day');
+
   return tripsData;
+}
+
+/**
+ * 為所有 trips 預烘焙顏色。主題切換時呼叫。
+ */
+export function bakeAllColors(tripsData, theme) {
+  for (const trip of tripsData) {
+    _bakeColors(trip, theme);
+  }
+}
+
+function _bakeColors(trip, theme) {
+  const rgb = getSpeedColor(trip.avgSog || 5, theme);
+  const alpha = trip.path.length < 6 ? 120 : 200;
+  trip._color = [rgb[0], rgb[1], rgb[2], alpha];
+  trip._dotColor = [rgb[0], rgb[1], rgb[2], 240];
 }

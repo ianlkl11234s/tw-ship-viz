@@ -2,7 +2,7 @@ import { MapboxOverlay } from '@deck.gl/mapbox';
 import { initMap, toggleTheme, getCurrentTheme } from './map.js';
 import { loadTrajectoryData, loadPositionsData } from './data/loader.js';
 import { arrowToTrips, buildFrameIndex, jsonToTrips, jsonToFrameIndex } from './data/transform.js';
-import { createTrajectoryLayers, preprocessTrips } from './layers/trips.js';
+import { createTrajectoryLayers, preprocessTrips, bakeAllColors } from './layers/trips.js';
 import { createGridLayers } from './layers/grid.js';
 import { createHexagonLayers } from './layers/hexagon.js';
 import { updateNativeHeatmap, hideNativeHeatmap } from './layers/heatmap.js';
@@ -11,7 +11,7 @@ import { createPortLayers } from './layers/ports.js';
 import { initTimeline, getCurrentTime } from './controls/timeline.js';
 import { initQueryControls, enableQueryMode, disableQueryMode, handlePick } from './controls/query.js';
 import { updateLegend } from './ui/legends.js';
-import { VESSEL_CATEGORIES } from './utils/constants.js';
+import { VESSEL_CATEGORIES, VESSEL_CODE_TO_CATEGORY } from './utils/constants.js';
 import './style.css';
 
 // === 全域狀態 ===
@@ -26,6 +26,21 @@ let queryResults = [];       // 查詢模式軌跡結果
 let queryShips = [];         // 查詢模式船舶散點
 let portFeatures = null;     // 港口 GeoJSON features
 let showPorts = true;        // 港口圖層顯示開關
+
+// === 軌跡篩選快取（只在篩選條件變化時重建，不再每幀 .filter()）===
+let _filteredTrips = null;
+
+function rebuildFilteredTrips() {
+  if (!tripsData) { _filteredTrips = null; return; }
+  if (activeCategories) {
+    _filteredTrips = tripsData.filter(d => {
+      const cat = VESSEL_CODE_TO_CATEGORY[d.vesselType];
+      return cat && activeCategories.has(cat);
+    });
+  } else {
+    _filteredTrips = tripsData;
+  }
+}
 
 // === 幀快取（避免 60fps 下每幀都重建資料和 Layer）===
 let _cachedFrameIdx = -1;
@@ -128,6 +143,7 @@ async function loadData() {
   const minTime = frameTimes.length > 0 ? frameTimes[0] : 0;
   const maxTime = frameTimes.length > 0 ? frameTimes[frameTimes.length - 1] : 0;
 
+  rebuildFilteredTrips();
   console.log(`[ship-gis] 資料載入完成: ${tripsData.length} 艘船軌跡, ${frameTimes.length} 幀, 時間 ${minTime}-${maxTime}s`);
 
   // 初始化時間軸
@@ -154,9 +170,9 @@ function updateLayers(currentTime) {
 
   switch (currentMode) {
     case 'trajectory':
-      // 軌跡模式每幀都需更新（TripsLayer 用 currentTime 做動畫插值）
-      if (tripsData) {
-        layers = createTrajectoryLayers(tripsData, currentTime, theme, activeCategories);
+      // 軌跡模式每幀更新 currentTime（TripsLayer data 引用不變，只更新 uniform）
+      if (_filteredTrips) {
+        layers = createTrajectoryLayers(_filteredTrips, currentTime, theme);
       }
       break;
     case 'density':
@@ -232,13 +248,9 @@ function updateStats(currentTime) {
   const statShips = document.getElementById('statShips');
   if (!statShips) return;
 
-  if (currentMode === 'trajectory' && tripsData) {
+  if (currentMode === 'trajectory' && _filteredTrips) {
     let count = 0;
-    for (const trip of tripsData) {
-      if (activeCategories) {
-        const cat = getCategoryForVessel(trip.vesselType);
-        if (!activeCategories.has(cat)) continue;
-      }
+    for (const trip of _filteredTrips) {
       const ts = trip.timestamps;
       if (ts.length > 0 && currentTime >= ts[0] && currentTime <= ts[ts.length - 1]) {
         count++;
@@ -253,13 +265,6 @@ function updateStats(currentTime) {
     _lastStatsKey = key;
     statShips.textContent = frameIndex.getFrameCount(frameIdx).toLocaleString();
   }
-}
-
-function getCategoryForVessel(vtype) {
-  for (const [key, { codes }] of Object.entries(VESSEL_CATEGORIES)) {
-    if (codes.includes(vtype)) return key;
-  }
-  return 'unknown';
 }
 
 // === Tab 模式切換 ===
@@ -335,6 +340,7 @@ function onFilterChange() {
   activeCategories = (checked.length === Object.keys(VESSEL_CATEGORIES).length)
     ? null
     : new Set(checked);
+  rebuildFilteredTrips(); // 只在篩選條件變化時重建，後續每幀用同一引用
   updateLayers(getCurrentTime());
   updateStats(getCurrentTime());
 }
@@ -358,6 +364,7 @@ function setupThemeToggle() {
     const theme = toggleTheme();
     themeBtn.textContent = theme === 'day' ? '\u263D' : '\u2600';
     invalidateFrameCache();
+    if (tripsData) bakeAllColors(tripsData, theme); // 重新烘焙所有軌跡顏色
     updateLegend(currentMode, theme);
     map.once('style.load', () => {
       if (deckOverlay) {
