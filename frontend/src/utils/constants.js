@@ -19,6 +19,12 @@ export const GEO_BOUNDS = {
 export const TRAIL_LENGTH_SEC = 3600; // TripsLayer 尾跡長度（秒），約 6 幀 × 600s
 export const MAX_DISTANCE_KM = 20;    // 10 分鐘內最大合理移動距離
 
+// === Gap 拆分閾值（秒）===
+export const GAP_THRESHOLDS = {
+  NORMAL_MAX: 14400,   // 4hr — 小於此為正常（不切）
+  INFERRED_MAX: 28800, // 8hr — 4~8hr 為推測航段（虛線）；>= 8hr 完全斷開
+};
+
 // === 播放速度配置 ===
 export const PLAY_SPEEDS = [1, 2, 4, 8];
 export const BASE_INTERVALS = {
@@ -126,6 +132,12 @@ export function getDensityColor(count, theme = 'day') {
   else { colorIdx = 6; alpha = 230; }
   return [...c[colorIdx], alpha];
 }
+
+// === 選擇高亮配色 ===
+export const SELECTION_COLORS = {
+  day:   { highlight: [255,193,7,120], stroke: [255,193,7,255], trajectory: [255,152,0] },
+  night: { highlight: [255,214,0,120], stroke: [255,214,0,255], trajectory: [255,193,7] },
+};
 
 /** 查詢模式的船舶圓點色彩 */
 export function getVesselDotColor(vtype) {
