@@ -28,8 +28,9 @@ COPY api/ ./api/
 COPY scripts/ ./scripts/
 COPY --from=frontend-build /app/dist ./frontend/dist/
 
-# 資料目錄
+# 資料目錄 + 地理參考檔案（港口圍欄 + 陸地多邊形）
 RUN mkdir -p data frontend/public/data
+COPY data/ports.geojson data/taiwan_land.json ./data/
 
 # 啟動腳本
 COPY docker/unified-start.sh ./start.sh
