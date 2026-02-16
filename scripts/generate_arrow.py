@@ -6,6 +6,10 @@
   - positions.arrow: 所有船舶位置（密度/六角/熱力圖模式用）
   - trajectory.arrow: 船舶軌跡，按 MMSI 排序（軌跡動畫用）
 
+記憶體最佳化：兩階段串流處理，峰值 < 500 MB。
+  - Pass 1: positions.arrow — 逐時間幀串流，一次只在記憶體中保留一個 slot
+  - Pass 2: trajectory.arrow — 逐船串流（ORDER BY mmsi），一次只處理一艘船
+
 切段邏輯（方案 D）：
   - MMSI 切換 → 切（不同船）
   - 速度 > 45kt → 切（GPS 異常 / MMSI 共用）
@@ -19,13 +23,16 @@
 """
 
 import argparse
+import gc
 import json
 import math
 import os
 import shutil
 import sqlite3
+from array import array
 from datetime import datetime, timedelta
 
+import numpy as np
 import pyarrow as pa
 import pyarrow.ipc as ipc
 
@@ -322,13 +329,6 @@ def split_trajectory_geo(points, ports, land_polygons):
     3. 在港口內連續停泊 > 1hr → 切
 
     其他所有情況（含外海長時間停泊）→ 不切。
-
-    Args:
-        points: [(ts_sec, lon, lat, sog, cog, vtype), ...]（單一 MMSI，已按時間排序）
-        ports: 港口列表
-        land_polygons: 陸地多邊形列表
-    Returns:
-        list of segments，每段也是 [(ts_sec, lon, lat, sog, cog, vtype), ...]
     """
     if len(points) <= 1:
         return [points] if points else []
@@ -337,7 +337,7 @@ def split_trajectory_geo(points, ports, land_polygons):
     current_seg = [points[0]]
 
     # 追蹤港內停泊狀態
-    port_dwell_start = None  # 進入港口且 sog≈0 的時間
+    port_dwell_start = None
     in_port_stopped = False
 
     for i in range(1, len(points)):
@@ -392,12 +392,7 @@ def split_trajectory_geo(points, ports, land_polygons):
 # ============================================================
 
 def apply_anchor_strategy(points):
-    """低速點（sog < 0.5）只保留邊界錨點，減少資料量。
-
-    - 移動→停 的第一個低速點 → 保留
-    - 停→移動 前的最後低速點 → 保留
-    - 連續停泊中間 → 跳過
-    """
+    """低速點（sog < 0.5）只保留邊界錨點，減少資料量。"""
     if len(points) <= 2:
         return points, 0
 
@@ -418,7 +413,7 @@ def apply_anchor_strategy(points):
 
 
 # ============================================================
-# 主流程
+# 共用工具
 # ============================================================
 
 def align_time(ts_str, interval_min=INTERVAL_MINUTES):
@@ -443,23 +438,24 @@ def get_time_range(args, cursor):
     return start_dt.isoformat(), end_dt.isoformat()
 
 
-def generate_arrow_files(args):
-    db_path = args.db_path or DB_PATH
-    output_dir = args.output_dir or OUTPUT_DIR
+def _query_params(start_ts, end_ts):
+    """共用 SQL WHERE 參數。"""
+    return (start_ts, end_ts, LON_MIN, LON_MAX, LAT_MIN, LAT_MAX)
 
-    os.makedirs(output_dir, exist_ok=True)
 
-    # 載入地理資料
-    ports = load_ports()
-    land_polygons = load_land_polygons()
+# ============================================================
+# Pass 1: positions.arrow（逐時間幀串流）
+# ============================================================
 
-    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+def generate_positions_arrow(conn, start_ts, end_ts, land_polygons, output_dir):
+    """產出 positions.arrow。
+
+    串流處理：一次只在記憶體中保留一個時間幀的 ship dict（~6000 entries）。
+    使用 array.array 儲存結果（4 bytes/element），比 Python list（~32 bytes/element）省 8 倍記憶體。
+
+    回傳共用 metadata dict，供 Pass 2 使用。
+    """
     cursor = conn.cursor()
-
-    start_ts, end_ts = get_time_range(args, cursor)
-    print(f"時間範圍: {start_ts} ~ {end_ts}")
-
-    # 查詢所有資料
     cursor.execute("""
         SELECT mmsi, timestamp, lon, lat, sog, cog, vessel_type
         FROM ship_positions
@@ -467,80 +463,97 @@ def generate_arrow_files(args):
           AND lon >= ? AND lon <= ?
           AND lat >= ? AND lat <= ?
         ORDER BY timestamp, mmsi
-    """, (start_ts, end_ts, LON_MIN, LON_MAX, LAT_MIN, LAT_MAX))
+    """, _query_params(start_ts, end_ts))
 
-    # 收集並按時間對齊
-    time_slots = {}
+    # array.array: 每個元素 4 bytes（float32/uint32）或 1 byte（uint8）
+    pos_ts = array('f')
+    pos_mmsi = array('I')
+    pos_lon = array('f')
+    pos_lat = array('f')
+    pos_sog = array('f')
+    pos_cog = array('f')
+    pos_vtype = array('B')
+
+    current_slot = None
+    slot_ships = {}
+    all_slots = []
+    base_ts = None
     row_count = 0
     skipped_mmsi = 0
+    land_removed = 0
+
+    def flush_slot():
+        nonlocal land_removed
+        ts_sec = datetime.fromisoformat(current_slot).timestamp() - base_ts
+        for mmsi_key, (lo, la, s, c, v) in slot_ships.items():
+            if land_polygons and point_on_land(lo, la, land_polygons):
+                land_removed += 1
+                continue
+            mmsi_int = int(mmsi_key) if isinstance(mmsi_key, str) else mmsi_key
+            pos_ts.append(ts_sec)
+            pos_mmsi.append(mmsi_int)
+            pos_lon.append(lo)
+            pos_lat.append(la)
+            pos_sog.append(s)
+            pos_cog.append(c)
+            pos_vtype.append(v)
+
     for mmsi, ts, lon, lat, sog, cog, vtype in cursor:
         if is_invalid_mmsi(mmsi):
             skipped_mmsi += 1
             continue
-        aligned = align_time(ts)
-        key = aligned.isoformat()
-        if key not in time_slots:
-            time_slots[key] = {}
-        time_slots[key][mmsi] = (lon, lat, sog or 0, cog or 0, vtype or 0)
         row_count += 1
 
-    conn.close()
-    print(f"原始資料: {row_count} 筆, 時間幀: {len(time_slots)} 個")
-    if skipped_mmsi > 0:
+        aligned = align_time(ts)
+        slot_key = aligned.isoformat()
+
+        if base_ts is None:
+            base_ts = aligned.timestamp()
+
+        if slot_key != current_slot:
+            if current_slot is not None:
+                flush_slot()
+                all_slots.append(current_slot)
+            current_slot = slot_key
+            slot_ships = {}
+
+        slot_ships[mmsi] = (lon, lat, sog or 0, cog or 0, vtype or 0)
+
+    # Flush last slot
+    if current_slot is not None and slot_ships:
+        flush_slot()
+        all_slots.append(current_slot)
+
+    print(f"原始資料: {row_count} 筆, 時間幀: {len(all_slots)} 個")
+    if skipped_mmsi:
         print(f"已過濾無效 MMSI: {skipped_mmsi} 筆")
+    if land_removed:
+        print(f"positions: 移除陸地上的點 {land_removed} 筆")
 
-    sorted_times = sorted(time_slots.keys())
-    base_dt = datetime.fromisoformat(sorted_times[0])
-    base_ts = base_dt.timestamp()
+    if not all_slots:
+        print("無有效資料")
+        return None
 
-    # === 產出 positions.arrow（所有船舶）===
-    pos_timestamps = []
-    pos_mmsi = []
-    pos_lon = []
-    pos_lat = []
-    pos_sog = []
-    pos_cog = []
-    pos_vtype = []
-
-    pos_land_removed = 0
-    for ts_key in sorted_times:
-        ts_sec = datetime.fromisoformat(ts_key).timestamp() - base_ts
-        ships = time_slots[ts_key]
-        for mmsi, (lon, lat, sog, cog, vtype) in ships.items():
-            # 過濾陸地上的點
-            if land_polygons and point_on_land(lon, lat, land_polygons):
-                pos_land_removed += 1
-                continue
-            pos_timestamps.append(ts_sec)
-            pos_mmsi.append(int(mmsi) if isinstance(mmsi, str) else mmsi)
-            pos_lon.append(lon)
-            pos_lat.append(lat)
-            pos_sog.append(sog)
-            pos_cog.append(cog)
-            pos_vtype.append(vtype)
-
-    if pos_land_removed:
-        print(f"positions.arrow: 移除陸地上的點 {pos_land_removed} 筆")
-
+    # array.array → numpy（零拷貝 view）→ pyarrow
     pos_table = pa.table({
-        'timestamp': pa.array(pos_timestamps, type=pa.float32()),
-        'mmsi': pa.array(pos_mmsi, type=pa.uint32()),
-        'lon': pa.array(pos_lon, type=pa.float32()),
-        'lat': pa.array(pos_lat, type=pa.float32()),
-        'sog': pa.array(pos_sog, type=pa.float32()),
-        'cog': pa.array(pos_cog, type=pa.float32()),
-        'vessel_type': pa.array(pos_vtype, type=pa.uint8()),
+        'timestamp': pa.array(np.frombuffer(pos_ts, dtype=np.float32)),
+        'mmsi': pa.array(np.frombuffer(pos_mmsi, dtype=np.uint32)),
+        'lon': pa.array(np.frombuffer(pos_lon, dtype=np.float32)),
+        'lat': pa.array(np.frombuffer(pos_lat, dtype=np.float32)),
+        'sog': pa.array(np.frombuffer(pos_sog, dtype=np.float32)),
+        'cog': pa.array(np.frombuffer(pos_cog, dtype=np.float32)),
+        'vessel_type': pa.array(np.frombuffer(pos_vtype, dtype=np.uint8)),
     })
 
     metadata = {
         b'base_timestamp': str(base_ts).encode(),
-        b'base_datetime': sorted_times[0].encode(),
-        b'end_datetime': sorted_times[-1].encode(),
-        b'total_frames': str(len(sorted_times)).encode(),
+        b'base_datetime': all_slots[0].encode(),
+        b'end_datetime': all_slots[-1].encode(),
+        b'total_frames': str(len(all_slots)).encode(),
         b'interval_minutes': str(INTERVAL_MINUTES).encode(),
         b'frame_times': ','.join(
             f"{(datetime.fromisoformat(t).timestamp() - base_ts):.0f}"
-            for t in sorted_times
+            for t in all_slots
         ).encode(),
     }
     pos_table = pos_table.replace_schema_metadata(metadata)
@@ -549,52 +562,72 @@ def generate_arrow_files(args):
     with ipc.RecordBatchFileWriter(pos_path, pos_table.schema) as writer:
         writer.write_table(pos_table)
     pos_size = os.path.getsize(pos_path) / 1024 / 1024
-    print(f"positions.arrow: {len(pos_timestamps)} 筆, {pos_size:.1f} MB")
+    print(f"positions.arrow: {len(pos_ts)} 筆, {pos_size:.1f} MB")
 
-    # === 產出 trajectory.arrow ===
-    traj_timestamps = []
-    traj_mmsi = []
-    traj_lon = []
-    traj_lat = []
-    traj_sog = []
-    traj_cog = []
-    traj_vtype = []
-    traj_seg_id = []
+    return {'base_ts': base_ts, 'all_slots': all_slots, 'metadata': metadata}
 
-    # 按 MMSI 分組收集所有點（含低速點）
-    ship_all_points = {}
-    for ts_key in sorted_times:
-        ts_sec = datetime.fromisoformat(ts_key).timestamp() - base_ts
-        ships = time_slots[ts_key]
-        for mmsi, (lon, lat, sog, cog, vtype) in ships.items():
-            mmsi_int = int(mmsi) if isinstance(mmsi, str) else mmsi
-            if mmsi_int not in ship_all_points:
-                ship_all_points[mmsi_int] = []
-            ship_all_points[mmsi_int].append((ts_sec, lon, lat, sog, cog, vtype))
 
-    # 處理流程：錨點策略 → 陸地點過濾 → 地理切段 → GPS 跳點過濾
-    total_anchored_dropped = 0
-    total_land_points_removed = 0
-    total_outliers = 0
+# ============================================================
+# Pass 2: trajectory.arrow（逐船串流）
+# ============================================================
+
+def generate_trajectory_arrow(conn, start_ts, end_ts, ports, land_polygons, output_dir, meta):
+    """產出 trajectory.arrow。
+
+    逐 MMSI 串流處理：每次只在記憶體中保留一艘船的資料（~2000 points）。
+    ORDER BY mmsi, timestamp 確保同一艘船的資料連續出現。
+    """
+    base_ts = meta['base_ts']
+    pa_metadata = meta['metadata']
+
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT mmsi, timestamp, lon, lat, sog, cog, vessel_type
+        FROM ship_positions
+        WHERE timestamp >= ? AND timestamp <= ?
+          AND lon >= ? AND lon <= ?
+          AND lat >= ? AND lat <= ?
+        ORDER BY mmsi, timestamp
+    """, _query_params(start_ts, end_ts))
+
+    traj_ts = array('f')
+    traj_mmsi = array('I')
+    traj_lon = array('f')
+    traj_lat = array('f')
+    traj_sog = array('f')
+    traj_cog = array('f')
+    traj_vtype = array('B')
+    traj_seg = array('I')
+
+    current_mmsi = None
+    mmsi_slots = {}   # {slot_key: (ts_sec, lon, lat, sog, cog, vtype)} — 當前船的時間幀
     total_segments = 0
+    total_ships = 0
+    total_anchor_dropped = 0
+    total_land_removed = 0
+    total_outliers = 0
 
-    for mmsi_int in sorted(ship_all_points.keys()):
-        raw_points = ship_all_points[mmsi_int]
+    def process_ship(mmsi_int, slots):
+        """處理單一船舶的軌跡：錨點策略 → 陸地過濾 → 地理切段 → 跳點過濾。"""
+        nonlocal total_segments, total_anchor_dropped, total_land_removed, total_outliers
 
-        # 1. 錨點策略：減少連續停泊的冗餘點
-        anchored, dropped = apply_anchor_strategy(raw_points)
-        total_anchored_dropped += dropped
+        sorted_keys = sorted(slots.keys())
+        points = [slots[k] for k in sorted_keys]
 
-        # 2. 移除落在陸地上的點（GPS 飄移）
+        # 1. 錨點策略
+        anchored, dropped = apply_anchor_strategy(points)
+        total_anchor_dropped += dropped
+
+        # 2. 陸地過濾
         if land_polygons:
-            sea_points = [p for p in anchored if not point_on_land(p[1], p[2], land_polygons)]
-            total_land_points_removed += len(anchored) - len(sea_points)
-            anchored = sea_points
+            sea = [p for p in anchored if not point_on_land(p[1], p[2], land_polygons)]
+            total_land_removed += len(anchored) - len(sea)
+            anchored = sea
 
-        # 3. 地理感知切段
-        geo_segments = split_trajectory_geo(anchored, ports, land_polygons)
+        # 3. 地理切段
+        segments = split_trajectory_geo(anchored, ports, land_polygons)
 
-        for seg in geo_segments:
+        for seg in segments:
             # 4. GPS 跳點過濾
             clean = filter_track_outliers(seg)
             total_outliers += len(seg) - len(clean)
@@ -604,39 +637,110 @@ def generate_arrow_files(args):
 
             total_segments += 1
             for pt in clean:
-                traj_timestamps.append(pt[0])
+                traj_ts.append(pt[0])
                 traj_mmsi.append(mmsi_int)
                 traj_lon.append(pt[1])
                 traj_lat.append(pt[2])
                 traj_sog.append(pt[3])
                 traj_cog.append(pt[4])
                 traj_vtype.append(pt[5])
-                traj_seg_id.append(total_segments)
+                traj_seg.append(total_segments)
 
-    # 統計
-    print(f"已跳過連續停泊點: {total_anchored_dropped} 筆")
-    print(f"已移除陸地上的點: {total_land_points_removed} 筆")
+    for mmsi, ts, lon, lat, sog, cog, vtype in cursor:
+        if is_invalid_mmsi(mmsi):
+            continue
+
+        mmsi_int = int(mmsi) if isinstance(mmsi, str) else mmsi
+
+        if mmsi_int != current_mmsi:
+            if current_mmsi is not None and mmsi_slots:
+                process_ship(current_mmsi, mmsi_slots)
+                total_ships += 1
+            current_mmsi = mmsi_int
+            mmsi_slots = {}
+
+        aligned = align_time(ts)
+        slot_key = aligned.isoformat()
+        ts_sec = datetime.fromisoformat(slot_key).timestamp() - base_ts
+        mmsi_slots[slot_key] = (ts_sec, lon, lat, sog or 0, cog or 0, vtype or 0)
+
+    # 最後一艘船
+    if current_mmsi is not None and mmsi_slots:
+        process_ship(current_mmsi, mmsi_slots)
+        total_ships += 1
+
+    print(f"已跳過連續停泊點: {total_anchor_dropped} 筆")
+    print(f"已移除陸地上的點: {total_land_removed} 筆")
     print(f"已過濾 GPS 跳點: {total_outliers} 筆")
-    print(f"trajectory.arrow: {len(traj_timestamps)} 筆 ({len(ship_all_points)} 艘船, {total_segments} 段)")
+    print(f"trajectory: {len(traj_ts)} 筆 ({total_ships} 艘船, {total_segments} 段)")
+
+    if not traj_ts:
+        print("無有效軌跡資料")
+        return
 
     traj_table = pa.table({
-        'timestamp': pa.array(traj_timestamps, type=pa.float32()),
-        'mmsi': pa.array(traj_mmsi, type=pa.uint32()),
-        'lon': pa.array(traj_lon, type=pa.float32()),
-        'lat': pa.array(traj_lat, type=pa.float32()),
-        'sog': pa.array(traj_sog, type=pa.float32()),
-        'cog': pa.array(traj_cog, type=pa.float32()),
-        'vessel_type': pa.array(traj_vtype, type=pa.uint8()),
-        'segment_id': pa.array(traj_seg_id, type=pa.uint32()),
+        'timestamp': pa.array(np.frombuffer(traj_ts, dtype=np.float32)),
+        'mmsi': pa.array(np.frombuffer(traj_mmsi, dtype=np.uint32)),
+        'lon': pa.array(np.frombuffer(traj_lon, dtype=np.float32)),
+        'lat': pa.array(np.frombuffer(traj_lat, dtype=np.float32)),
+        'sog': pa.array(np.frombuffer(traj_sog, dtype=np.float32)),
+        'cog': pa.array(np.frombuffer(traj_cog, dtype=np.float32)),
+        'vessel_type': pa.array(np.frombuffer(traj_vtype, dtype=np.uint8)),
+        'segment_id': pa.array(np.frombuffer(traj_seg, dtype=np.uint32)),
     })
 
-    traj_table = traj_table.replace_schema_metadata(metadata)
+    traj_table = traj_table.replace_schema_metadata(pa_metadata)
 
     traj_path = os.path.join(output_dir, 'trajectory.arrow')
     with ipc.RecordBatchFileWriter(traj_path, traj_table.schema) as writer:
         writer.write_table(traj_table)
     traj_size = os.path.getsize(traj_path) / 1024 / 1024
     print(f"trajectory.arrow: {traj_size:.1f} MB")
+
+
+# ============================================================
+# 主流程
+# ============================================================
+
+def generate_arrow_files(args):
+    db_path = args.db_path or DB_PATH
+    output_dir = args.output_dir or OUTPUT_DIR
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    # 載入地理資料（< 10 MB，可安全常駐記憶體）
+    ports = load_ports()
+    land_polygons = load_land_polygons()
+
+    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    cursor = conn.cursor()
+
+    try:
+        start_ts, end_ts = get_time_range(args, cursor)
+    except ValueError as e:
+        print(f"[warn] {e}")
+        conn.close()
+        return
+
+    print(f"時間範圍: {start_ts} ~ {end_ts}")
+
+    # === Pass 1: positions.arrow ===
+    print("\n=== Pass 1: positions.arrow ===")
+    meta = generate_positions_arrow(conn, start_ts, end_ts, land_polygons, output_dir)
+
+    if meta is None:
+        print("無資料可處理")
+        conn.close()
+        return
+
+    # 釋放 Pass 1 的記憶體
+    gc.collect()
+
+    # === Pass 2: trajectory.arrow ===
+    print("\n=== Pass 2: trajectory.arrow ===")
+    generate_trajectory_arrow(conn, start_ts, end_ts, ports, land_polygons, output_dir, meta)
+
+    conn.close()
 
     # 複製 ports.geojson 到輸出目錄（前端需要）
     ports_src = os.path.join(DATA_DIR, 'ports.geojson')
