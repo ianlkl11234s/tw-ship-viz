@@ -54,6 +54,6 @@ data/*.db
 data/*.db-wal
 data/*.db-shm
 
-# Keep data files for deployment
-!public/ship_density_data.json
-!public/ship_trajectory_data.json
+# Large legacy JSON data files
+public/ship_density_data.json
+public/ship_trajectory_data.json
