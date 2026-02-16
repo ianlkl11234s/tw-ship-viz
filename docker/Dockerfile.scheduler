@@ -12,7 +12,7 @@ COPY scripts/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY scripts/ ./scripts/
-COPY data/ports.geojson data/taiwan_land.json ./data/
+COPY data/ports.geojson data/taiwan_land.json ./geodata/
 
 # data + arrow-data volumes
 VOLUME ["/app/data", "/app/arrow-data"]

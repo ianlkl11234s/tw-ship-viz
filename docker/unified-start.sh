@@ -3,6 +3,14 @@ set -e
 
 echo "[ship-gis] 啟動中..."
 
+# === 地理參考檔案：從 image 複製到 data volume ===
+for f in ports.geojson taiwan_land.json; do
+  if [ -f "geodata/$f" ] && [ ! -f "data/$f" ]; then
+    cp "geodata/$f" "data/$f"
+    echo "[ship-gis] 複製 $f → data/"
+  fi
+done
+
 # === 環境變數匯出給 cron ===
 printenv | grep -v '^_=' > /etc/environment 2>/dev/null || true
 

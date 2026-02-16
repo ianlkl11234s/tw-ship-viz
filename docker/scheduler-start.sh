@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+# 地理參考檔案：從 image 複製到 data volume
+for f in ports.geojson taiwan_land.json; do
+  if [ -f "geodata/$f" ] && [ ! -f "data/$f" ]; then
+    cp "geodata/$f" "data/$f"
+    echo "[scheduler] 複製 $f → data/"
+  fi
+done
+
 # 匯出環境變數給 cron（cron 不繼承容器環境）
 printenv | grep -v '^_=' > /etc/environment 2>/dev/null || true
 
