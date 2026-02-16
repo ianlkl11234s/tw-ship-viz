@@ -67,9 +67,9 @@ pip3 install -r scripts/requirements.txt
 cd frontend && npm install && cd ..
 
 # 3. 匯入資料 + 產出 Arrow
-python3 scripts/import_to_db.py --days 7
+python3 scripts/import_to_db.py --days 14
 python3 scripts/optimize_db.py            # 一次性索引優化
-python3 scripts/generate_arrow.py --days 7
+python3 scripts/generate_arrow.py --days 14
 
 # 4. 啟動
 # Terminal 1: API
@@ -83,7 +83,7 @@ cd frontend && npm run dev
 ### 日常資料更新
 
 ```bash
-python3 scripts/import_to_db.py --incremental && python3 scripts/generate_arrow.py --days 7
+python3 scripts/import_to_db.py --incremental && python3 scripts/generate_arrow.py --days 14
 ```
 
 ## 部署
@@ -135,7 +135,7 @@ docker compose up -d
 | `DB_PATH` | `data/ship_data.db` | SQLite 路徑 |
 | `ARROW_OUTPUT_DIR` | `frontend/public/data` | Arrow 輸出目錄 |
 
-**排程：** 容器內建 cron，每日 07:00（台灣時間）自動執行 S3 匯入 + Arrow 產出。首次啟動時若無 Arrow 資料會自動嘗試產出。
+**排程：** 容器內建 cron，每日 07:00（台灣時間）自動執行 S3 匯入 + 清理 14 天前舊資料 + Arrow 產出。首次啟動時若無 Arrow 資料會自動嘗試產出。
 
 ## 資料管線
 
