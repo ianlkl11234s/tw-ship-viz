@@ -269,6 +269,54 @@ body.dark-theme .modal-section p { color: #aaa; }
 body.dark-theme .modal-section li { color: #aaa; }
 body.dark-theme .modal-section li strong { color: #ddd; }
 
+/* === 船舶/港口詳情卡片 === */
+.ship-detail-card {
+  position: fixed; top: 80px; right: 16px; z-index: 1000;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 16px; min-width: 260px;
+  opacity: 0; pointer-events: none;
+  transform: translateY(-8px);
+  transition: all 0.25s ease;
+}
+.ship-detail-card.show {
+  opacity: 1; pointer-events: auto; transform: translateY(0);
+}
+.ship-card-close {
+  position: absolute; top: 8px; right: 10px;
+  background: none; border: none; font-size: 20px;
+  color: #999; cursor: pointer; padding: 4px; line-height: 1;
+}
+.ship-card-close:hover { color: #333; }
+.ship-card-title { font-size: 15px; font-weight: 700; color: #333; margin-bottom: 10px; }
+.ship-card-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; color: #555; margin-bottom: 6px;
+}
+.ship-card-label { color: #999; font-weight: 500; }
+.ship-card-value { color: #333; font-weight: 600; }
+.ship-card-actions { display: flex; gap: 8px; margin-top: 12px; }
+.ship-card-btn {
+  flex: 1; padding: 7px 10px; border: 1px solid #ddd; border-radius: 6px;
+  background: #f8f8f8; color: #555; font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+}
+.ship-card-btn:hover { border-color: #0077b6; background: #f0f7ff; color: #0077b6; }
+.ship-card-btn.active { background: #0077b6; color: #fff; border-color: #0077b6; }
+
+/* 夜間 */
+body.dark-theme .ship-detail-card { background: rgba(20, 20, 40, 0.97); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); }
+body.dark-theme .ship-card-close { color: #666; }
+body.dark-theme .ship-card-close:hover { color: #ccc; }
+body.dark-theme .ship-card-title { color: #e0e0e0; }
+body.dark-theme .ship-card-label { color: #777; }
+body.dark-theme .ship-card-value { color: #ddd; }
+body.dark-theme .ship-card-btn { background: rgba(255,255,255,0.06); border-color: #333; color: #aaa; }
+body.dark-theme .ship-card-btn:hover { background: rgba(76,201,240,0.15); border-color: #4cc9f0; color: #4cc9f0; }
+body.dark-theme .ship-card-btn.active { background: #4cc9f0; color: #111; border-color: #4cc9f0; }
+
 /* === 響應式 === */
 @media (max-width: 700px) {
   .legend, .info-panel { display: none !important; }
