@@ -13,6 +13,7 @@ RUN npm run build
 FROM python:3.12-slim
 
 ENV TZ=Asia/Taipei
+ENV ARROW_OUTPUT_DIR=/app/data/arrow
 RUN apt-get update && apt-get install -y --no-install-recommends cron tzdata \
     && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*

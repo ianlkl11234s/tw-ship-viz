@@ -193,10 +193,10 @@ def get_ships_in_bbox(bbox: BboxRequest, days: int = Query(default=7, ge=1, le=3
 
 # ==================== 靜態檔案 ====================
 
-# Arrow 資料檔案（frontend/public/data/）
-arrow_dir = os.path.join(os.path.dirname(__file__), "..", "frontend", "public", "data")
-if os.path.isdir(arrow_dir):
-    app.mount("/data", StaticFiles(directory=arrow_dir), name="arrow-data")
+# Arrow 資料檔案（優先使用 ARROW_OUTPUT_DIR，否則 frontend/public/data/）
+arrow_dir = os.environ.get("ARROW_OUTPUT_DIR", os.path.join(os.path.dirname(__file__), "..", "frontend", "public", "data"))
+os.makedirs(arrow_dir, exist_ok=True)
+app.mount("/data", StaticFiles(directory=arrow_dir), name="arrow-data")
 
 # 前端打包檔案（frontend/dist/）或舊版（public/）
 frontend_dist = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
