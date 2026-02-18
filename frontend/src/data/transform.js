@@ -263,6 +263,91 @@ class FrameIndex {
 }
 
 /**
+ * 多日幀索引，支援漸進式載入。
+ *
+ * 與 FrameIndex 完全相同的 public API（duck-typing），
+ * 未載入的日期回傳空結果（不報錯），讓漸進式載入對上層透明。
+ */
+export class MultiDayFrameIndex {
+  constructor(manifest) {
+    this._days = [];            // [{ date, frameTimes, frameIndex: FrameIndex|null }]
+    this._globalFrameTimes = []; // 所有日的 frameTimes 合併
+    this._dayForFrame = [];     // [{ dayIdx, localFrameIdx }] — O(1) 查找
+    this._initFromManifest(manifest);
+  }
+
+  _initFromManifest(manifest) {
+    const days = manifest.positions.days;
+    for (let i = 0; i < days.length; i++) {
+      const d = days[i];
+      this._days.push({
+        date: d.date,
+        frameTimes: d.frame_times,
+        frameIndex: null,
+      });
+      for (let j = 0; j < d.frame_times.length; j++) {
+        this._globalFrameTimes.push(d.frame_times[j]);
+        this._dayForFrame.push({ dayIdx: i, localFrameIdx: j });
+      }
+    }
+  }
+
+  get loadedDays() {
+    let count = 0;
+    for (const d of this._days) {
+      if (d.frameIndex !== null) count++;
+    }
+    return count;
+  }
+
+  addDay(date, table) {
+    const dayEntry = this._days.find(d => d.date === date);
+    if (!dayEntry) {
+      console.warn(`[MultiDayFrameIndex] 未知日期: ${date}`);
+      return;
+    }
+    dayEntry.frameIndex = buildFrameIndex(table, dayEntry.frameTimes);
+    console.log(`[MultiDayFrameIndex] ${date} 已載入 (${dayEntry.frameTimes.length} 幀)`);
+  }
+
+  get totalFrames() { return this._globalFrameTimes.length; }
+  get frameTimes() { return this._globalFrameTimes; }
+
+  _resolve(frameIdx) {
+    if (frameIdx < 0 || frameIdx >= this._dayForFrame.length) return null;
+    const { dayIdx, localFrameIdx } = this._dayForFrame[frameIdx];
+    const day = this._days[dayIdx];
+    if (!day.frameIndex) return null;
+    return { fi: day.frameIndex, local: localFrameIdx };
+  }
+
+  getFrameCount(frameIdx) {
+    const r = this._resolve(frameIdx);
+    return r ? r.fi.getFrameCount(r.local) : 0;
+  }
+
+  getFrame(frameIdx, vesselFilter = null) {
+    const r = this._resolve(frameIdx);
+    return r ? r.fi.getFrame(r.local, vesselFilter) : [];
+  }
+
+  getFramePositionsFlat(frameIdx, vesselFilter = null) {
+    const r = this._resolve(frameIdx);
+    return r ? r.fi.getFramePositionsFlat(r.local, vesselFilter) : null;
+  }
+
+  getFrameHeatmapData(frameIdx, cellSize = 0.03) {
+    const r = this._resolve(frameIdx);
+    return r ? r.fi.getFrameHeatmapData(r.local, cellSize) : null;
+  }
+
+  getFrameHeatData(frameIdx, vesselFilter = null) {
+    const r = this._resolve(frameIdx);
+    return r ? r.fi.getFrameHeatData(r.local, vesselFilter) : [];
+  }
+}
+
+/**
  * JSON fallback: 將舊版 trajectory JSON 轉為 TripsLayer 格式。
  * @param {object} jsonData - 舊版 ship_trajectory_data.json
  * @returns {Array} trips data

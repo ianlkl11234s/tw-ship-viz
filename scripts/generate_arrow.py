@@ -559,12 +559,221 @@ def generate_positions_arrow(conn, start_ts, end_ts, land_polygons, output_dir):
     pos_table = pos_table.replace_schema_metadata(metadata)
 
     pos_path = os.path.join(output_dir, 'positions.arrow')
-    with ipc.RecordBatchFileWriter(pos_path, pos_table.schema) as writer:
+    write_opts = ipc.IpcWriteOptions(compression='zstd')
+    with ipc.RecordBatchFileWriter(pos_path, pos_table.schema, options=write_opts) as writer:
         writer.write_table(pos_table)
     pos_size = os.path.getsize(pos_path) / 1024 / 1024
     print(f"positions.arrow: {len(pos_ts)} 筆, {pos_size:.1f} MB")
 
     return {'base_ts': base_ts, 'all_slots': all_slots, 'metadata': metadata}
+
+
+# ============================================================
+# Pass 1b: positions 按日分檔（漸進式載入用）
+# ============================================================
+
+def generate_positions_daily(conn, start_ts, end_ts, land_polygons, output_dir):
+    """按日產出 positions_YYYYMMDD.arrow + manifest.json。
+
+    與 generate_positions_arrow() 共用相同的串流邏輯，但每跨日邊界就寫出一個 Arrow 檔。
+    最後寫入 manifest.json 供前端漸進式載入。
+    """
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT mmsi, timestamp, lon, lat, sog, cog, vessel_type
+        FROM ship_positions
+        WHERE timestamp >= ? AND timestamp <= ?
+          AND lon >= ? AND lon <= ?
+          AND lat >= ? AND lat <= ?
+        ORDER BY timestamp, mmsi
+    """, _query_params(start_ts, end_ts))
+
+    base_ts = None
+    current_slot = None
+    current_day = None
+    slot_ships = {}
+
+    # Per-day accumulators
+    day_ts = array('f')
+    day_mmsi = array('I')
+    day_lon = array('f')
+    day_lat = array('f')
+    day_sog = array('f')
+    day_cog = array('f')
+    day_vtype = array('B')
+    day_slots = []
+
+    # Global tracking
+    manifest_days = []
+    all_slots = []
+    row_count = 0
+    skipped_mmsi = 0
+    land_removed = 0
+
+    def flush_slot():
+        nonlocal land_removed
+        ts_sec = datetime.fromisoformat(current_slot).timestamp() - base_ts
+        for mmsi_key, (lo, la, s, c, v) in slot_ships.items():
+            if land_polygons and point_on_land(lo, la, land_polygons):
+                land_removed += 1
+                continue
+            mmsi_int = int(mmsi_key) if isinstance(mmsi_key, str) else mmsi_key
+            day_ts.append(ts_sec)
+            day_mmsi.append(mmsi_int)
+            day_lon.append(lo)
+            day_lat.append(la)
+            day_sog.append(s)
+            day_cog.append(c)
+            day_vtype.append(v)
+
+    def reset_day():
+        nonlocal day_ts, day_mmsi, day_lon, day_lat, day_sog, day_cog, day_vtype, day_slots
+        day_ts = array('f')
+        day_mmsi = array('I')
+        day_lon = array('f')
+        day_lat = array('f')
+        day_sog = array('f')
+        day_cog = array('f')
+        day_vtype = array('B')
+        day_slots = []
+
+    def flush_day():
+        if not day_ts or not day_slots:
+            reset_day()
+            return
+
+        frame_times = [
+            round(datetime.fromisoformat(t).timestamp() - base_ts)
+            for t in day_slots
+        ]
+
+        filename = f"positions_{current_day.replace('-', '')}.arrow"
+        filepath = os.path.join(output_dir, filename)
+
+        pos_table = pa.table({
+            'timestamp': pa.array(np.frombuffer(day_ts, dtype=np.float32)),
+            'mmsi': pa.array(np.frombuffer(day_mmsi, dtype=np.uint32)),
+            'lon': pa.array(np.frombuffer(day_lon, dtype=np.float32)),
+            'lat': pa.array(np.frombuffer(day_lat, dtype=np.float32)),
+            'sog': pa.array(np.frombuffer(day_sog, dtype=np.float32)),
+            'cog': pa.array(np.frombuffer(day_cog, dtype=np.float32)),
+            'vessel_type': pa.array(np.frombuffer(day_vtype, dtype=np.uint8)),
+        })
+
+        file_meta = {
+            b'base_timestamp': str(base_ts).encode(),
+            b'frame_times': ','.join(f"{ft:.0f}" for ft in frame_times).encode(),
+            b'total_frames': str(len(day_slots)).encode(),
+            b'interval_minutes': str(INTERVAL_MINUTES).encode(),
+        }
+        pos_table = pos_table.replace_schema_metadata(file_meta)
+
+        write_opts = ipc.IpcWriteOptions(compression='zstd')
+        with ipc.RecordBatchFileWriter(filepath, pos_table.schema, options=write_opts) as writer:
+            writer.write_table(pos_table)
+
+        file_size = os.path.getsize(filepath) / 1024 / 1024
+        print(f"  {filename}: {len(day_ts)} 筆, {len(day_slots)} 幀, {file_size:.1f} MB")
+
+        manifest_days.append({
+            'date': current_day,
+            'file': filename,
+            'frames': len(day_slots),
+            'frame_times': frame_times,
+        })
+
+        reset_day()
+
+    # Main streaming loop
+    for mmsi, ts, lon, lat, sog, cog, vtype in cursor:
+        if is_invalid_mmsi(mmsi):
+            skipped_mmsi += 1
+            continue
+        row_count += 1
+
+        aligned = align_time(ts)
+        slot_key = aligned.isoformat()
+        day_key = aligned.date().isoformat()
+
+        if base_ts is None:
+            base_ts = aligned.timestamp()
+
+        # Day boundary → flush previous slot + day
+        if day_key != current_day:
+            if current_slot is not None:
+                flush_slot()
+                day_slots.append(current_slot)
+                all_slots.append(current_slot)
+            if current_day is not None:
+                flush_day()
+            current_day = day_key
+            current_slot = None
+            slot_ships = {}
+
+        # Slot boundary → flush previous slot
+        if slot_key != current_slot:
+            if current_slot is not None:
+                flush_slot()
+                day_slots.append(current_slot)
+                all_slots.append(current_slot)
+            current_slot = slot_key
+            slot_ships = {}
+
+        slot_ships[mmsi] = (lon, lat, sog or 0, cog or 0, vtype or 0)
+
+    # Flush last slot and day
+    if current_slot is not None and slot_ships:
+        flush_slot()
+        day_slots.append(current_slot)
+        all_slots.append(current_slot)
+    if current_day is not None:
+        flush_day()
+
+    print(f"原始資料: {row_count} 筆, 時間幀: {len(all_slots)} 個, {len(manifest_days)} 天")
+    if skipped_mmsi:
+        print(f"已過濾無效 MMSI: {skipped_mmsi} 筆")
+    if land_removed:
+        print(f"positions: 移除陸地上的點 {land_removed} 筆")
+
+    if not manifest_days:
+        print("無有效資料")
+        return None
+
+    # Write manifest.json（最後寫，原子性保證：前端讀不到半成品）
+    total_frames = sum(d['frames'] for d in manifest_days)
+    manifest = {
+        'version': 2,
+        'generated_at': datetime.now().isoformat(timespec='seconds'),
+        'base_timestamp': base_ts,
+        'base_datetime': all_slots[0] if all_slots else '',
+        'end_datetime': all_slots[-1] if all_slots else '',
+        'interval_minutes': INTERVAL_MINUTES,
+        'trajectory': {'file': 'trajectory.arrow'},
+        'positions': {
+            'days': manifest_days,
+            'total_frames': total_frames,
+        },
+    }
+
+    manifest_path = os.path.join(output_dir, 'manifest.json')
+    with open(manifest_path, 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+    print(f"manifest.json: {len(manifest_days)} 天, {total_frames} 幀")
+
+    # Return metadata for Pass 2（格式與 monolithic 相同）
+    pa_metadata = {
+        b'base_timestamp': str(base_ts).encode(),
+        b'base_datetime': all_slots[0].encode() if all_slots else b'',
+        b'end_datetime': all_slots[-1].encode() if all_slots else b'',
+        b'total_frames': str(total_frames).encode(),
+        b'interval_minutes': str(INTERVAL_MINUTES).encode(),
+        b'frame_times': ','.join(
+            f"{(datetime.fromisoformat(t).timestamp() - base_ts):.0f}"
+            for t in all_slots
+        ).encode(),
+    }
+
+    return {'base_ts': base_ts, 'all_slots': all_slots, 'metadata': pa_metadata}
 
 
 # ============================================================
@@ -692,7 +901,8 @@ def generate_trajectory_arrow(conn, start_ts, end_ts, ports, land_polygons, outp
     traj_table = traj_table.replace_schema_metadata(pa_metadata)
 
     traj_path = os.path.join(output_dir, 'trajectory.arrow')
-    with ipc.RecordBatchFileWriter(traj_path, traj_table.schema) as writer:
+    write_opts = ipc.IpcWriteOptions(compression='zstd')
+    with ipc.RecordBatchFileWriter(traj_path, traj_table.schema, options=write_opts) as writer:
         writer.write_table(traj_table)
     traj_size = os.path.getsize(traj_path) / 1024 / 1024
     print(f"trajectory.arrow: {traj_size:.1f} MB")
@@ -705,6 +915,7 @@ def generate_trajectory_arrow(conn, start_ts, end_ts, ports, land_polygons, outp
 def generate_arrow_files(args):
     db_path = args.db_path or DB_PATH
     output_dir = args.output_dir or OUTPUT_DIR
+    daily = getattr(args, 'daily', False) and not getattr(args, 'monolithic', False)
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -724,9 +935,13 @@ def generate_arrow_files(args):
 
     print(f"時間範圍: {start_ts} ~ {end_ts}")
 
-    # === Pass 1: positions.arrow ===
-    print("\n=== Pass 1: positions.arrow ===")
-    meta = generate_positions_arrow(conn, start_ts, end_ts, land_polygons, output_dir)
+    # === Pass 1: positions ===
+    if daily:
+        print("\n=== Pass 1: positions (daily) ===")
+        meta = generate_positions_daily(conn, start_ts, end_ts, land_polygons, output_dir)
+    else:
+        print("\n=== Pass 1: positions.arrow ===")
+        meta = generate_positions_arrow(conn, start_ts, end_ts, land_polygons, output_dir)
 
     if meta is None:
         print("無資料可處理")
@@ -757,6 +972,8 @@ def main():
     parser.add_argument('--end', type=str, help='結束時間 (ISO 格式)')
     parser.add_argument('--db-path', type=str, help=f'SQLite 路徑（預設 {DB_PATH}）')
     parser.add_argument('--output-dir', type=str, help=f'輸出目錄（預設 {OUTPUT_DIR}）')
+    parser.add_argument('--daily', action='store_true', help='按日分檔 positions + manifest.json（漸進式載入）')
+    parser.add_argument('--monolithic', action='store_true', help='產出單一 positions.arrow（舊模式）')
     args = parser.parse_args()
 
     generate_arrow_files(args)

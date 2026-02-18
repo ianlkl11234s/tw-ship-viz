@@ -1,6 +1,6 @@
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { initMap, setTheme, getCurrentTheme } from './map.js';
-import { loadTrajectoryData, loadPositionsData } from './data/loader.js';
+import { loadTrajectoryData, loadPositionsProgressive } from './data/loader.js';
 import { arrowToTrips, buildFrameIndex, jsonToTrips, jsonToFrameIndex } from './data/transform.js';
 import { createTrajectoryLayers, preprocessTrips, bakeAllColors, createShipHighlightLayer, createSelectedShipTrajectoryLayers, getShipPositionByMmsi } from './layers/trips.js';
 import { createGridLayers } from './layers/grid.js';
@@ -138,10 +138,12 @@ async function loadData() {
   const loadingText = document.querySelector('.loading-text');
   if (loadingText) loadingText.textContent = '載入船舶資料中...';
 
-  // 平行載入
+  // 平行載入（positions 使用漸進式載入）
   const [trajResult, posResult, portsResult] = await Promise.all([
     loadTrajectoryData(),
-    loadPositionsData(),
+    loadPositionsProgressive((p) => {
+      if (loadingText) loadingText.textContent = `載入位置資料... ${p.loaded}/${p.total} 天`;
+    }),
     fetch('/data/ports.geojson').then(r => r.json()).catch(() => null),
   ]);
 
@@ -168,7 +170,9 @@ async function loadData() {
   }
 
   // 轉換位置資料（幀索引）
-  if (posResult.type === 'arrow') {
+  if (posResult.type === 'multi-day') {
+    frameIndex = posResult.store;  // MultiDayFrameIndex，API 與 FrameIndex 相同
+  } else if (posResult.type === 'arrow') {
     frameIndex = buildFrameIndex(posResult.table, posResult.metadata.frameTimes);
   } else {
     frameIndex = jsonToFrameIndex(posResult.data);

@@ -20,9 +20,11 @@ export const TRAIL_LENGTH_SEC = 3600; // TripsLayer 尾跡長度（秒），約 
 export const MAX_DISTANCE_KM = 20;    // 10 分鐘內最大合理移動距離
 
 // === Gap 拆分閾值（秒）===
+// 後端 split_trajectory_geo() 已處理港口停泊（1hr+）、陸地穿越、速度異常（>45kt），
+// 前端只需補超長 gap，因此閾值可拉高以減少子段數（204K → ~80-100K）。
 export const GAP_THRESHOLDS = {
-  NORMAL_MAX: 14400,   // 4hr — 小於此為正常（不切）
-  INFERRED_MAX: 28800, // 8hr — 4~8hr 為推測航段（虛線）；>= 8hr 完全斷開
+  NORMAL_MAX: 28800,   // 8hr（原 4hr）— 小於此為正常（不切）
+  INFERRED_MAX: 57600, // 16hr（原 8hr）— 8~16hr 為推測航段（虛線）；>= 16hr 完全斷開
 };
 
 // === 播放速度配置 ===

@@ -1,8 +1,10 @@
 /**
  * 資料載入模組
  * 優先載入 Arrow IPC 格式，失敗時 fallback 到 JSON。
+ * 支援 manifest.json 漸進式載入（按日分檔）。
  */
 import { tableFromIPC } from 'apache-arrow';
+import { MultiDayFrameIndex } from './transform.js';
 
 /**
  * 載入 Arrow 檔案，返回 Arrow Table。
@@ -97,4 +99,70 @@ export async function loadPositionsData() {
     console.error('[loader] JSON 也載入失敗:', jsonErr);
     throw new Error('無法載入位置資料');
   }
+}
+
+/**
+ * 漸進式載入位置資料（manifest.json → 按日分檔）。
+ *
+ * 三層 Fallback：
+ * 1. manifest.json 存在 → MultiDayFrameIndex + 漸進式載入
+ * 2. manifest 不存在 + positions.arrow 存在 → 原有 FrameIndex
+ * 3. Arrow 全部失敗 → JSON fallback
+ *
+ * @param {function} onProgress - 進度回調 ({ loaded, total })
+ */
+export async function loadPositionsProgressive(onProgress) {
+  // 嘗試載入 manifest
+  let manifest = null;
+  try {
+    const res = await fetch('/data/manifest.json');
+    if (res.ok) manifest = await res.json();
+  } catch { /* manifest 不存在，fallback */ }
+
+  if (!manifest || manifest.version < 2) {
+    console.log('[loader] manifest.json 不存在或版本不符，fallback 到單檔載入');
+    return loadPositionsData();
+  }
+
+  const days = manifest.positions.days;
+  console.log(`[loader] manifest.json 載入成功, ${days.length} 天, ${manifest.positions.total_frames} 幀`);
+
+  const store = new MultiDayFrameIndex(manifest);
+
+  // Phase 1: 最近 2 天（立即可互動）
+  const recentCount = Math.min(2, days.length);
+  const recent = days.slice(-recentCount);
+  const tables = await Promise.all(recent.map(d => loadArrow(`/data/${d.file}`)));
+  recent.forEach((d, i) => store.addDay(d.date, tables[i]));
+  if (onProgress) onProgress({ loaded: recentCount, total: days.length });
+
+  // Phase 2: 背景逐日載入其餘天數（不阻塞互動）
+  const older = days.slice(0, -recentCount);
+  if (older.length > 0) {
+    (async () => {
+      for (const day of older) {
+        try {
+          const table = await loadArrow(`/data/${day.file}`);
+          store.addDay(day.date, table);
+          if (onProgress) onProgress({ loaded: store.loadedDays, total: days.length });
+        } catch (err) {
+          console.warn(`[loader] 背景載入 ${day.file} 失敗:`, err.message);
+        }
+      }
+      console.log(`[loader] 全部 ${days.length} 天載入完成`);
+    })();
+  }
+
+  return {
+    type: 'multi-day',
+    store,
+    metadata: {
+      baseTimestamp: manifest.base_timestamp,
+      baseDatetime: manifest.base_datetime,
+      endDatetime: manifest.end_datetime,
+      totalFrames: manifest.positions.total_frames,
+      intervalMinutes: manifest.interval_minutes,
+      frameTimes: store.frameTimes,
+    },
+  };
 }

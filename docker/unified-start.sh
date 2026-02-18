@@ -21,7 +21,7 @@ printenv | grep -v '^_=' > /etc/environment 2>/dev/null || true
 # === 每日 07:00（台灣時間）更新資料 ===
 if command -v cron &> /dev/null; then
   cat > /etc/cron.d/ship-update << 'CRON'
-0 7 * * * root . /etc/environment; cd /app && python3 scripts/import_to_db.py --incremental >> /var/log/cron.log 2>&1 && python3 scripts/cleanup_old_data.py --days 14 >> /var/log/cron.log 2>&1 && python3 scripts/generate_arrow.py --days 14 >> /var/log/cron.log 2>&1
+0 7 * * * root . /etc/environment; cd /app && python3 scripts/import_to_db.py --incremental >> /var/log/cron.log 2>&1 && python3 scripts/cleanup_old_data.py --days 14 >> /var/log/cron.log 2>&1 && python3 scripts/generate_arrow.py --days 14 --daily >> /var/log/cron.log 2>&1
 CRON
   chmod 0644 /etc/cron.d/ship-update
   crontab /etc/cron.d/ship-update
@@ -35,7 +35,7 @@ fi
 # === 首次啟動：若無 Arrow 資料則背景產出（不阻塞 API）===
 if [ ! -f "$ARROW_DIR/trajectory.arrow" ] && [ -f data/ship_data.db ]; then
   echo "[ship-gis] 未偵測到 Arrow 資料，背景產出中..."
-  (PYTHONUNBUFFERED=1 python3 scripts/generate_arrow.py --days 14 >> /var/log/arrow-gen.log 2>&1 && \
+  (PYTHONUNBUFFERED=1 python3 scripts/generate_arrow.py --days 14 --daily >> /var/log/arrow-gen.log 2>&1 && \
    echo "[ship-gis] $(date): Arrow 產出完成" >> /var/log/arrow-gen.log || \
    echo "[ship-gis] $(date): Arrow 產出失敗" >> /var/log/arrow-gen.log) &
   echo "[ship-gis] Arrow 產出已在背景啟動 (PID: $!)"
