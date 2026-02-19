@@ -24,6 +24,7 @@
 
 import argparse
 import gc
+import gzip
 import json
 import math
 import os
@@ -416,6 +417,18 @@ def apply_anchor_strategy(points):
 # 共用工具
 # ============================================================
 
+def gzip_file(path):
+    """建立 .gz 預壓縮副本（供 Nginx gzip_static 使用）。"""
+    gz_path = path + '.gz'
+    with open(path, 'rb') as f_in:
+        with gzip.open(gz_path, 'wb', compresslevel=6) as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    orig = os.path.getsize(path) / 1024 / 1024
+    comp = os.path.getsize(gz_path) / 1024 / 1024
+    ratio = (1 - comp / orig) * 100 if orig > 0 else 0
+    print(f"  gzip: {os.path.basename(gz_path)} {comp:.1f} MB ({ratio:.0f}% 壓縮)")
+
+
 def align_time(ts_str, interval_min=INTERVAL_MINUTES):
     """將時間戳對齊到最近的 interval 分鐘邊界。"""
     dt = datetime.fromisoformat(ts_str)
@@ -563,6 +576,7 @@ def generate_positions_arrow(conn, start_ts, end_ts, land_polygons, output_dir):
         writer.write_table(pos_table)
     pos_size = os.path.getsize(pos_path) / 1024 / 1024
     print(f"positions.arrow: {len(pos_ts)} 筆, {pos_size:.1f} MB")
+    gzip_file(pos_path)
 
     return {'base_ts': base_ts, 'all_slots': all_slots, 'metadata': metadata}
 
@@ -672,6 +686,7 @@ def generate_positions_daily(conn, start_ts, end_ts, land_polygons, output_dir):
 
         file_size = os.path.getsize(filepath) / 1024 / 1024
         print(f"  {filename}: {len(day_ts)} 筆, {len(day_slots)} 幀, {file_size:.1f} MB")
+        gzip_file(filepath)
 
         manifest_days.append({
             'date': current_day,
@@ -903,6 +918,7 @@ def generate_trajectory_arrow(conn, start_ts, end_ts, ports, land_polygons, outp
         writer.write_table(traj_table)
     traj_size = os.path.getsize(traj_path) / 1024 / 1024
     print(f"trajectory.arrow: {traj_size:.1f} MB")
+    gzip_file(traj_path)
 
 
 # ============================================================
