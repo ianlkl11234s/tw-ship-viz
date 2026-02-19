@@ -559,8 +559,7 @@ def generate_positions_arrow(conn, start_ts, end_ts, land_polygons, output_dir):
     pos_table = pos_table.replace_schema_metadata(metadata)
 
     pos_path = os.path.join(output_dir, 'positions.arrow')
-    write_opts = ipc.IpcWriteOptions(compression='zstd')
-    with ipc.RecordBatchFileWriter(pos_path, pos_table.schema, options=write_opts) as writer:
+    with ipc.RecordBatchFileWriter(pos_path, pos_table.schema) as writer:
         writer.write_table(pos_table)
     pos_size = os.path.getsize(pos_path) / 1024 / 1024
     print(f"positions.arrow: {len(pos_ts)} 筆, {pos_size:.1f} MB")
@@ -668,8 +667,7 @@ def generate_positions_daily(conn, start_ts, end_ts, land_polygons, output_dir):
         }
         pos_table = pos_table.replace_schema_metadata(file_meta)
 
-        write_opts = ipc.IpcWriteOptions(compression='zstd')
-        with ipc.RecordBatchFileWriter(filepath, pos_table.schema, options=write_opts) as writer:
+        with ipc.RecordBatchFileWriter(filepath, pos_table.schema) as writer:
             writer.write_table(pos_table)
 
         file_size = os.path.getsize(filepath) / 1024 / 1024
@@ -901,8 +899,7 @@ def generate_trajectory_arrow(conn, start_ts, end_ts, ports, land_polygons, outp
     traj_table = traj_table.replace_schema_metadata(pa_metadata)
 
     traj_path = os.path.join(output_dir, 'trajectory.arrow')
-    write_opts = ipc.IpcWriteOptions(compression='zstd')
-    with ipc.RecordBatchFileWriter(traj_path, traj_table.schema, options=write_opts) as writer:
+    with ipc.RecordBatchFileWriter(traj_path, traj_table.schema) as writer:
         writer.write_table(traj_table)
     traj_size = os.path.getsize(traj_path) / 1024 / 1024
     print(f"trajectory.arrow: {traj_size:.1f} MB")
