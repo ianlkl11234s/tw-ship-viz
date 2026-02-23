@@ -45,8 +45,10 @@ Thumbs.db
 node_modules/
 frontend/dist/
 
-# Generated data files (copied by generate_arrow.py)
+# Generated data files (generate_arrow.py 產出)
 frontend/public/data/*.arrow
+frontend/public/data/*.arrow.gz
+frontend/public/data/manifest.json
 frontend/public/data/ports.geojson
 
 # SQLite database
