@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Heatmap 配色方案預覽</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 32px; }
+  h1 { font-size: 22px; margin-bottom: 8px; }
+  .subtitle { color: #888; font-size: 13px; margin-bottom: 32px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+  .card { background: #16213e; border-radius: 12px; overflow: hidden; border: 1px solid #2a2a4a; }
+  .card:hover { border-color: #4a4a7a; }
+  .bar { height: 48px; border-radius: 8px; margin: 16px; }
+  .info { padding: 0 16px 16px; }
+  .name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .desc { font-size: 12px; color: #999; margin-bottom: 10px; line-height: 1.5; }
+  .colors { display: flex; gap: 4px; margin-bottom: 10px; }
+  .colors span { flex: 1; height: 24px; border-radius: 4px; font-size: 9px; display: flex; align-items: center; justify-content: center; color: rgba(0,0,0,0.5); }
+  .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #2a2a4a; color: #aaa; margin-right: 4px; }
+  .tag.day { background: #3a3520; color: #e8d44d; }
+  .tag.night { background: #1a2535; color: #6db3f2; }
+  .tag.both { background: #2a2040; color: #b39ddb; }
+  .section-title { font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 2px; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #2a2a4a; }
+  .current { border: 2px solid #e8d44d !important; }
+  .current .name::after { content: ' (目前使用)'; color: #e8d44d; font-size: 11px; }
+
+  /* 暗底 + 亮底預覽 */
+  .preview-row { display: flex; gap: 8px; margin: 16px 16px 0; }
+  .preview-row > div { flex: 1; height: 48px; border-radius: 8px; position: relative; }
+  .preview-row > div::after { content: attr(data-label); position: absolute; bottom: 4px; left: 8px; font-size: 9px; color: rgba(255,255,255,0.5); }
+  .preview-dark { background: #0e1117; }
+  .preview-light { background: #e8e8e8; }
+</style>
+</head>
+<body>
+
+<h1>Heatmap 配色方案</h1>
+<p class="subtitle">每組包含 6 色階（低密度 → 高密度），預覽同時顯示在暗底和亮底上的效果</p>
+
+<div class="section-title">-- 目前使用中 --</div>
+<div class="grid" id="current"></div>
+
+<div class="section-title">-- 經典科學視覺化 --</div>
+<div class="grid" id="scientific"></div>
+
+<div class="section-title">-- 海洋 / 地理主題 --</div>
+<div class="grid" id="ocean"></div>
+
+<div class="section-title">-- 現代 UI / 品牌風格 --</div>
+<div class="grid" id="modern"></div>
+
+<div class="section-title">-- 高對比 / 無障礙 --</div>
+<div class="grid" id="accessible"></div>
+
+<script>
+const palettes = {
+  current: [
+    {
+      name: 'Teal-Earth (Day)',
+      colors: ['#80cdc1','#c7e9b4','#ffffcc','#fdb863','#e06c52','#8c2d04'],
+      desc: '冷色→暖色→棕，經典地理資訊配色',
+      tags: ['day'],
+      current: true,
+    },
+    {
+      name: 'Plasma Dark (Night)',
+      colors: ['#160b39','#420a68','#932667','#dd513a','#fba40a','#fcffa4'],
+      desc: '深紫→紅→黃，暗色底圖專用',
+      tags: ['night'],
+      current: true,
+    },
+  ],
+  scientific: [
+    {
+      name: 'Viridis',
+      colors: ['#440154','#443983','#31688e','#21918c','#35b779','#fde725'],
+      desc: 'Matplotlib 預設，色彩均勻且色盲友善',
+      tags: ['both'],
+    },
+    {
+      name: 'Inferno',
+      colors: ['#000004','#420a68','#932667','#dd513a','#fca50a','#fcffa4'],
+      desc: '黑→紫→紅→黃白，高對比度',
+      tags: ['night'],
+    },
+    {
+      name: 'Magma',
+      colors: ['#000004','#3b0f70','#8c2981','#de4968','#fe9f6d','#fcfdbf'],
+      desc: '黑→紫→粉→橙→淡黃，柔和版 Inferno',
+      tags: ['night'],
+    },
+    {
+      name: 'Turbo',
+      colors: ['#30123b','#4662d7','#36aaf9','#1ae4b6','#b0dd2f','#e8fa17'],
+      desc: '彩虹改良版，Google 出品',
+      tags: ['both'],
+    },
+    {
+      name: 'YlOrRd',
+      colors: ['#ffffb2','#fed976','#feb24c','#fd8d3c','#f03b20','#bd0026'],
+      desc: '黃→橙→紅，經典熱力配色',
+      tags: ['day'],
+    },
+    {
+      name: 'YlGnBu',
+      colors: ['#ffffcc','#c7e9b4','#7fcdbb','#41b6c4','#2c7fb8','#253494'],
+      desc: '黃→綠→藍，清新冷色系',
+      tags: ['day'],
+    },
+  ],
+  ocean: [
+    {
+      name: 'Ocean Thermal',
+      colors: ['#0a1628','#0d3b66','#1d7874','#679436','#f5a623','#f7f052'],
+      desc: '深海→淺海→陽光，海洋溫度場',
+      tags: ['night'],
+    },
+    {
+      name: 'Bathymetry',
+      colors: ['#08306b','#2171b5','#6baed6','#c6dbef','#fee5d9','#a50f15'],
+      desc: '深藍→淺藍→白→紅，海深-高程',
+      tags: ['both'],
+    },
+    {
+      name: 'Tide',
+      colors: ['#023858','#045a8d','#0570b0','#74a9cf','#bdc9e1','#f1eef6'],
+      desc: '深藍→淺紫，單色漸層，簡潔',
+      tags: ['night'],
+    },
+    {
+      name: 'Coral Reef',
+      colors: ['#1a535c','#4ecdc4','#95e1d3','#f7dc6f','#f39c12','#e74c3c'],
+      desc: '海洋綠→珊瑚橙紅，熱帶海洋感',
+      tags: ['both'],
+    },
+  ],
+  modern: [
+    {
+      name: 'Electric Blue',
+      colors: ['#0a0a23','#1a1a4e','#2d46b9','#3498db','#5dade2','#aed6f1'],
+      desc: '科技藍系，適合暗色 UI',
+      tags: ['night'],
+    },
+    {
+      name: 'Neon Sunset',
+      colors: ['#1a0a2e','#461170','#8e24aa','#e91e63','#ff6f00','#ffeb3b'],
+      desc: '紫→粉→橙→黃，霓虹風格',
+      tags: ['night'],
+    },
+    {
+      name: 'Mint Fresh',
+      colors: ['#e8f5e9','#a5d6a7','#66bb6a','#fdd835','#ff9800','#e65100'],
+      desc: '薄荷綠→黃→橙，清新活力',
+      tags: ['day'],
+    },
+    {
+      name: 'Rose Gold',
+      colors: ['#fce4ec','#f8bbd0','#f06292','#e91e63','#c2185b','#880e4f'],
+      desc: '粉→玫紅→深紅，單色系高雅',
+      tags: ['day'],
+    },
+    {
+      name: 'Arctic Aurora',
+      colors: ['#0d1b2a','#1b2838','#2e8b57','#48d1cc','#87ceeb','#fffacd'],
+      desc: '極地深藍→極光綠→冰藍→暖黃',
+      tags: ['night'],
+    },
+  ],
+  accessible: [
+    {
+      name: 'Cividis (色盲安全)',
+      colors: ['#00224e','#123570','#3b496c','#575d6d','#707173','#a5a7a9'],
+      desc: '藍→灰，紅綠色盲完全安全',
+      tags: ['both'],
+    },
+    {
+      name: 'Warm Cool Diverge',
+      colors: ['#313695','#4575b4','#abd9e9','#fee090','#f46d43','#a50026'],
+      desc: '藍冷→中性→紅暖，雙向發散',
+      tags: ['both'],
+    },
+    {
+      name: 'High Contrast',
+      colors: ['#000000','#3d0066','#cc0000','#ff6600','#ffcc00','#ffffff'],
+      desc: '黑→紫→紅→橙→黃→白，最大對比',
+      tags: ['both'],
+    },
+  ],
+};
+
+function renderCard(p) {
+  const gradient = p.colors.join(', ');
+  const tags = p.tags.map(t => `<span class="tag ${t}">${t === 'day' ? '日間' : t === 'night' ? '夜間' : '通用'}</span>`).join('');
+
+  return `
+    <div class="card ${p.current ? 'current' : ''}">
+      <div class="preview-row">
+        <div class="preview-dark" data-label="暗底" style="background: linear-gradient(to right, ${gradient}), #0e1117;
+          background-image: radial-gradient(ellipse at 30% 50%, ${p.colors[4]}88 0%, transparent 50%),
+                            radial-gradient(ellipse at 70% 40%, ${p.colors[2]}66 0%, transparent 40%),
+                            radial-gradient(ellipse at 50% 60%, ${p.colors[0]}44 0%, transparent 60%);
+          background-color: #0e1117;"></div>
+        <div class="preview-light" data-label="亮底" style="
+          background-image: radial-gradient(ellipse at 30% 50%, ${p.colors[4]}88 0%, transparent 50%),
+                            radial-gradient(ellipse at 70% 40%, ${p.colors[2]}66 0%, transparent 40%),
+                            radial-gradient(ellipse at 50% 60%, ${p.colors[0]}44 0%, transparent 60%);
+          background-color: #e8e8e8;"></div>
+      </div>
+      <div class="bar" style="background: linear-gradient(to right, ${gradient})"></div>
+      <div class="info">
+        <div class="name">${p.name}</div>
+        <div class="desc">${p.desc}</div>
+        <div class="colors">${p.colors.map(c => `<span style="background:${c}">${c}</span>`).join('')}</div>
+        <div>${tags}</div>
+      </div>
+    </div>
+  `;
+}
+
+for (const [section, items] of Object.entries(palettes)) {
+  document.getElementById(section).innerHTML = items.map(renderCard).join('');
+}
+</script>
+</body>
+</html>

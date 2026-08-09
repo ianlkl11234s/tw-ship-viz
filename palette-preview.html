@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ship Trajectory Palette Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #333; }
+
+  .header {
+    text-align: center; padding: 32px 20px 16px;
+    background: linear-gradient(135deg, #0a1628 0%, #1a365d 100%);
+    color: #fff;
+  }
+  .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .header p { font-size: 14px; color: #94a3b8; }
+
+  .speed-legend {
+    display: flex; justify-content: center; gap: 24px;
+    padding: 14px 20px; background: #fff; border-bottom: 1px solid #e2e8f0;
+    font-size: 13px; color: #64748b; flex-wrap: wrap;
+  }
+  .speed-legend span { font-weight: 600; }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  .section-title {
+    font-size: 13px; font-weight: 600; color: #94a3b8; text-transform: uppercase;
+    letter-spacing: 1.5px; margin: 32px 0 16px; padding-left: 4px;
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+  .card {
+    background: #fff; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s, transform 0.15s;
+  }
+  .card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); transform: translateY(-2px); }
+
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid #f1f5f9;
+  }
+  .card-name { font-size: 15px; font-weight: 600; color: #1e293b; }
+  .card-tag {
+    font-size: 11px; padding: 2px 8px; border-radius: 4px;
+    font-weight: 500;
+  }
+  .tag-current { background: #dbeafe; color: #1d4ed8; }
+  .tag-new { background: #f0fdf4; color: #16a34a; }
+  .tag-classic { background: #fef3c7; color: #b45309; }
+
+  .previews { display: grid; grid-template-columns: 1fr 1fr; }
+
+  .preview {
+    position: relative; height: 140px; overflow: hidden;
+  }
+  .preview canvas { width: 100%; height: 100%; }
+  .preview-label {
+    position: absolute; top: 8px; left: 10px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+    padding: 2px 7px; border-radius: 4px;
+  }
+  .label-day { background: rgba(255,255,255,0.85); color: #475569; }
+  .label-night { background: rgba(0,0,0,0.5); color: #e2e8f0; }
+
+  .swatches {
+    display: flex; align-items: center; gap: 4px;
+    padding: 10px 16px; border-top: 1px solid #f1f5f9;
+  }
+  .swatch-group { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .swatch-group-label { font-size: 10px; color: #94a3b8; text-align: center; }
+  .swatch-row { display: flex; gap: 3px; justify-content: center; }
+  .swatch {
+    width: 32px; height: 20px; border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.08);
+    position: relative; cursor: default;
+  }
+  .swatch::after {
+    content: attr(data-hex); position: absolute; bottom: -16px; left: 50%;
+    transform: translateX(-50%); font-size: 9px; color: #94a3b8;
+    white-space: nowrap; opacity: 0; transition: opacity 0.15s;
+    pointer-events: none;
+  }
+  .swatch:hover::after { opacity: 1; }
+
+  .divider-line {
+    width: 1px; height: 36px; background: #e2e8f0; margin: 0 8px; flex-shrink: 0;
+  }
+
+  .source-note {
+    font-size: 11px; color: #94a3b8; padding: 6px 16px 12px; line-height: 1.5;
+  }
+
+  @media (max-width: 700px) {
+    .grid { grid-template-columns: 1fr; }
+    .preview { height: 120px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Ship Trajectory Palette Preview</h1>
+  <p>軌跡配色方案預覽 — 速度分級：慢速 → 中速 → 快速 → 高速</p>
+</div>
+<div class="speed-legend">
+  <div>Level 1: <span>&le; 5 kn</span> (慢速/停泊)</div>
+  <div>Level 2: <span>5-10 kn</span> (中速)</div>
+  <div>Level 3: <span>10-15 kn</span> (快速)</div>
+  <div>Level 4: <span>&gt; 15 kn</span> (高速)</div>
+</div>
+
+<div class="container">
+  <div class="section-title">目前使用中</div>
+  <div class="grid" id="currentGrid"></div>
+
+  <div class="section-title">經典 Dataviz 配色</div>
+  <div class="grid" id="classicGrid"></div>
+
+  <div class="section-title">新建議方案</div>
+  <div class="grid" id="newGrid"></div>
+</div>
+
+<script>
+// === Palette Definitions ===
+// Each palette: { name, tag, source, day: [4 hex], night: [4 hex] }
+
+const PALETTES = {
+  current: [
+    {
+      name: '預設配色 (Default)',
+      source: '現有 THEMES.speed',
+      day:   ['#1d4ed8','#7b2cbf','#e85d04','#c41d3c'],
+      night: ['#4cc9f0','#72efdd','#fee440','#ff2d75'],
+    },
+    {
+      name: '藍色漸層 (Blue)',
+      source: '現有 SPEED_PALETTES.blue',
+      day:   ['#dbeafe','#93c5fd','#3b82f6','#1e40af'],
+      night: ['#dbeafe','#93c5fd','#3b82f6','#1e40af'],
+    },
+    {
+      name: '暖色調 (Warm)',
+      source: '現有 SPEED_PALETTES.warm',
+      day:   ['#fef08a','#fcd34d','#fb923c','#ef4444'],
+      night: ['#fef08a','#fcd34d','#fb923c','#ef4444'],
+    },
+    {
+      name: '霓虹配色 (Neon)',
+      source: '現有 SPEED_PALETTES.neon',
+      day:   ['#67e8f9','#a78bfa','#f472b6','#fb7185'],
+      night: ['#67e8f9','#a78bfa','#f472b6','#fb7185'],
+    },
+  ],
+
+  classic: [
+    {
+      name: 'Viridis',
+      source: 'matplotlib / D3 — 色盲友善',
+      day:   ['#440154','#31688e','#35b779','#fde725'],
+      night: ['#440154','#31688e','#35b779','#fde725'],
+    },
+    {
+      name: 'Plasma',
+      source: 'matplotlib — 高對比漸層',
+      day:   ['#0d0887','#9c179e','#ed7953','#f0f921'],
+      night: ['#0d0887','#9c179e','#ed7953','#f0f921'],
+    },
+    {
+      name: 'Inferno',
+      source: 'matplotlib — 暗到亮',
+      day:   ['#000004','#b73779','#fc8961','#fcffa4'],
+      night: ['#000004','#b73779','#fc8961','#fcffa4'],
+    },
+    {
+      name: 'Turbo',
+      source: 'Google AI — 改良彩虹',
+      day:   ['#30123b','#28bbec','#a2fc3c','#d93806'],
+      night: ['#30123b','#28bbec','#a2fc3c','#d93806'],
+    },
+    {
+      name: 'Cividis',
+      source: 'matplotlib — 色盲安全',
+      day:   ['#002051','#566573','#a8a167','#fdea45'],
+      night: ['#002051','#566573','#a8a167','#fdea45'],
+    },
+  ],
+
+  new: [
+    {
+      name: 'Ocean Depth',
+      source: '海洋主題 — 深海到淺灘',
+      day:   ['#023e8a','#0077b6','#00b4d8','#90e0ef'],
+      night: ['#0096c7','#48cae4','#90e0ef','#caf0f8'],
+    },
+    {
+      name: 'Sunset Harbor',
+      source: '日落港灣 — 紫到橘',
+      day:   ['#5b21b6','#a855f7','#f97316','#fbbf24'],
+      night: ['#7c3aed','#c084fc','#fb923c','#fde047'],
+    },
+    {
+      name: 'Maritime Signal',
+      source: '航海信號 — 清晰辨識度',
+      day:   ['#0ea5e9','#22c55e','#eab308','#ef4444'],
+      night: ['#38bdf8','#4ade80','#facc15','#f87171'],
+    },
+    {
+      name: 'Coral Reef',
+      source: '珊瑚礁 — 暖色海洋',
+      day:   ['#06b6d4','#14b8a6','#f59e0b','#e11d48'],
+      night: ['#22d3ee','#2dd4bf','#fbbf24','#fb7185'],
+    },
+    {
+      name: 'Arctic Aurora',
+      source: '極光 — 冷色漸變',
+      day:   ['#1e3a5f','#22d3ee','#a78bfa','#f0abfc'],
+      night: ['#06b6d4','#34d399','#a78bfa','#f0abfc'],
+    },
+    {
+      name: 'Tokyo Night',
+      source: 'VS Code 主題啟發 — 霓虹都市',
+      day:   ['#2563eb','#8b5cf6','#ec4899','#f43f5e'],
+      night: ['#60a5fa','#a78bfa','#f472b6','#fb7185'],
+    },
+    {
+      name: 'Ember',
+      source: '火焰 — 暗紅到亮黃',
+      day:   ['#7f1d1d','#dc2626','#f97316','#fef08a'],
+      night: ['#991b1b','#ef4444','#fb923c','#fef08a'],
+    },
+    {
+      name: 'Nord Frost',
+      source: 'Nord Theme — 北歐極簡',
+      day:   ['#5e81ac','#81a1c1','#88c0d0','#8fbcbb'],
+      night: ['#5e81ac','#81a1c1','#88c0d0','#8fbcbb'],
+    },
+    {
+      name: 'Dracula',
+      source: 'Dracula Theme — 開發者最愛',
+      day:   ['#6272a4','#8be9fd','#50fa7b','#ff79c6'],
+      night: ['#6272a4','#8be9fd','#50fa7b','#ff79c6'],
+    },
+    {
+      name: 'Catppuccin Mocha',
+      source: 'Catppuccin — 柔和對比',
+      day:   ['#89b4fa','#a6e3a1','#f9e2af','#f38ba8'],
+      night: ['#89b4fa','#a6e3a1','#f9e2af','#f38ba8'],
+    },
+    {
+      name: 'Solarized',
+      source: 'Ethan Schoonover — 經典雙模式',
+      day:   ['#268bd2','#2aa198','#b58900','#dc322f'],
+      night: ['#268bd2','#2aa198','#b58900','#dc322f'],
+    },
+    {
+      name: 'ColorBrewer Spectral',
+      source: 'Cynthia Brewer — 學術級',
+      day:   ['#2b83ba','#abdda4','#fdae61','#d7191c'],
+      night: ['#5e4fa2','#abdda4','#fee08b','#d53e4f'],
+    },
+  ],
+};
+
+// === Map Background Colors ===
+const BG_DAY = '#e8e0d8';    // CARTO Positron approx
+const BG_NIGHT = '#1a1a2e';  // CARTO Dark Matter approx
+const LAND_DAY = '#f2efe9';
+const LAND_NIGHT = '#242438';
+const WATER_DAY = '#d4e6f1';
+const WATER_NIGHT = '#0d1b2a';
+
+// === Canvas Drawing ===
+function hexToRgba(hex, alpha = 1) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function drawPreview(canvas, colors, isNight) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = rect.width;
+  const H = rect.height;
+
+  // Background
+  ctx.fillStyle = isNight ? BG_NIGHT : BG_DAY;
+  ctx.fillRect(0, 0, W, H);
+
+  // Simulated land mass (Taiwan-ish shape on the right)
+  ctx.fillStyle = isNight ? LAND_NIGHT : LAND_DAY;
+  ctx.beginPath();
+  ctx.moveTo(W * 0.72, H * 0.05);
+  ctx.quadraticCurveTo(W * 0.78, H * 0.25, W * 0.75, H * 0.45);
+  ctx.quadraticCurveTo(W * 0.73, H * 0.65, W * 0.68, H * 0.85);
+  ctx.quadraticCurveTo(W * 0.65, H * 0.95, W * 0.62, H * 1.0);
+  ctx.lineTo(W, H);
+  ctx.lineTo(W, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // Water tint
+  ctx.fillStyle = isNight ? 'rgba(13,27,42,0.3)' : 'rgba(212,230,241,0.3)';
+  ctx.fillRect(0, 0, W * 0.7, H);
+
+  // Grid lines (subtle)
+  ctx.strokeStyle = isNight ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < W; x += W / 8) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += H / 5) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  // Draw trajectory curves — 4 speed levels
+  const curves = [
+    // slow — gentle curve near coast
+    { color: colors[0], pts: [[W*0.55, H*0.15], [W*0.50, H*0.30], [W*0.52, H*0.50], [W*0.48, H*0.70], [W*0.50, H*0.90]], width: 2.0 },
+    // medium — wide arc
+    { color: colors[1], pts: [[W*0.10, H*0.80], [W*0.20, H*0.55], [W*0.35, H*0.40], [W*0.45, H*0.35], [W*0.55, H*0.25]], width: 2.0 },
+    // fast — cross-sea
+    { color: colors[2], pts: [[W*0.05, H*0.20], [W*0.15, H*0.25], [W*0.30, H*0.35], [W*0.45, H*0.50], [W*0.58, H*0.60]], width: 2.2 },
+    // high speed — straight dash
+    { color: colors[3], pts: [[W*0.08, H*0.60], [W*0.20, H*0.50], [W*0.35, H*0.25], [W*0.50, H*0.12]], width: 2.5 },
+  ];
+
+  for (const curve of curves) {
+    // Trail (fading tail)
+    const pts = curve.pts;
+
+    // Draw the full path with trail effect
+    for (let seg = 0; seg < pts.length - 1; seg++) {
+      const progress = seg / (pts.length - 1);
+      const alpha = 0.15 + progress * 0.75;
+      ctx.strokeStyle = hexToRgba(curve.color, alpha);
+      ctx.lineWidth = curve.width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(pts[seg][0], pts[seg][1]);
+
+      if (seg < pts.length - 2) {
+        const cpx = (pts[seg][0] + pts[seg+1][0]) / 2;
+        const cpy = (pts[seg][1] + pts[seg+1][1]) / 2;
+        ctx.quadraticCurveTo(pts[seg][0] * 0.5 + cpx * 0.5, pts[seg][1] * 0.5 + cpy * 0.5, pts[seg+1][0], pts[seg+1][1]);
+      } else {
+        ctx.lineTo(pts[seg+1][0], pts[seg+1][1]);
+      }
+      ctx.stroke();
+    }
+
+    // Ship dot at head
+    const head = pts[pts.length - 1];
+    ctx.beginPath();
+    ctx.arc(head[0], head[1], 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = hexToRgba(curve.color, 0.95);
+    ctx.fill();
+  }
+
+  // Speed labels
+  const labels = ['慢', '中', '快', '高'];
+  const labelPositions = [
+    [curves[0].pts.at(-1)[0] + 8, curves[0].pts.at(-1)[1]],
+    [curves[1].pts.at(-1)[0] + 8, curves[1].pts.at(-1)[1]],
+    [curves[2].pts.at(-1)[0] + 8, curves[2].pts.at(-1)[1]],
+    [curves[3].pts.at(-1)[0] + 8, curves[3].pts.at(-1)[1]],
+  ];
+
+  ctx.font = '9px -apple-system, sans-serif';
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = hexToRgba(colors[i], 0.9);
+    ctx.fillText(labels[i], labelPositions[i][0], labelPositions[i][1] + 3);
+  }
+}
+
+// === Build Cards ===
+function createCard(palette, tagClass) {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'card-header';
+
+  const tagLabel = tagClass === 'tag-current' ? '現有' : tagClass === 'tag-classic' ? '經典' : '建議';
+  header.innerHTML = `
+    <span class="card-name">${palette.name}</span>
+    <span class="card-tag ${tagClass}">${tagLabel}</span>
+  `;
+
+  // Previews
+  const previews = document.createElement('div');
+  previews.className = 'previews';
+
+  const dayPreview = document.createElement('div');
+  dayPreview.className = 'preview';
+  const dayCanvas = document.createElement('canvas');
+  dayPreview.appendChild(dayCanvas);
+  dayPreview.innerHTML += '<span class="preview-label label-day">DAY</span>';
+
+  const nightPreview = document.createElement('div');
+  nightPreview.className = 'preview';
+  const nightCanvas = document.createElement('canvas');
+  nightPreview.appendChild(nightCanvas);
+  nightPreview.innerHTML += '<span class="preview-label label-night">NIGHT</span>';
+
+  previews.appendChild(dayPreview);
+  previews.appendChild(nightPreview);
+
+  // Swatches
+  const swatches = document.createElement('div');
+  swatches.className = 'swatches';
+
+  const dayGroup = document.createElement('div');
+  dayGroup.className = 'swatch-group';
+  dayGroup.innerHTML = '<span class="swatch-group-label">Day</span>';
+  const dayRow = document.createElement('div');
+  dayRow.className = 'swatch-row';
+  for (const hex of palette.day) {
+    dayRow.innerHTML += `<div class="swatch" style="background:${hex}" data-hex="${hex}" title="${hex}"></div>`;
+  }
+  dayGroup.appendChild(dayRow);
+
+  const divider = document.createElement('div');
+  divider.className = 'divider-line';
+
+  const nightGroup = document.createElement('div');
+  nightGroup.className = 'swatch-group';
+  nightGroup.innerHTML = '<span class="swatch-group-label">Night</span>';
+  const nightRow = document.createElement('div');
+  nightRow.className = 'swatch-row';
+  for (const hex of palette.night) {
+    nightRow.innerHTML += `<div class="swatch" style="background:${hex}" data-hex="${hex}" title="${hex}"></div>`;
+  }
+  nightGroup.appendChild(nightRow);
+
+  swatches.appendChild(dayGroup);
+  swatches.appendChild(divider);
+  swatches.appendChild(nightGroup);
+
+  // Source note
+  const note = document.createElement('div');
+  note.className = 'source-note';
+  note.textContent = palette.source;
+
+  card.appendChild(header);
+  card.appendChild(previews);
+  card.appendChild(swatches);
+  card.appendChild(note);
+
+  // Deferred canvas draw
+  requestAnimationFrame(() => {
+    drawPreview(dayCanvas, palette.day, false);
+    drawPreview(nightCanvas, palette.night, true);
+  });
+
+  return card;
+}
+
+// === Render ===
+function render() {
+  const currentGrid = document.getElementById('currentGrid');
+  const classicGrid = document.getElementById('classicGrid');
+  const newGrid = document.getElementById('newGrid');
+
+  for (const p of PALETTES.current) currentGrid.appendChild(createCard(p, 'tag-current'));
+  for (const p of PALETTES.classic) classicGrid.appendChild(createCard(p, 'tag-classic'));
+  for (const p of PALETTES.new)     newGrid.appendChild(createCard(p, 'tag-new'));
+}
+
+render();
+
+// Redraw on resize
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    document.querySelectorAll('.preview canvas').forEach(c => {
+      const card = c.closest('.card');
+      const idx = [...card.parentElement.children].indexOf(card);
+      const section = card.parentElement.id;
+      const key = section.replace('Grid','');
+      const palette = PALETTES[key]?.[idx];
+      if (!palette) return;
+      const isNight = c.closest('.preview').querySelector('.label-night') !== null;
+      drawPreview(c, isNight ? palette.night : palette.day, isNight);
+    });
+  }, 200);
+});
+</script>
+</body>
+</html>
