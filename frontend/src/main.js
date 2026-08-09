@@ -8,6 +8,7 @@ import { createHexagonLayers } from './layers/hexagon.js';
 import { updateNativeHeatmap, hideNativeHeatmap } from './layers/heatmap.js';
 import { createQueryLayers, createQueryShipDots } from './layers/path.js';
 import { createPortLayers } from './layers/ports.js';
+import { addPortPolygonOverlay, updatePortPolygonStyle, setPortPolygonVisible } from './layers/portPolygons.js';
 import { initTimeline, getCurrentTime } from './controls/timeline.js';
 import { initQueryControls, enableQueryMode, disableQueryMode, handlePick } from './controls/query.js';
 import { updateLegend } from './ui/legends.js';
@@ -95,6 +96,9 @@ async function init() {
       },
     });
     map.addControl(deckOverlay);
+
+    // 港口碼頭 polygon（MapLibre 原生圖層）
+    addPortPolygonOverlay(map, getCurrentTheme());
 
     // 載入資料
     await loadData();
@@ -246,6 +250,9 @@ function applyTheme(theme) {
     if (deckOverlay) {
       map.addControl(deckOverlay);
     }
+    // 重建港口 polygon 原生圖層（style 切換後 source/layer 會被清除）
+    addPortPolygonOverlay(map, theme);
+    if (!showPorts) setPortPolygonVisible(map, false);
     updateLayers(getCurrentTime());
   });
 }
@@ -462,6 +469,7 @@ function setupPortToggle() {
   if (!cb) return;
   cb.addEventListener('change', () => {
     showPorts = cb.checked;
+    setPortPolygonVisible(map, showPorts);
     updateLayers(getCurrentTime());
   });
 }
